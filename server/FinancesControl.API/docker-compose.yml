@@ -1,0 +1,9 @@
+services:
+  postgres:
+    image: postgres
+    environment:
+      POSTGRES_DB: FinancesControl
+      POSTGRES_USER: fcuser
+      POSTGRES_PASSWORD: Wife_Pond_Buffalo1_Whose_Pitch
+    ports:
+      - 5432:5432
