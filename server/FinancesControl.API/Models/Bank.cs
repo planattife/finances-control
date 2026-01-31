@@ -4,7 +4,7 @@ namespace FinancesControl.API.Models;
 
 public class Bank : BaseModel
 {
-    public Bank(string name, BankAccountType accountType)
+    public Bank(string name, BankAccountType accountType, int id) : base(id)
     {
         Name = name;
         AccountType = accountType;

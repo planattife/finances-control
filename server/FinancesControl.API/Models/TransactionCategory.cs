@@ -2,7 +2,7 @@ namespace FinancesControl.API.Models;
 
 public class TransactionCategory : BaseModel
 {
-    public TransactionCategory(string name)
+    public TransactionCategory(string name, int id) : base(id)
     {
         Name = name;
         IsActive = true;

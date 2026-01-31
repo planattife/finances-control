@@ -4,7 +4,7 @@ namespace FinancesControl.API.Models;
 
 public class Transaction : BaseModel
 {
-    public Transaction(decimal amount, PaymentMethod paymentMethod, TransactionType transactionType, int categoryId)
+    public Transaction(decimal amount, PaymentMethod paymentMethod, TransactionType transactionType, int categoryId, int id) : base(id)
     {
         Amount = amount;
         PaymentMethod = paymentMethod;

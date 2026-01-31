@@ -4,7 +4,7 @@ namespace FinancesControl.API.Models;
 
 public class Card : BaseModel
 {
-    public Card(string cardNumber, DateTime expirationDate, CardNetwork cardNetwork, int bankId, CardType cardType)
+    public Card(string cardNumber, DateTime expirationDate, CardNetwork cardNetwork, int bankId, CardType cardType, int id) : base(id)
     {
         CardNumber = cardNumber;
         ExpirationDate = expirationDate;
