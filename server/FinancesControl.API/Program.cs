@@ -1,5 +1,7 @@
 using FinancesControl.API.Accounts.Repository;
 using FinancesControl.API.Accounts.Services;
+using FinancesControl.API.Banks.Repository;
+using FinancesControl.API.Banks.Services;
 using FinancesControl.API.Data;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -34,8 +36,13 @@ builder.Services.AddAuthorization();
 builder.Services.AddIdentityApiEndpoints<IdentityUser>()
     .AddEntityFrameworkStores<FinancesDbContext>();
 
+// Account Services
 builder.Services.AddScoped<IAccountService, AccountService>();
 builder.Services.AddScoped<IAccountRepository, AccountRepository>();
+
+// Bank Services
+builder.Services.AddScoped<IBankService, BankService>();
+builder.Services.AddScoped<IBankRepository, BankRepository>();
 
 var app = builder.Build();
 
