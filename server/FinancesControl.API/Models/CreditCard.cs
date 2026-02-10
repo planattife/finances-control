@@ -4,8 +4,8 @@ namespace FinancesControl.API.Models;
 
 public class CreditCard : Card
 {
-    public CreditCard(string cardNumber, DateTime expirationDate, CardNetwork cardNetwork, int bankId, int closingDay, int dueDateDay, CardType cardType = CardType.Credit) 
-    : base(cardNumber, expirationDate, cardNetwork, bankId, cardType)
+    public CreditCard(string cardNumber, DateTime expirationDate, CardNetwork cardNetwork, int bankId, int closingDay, int dueDateDay, CardType cardType = CardType.Credit, int id = 0) 
+    : base(cardNumber, expirationDate, cardNetwork, bankId, cardType, id)
     {
         ClosingDay = closingDay;
         DueDateDay = dueDateDay;

@@ -19,7 +19,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Controllers\" />
+    <Folder Include="Accounts\Controllers\" />
+    <Folder Include="Accounts\DTOs\" />
+    <Folder Include="Accounts\Repository\" />
+    <Folder Include="Accounts\Services\" />
     <Folder Include="Enums\" />
   </ItemGroup>
 
