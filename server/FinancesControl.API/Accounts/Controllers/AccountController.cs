@@ -1,11 +1,13 @@
 using FinancesControl.API.Accounts.DTOs;
 using FinancesControl.API.Accounts.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FinancesControl.API.Accounts.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class AccountController : ControllerBase
     {
         private readonly IAccountService _accountService;
