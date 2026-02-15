@@ -1,15 +1,13 @@
+using FinancesControl.API.Common;
 using FinancesControl.API.Models;
 
 namespace FinancesControl.API.Accounts;
 
 public class Account : BaseModel
 {
-    private const int MinNameLength = 2;
-    private const int MaxNameLength = 50;
-
     public Account(int id, string name, string userId) : base(id)
     {
-        ValidateName(name);
+        ValidationHelper.ValidateName(name, 2, 50);
         Name = name;
         UserId = userId;
         IsActive = true;
@@ -33,20 +31,8 @@ public class Account : BaseModel
 
     public void Rename(string newName)
     {
-        ValidateName(newName);
+        ValidationHelper.ValidateName(newName, 2, 50);
         Name = newName;
         Touch();
-    }
-
-    private static void ValidateName(string name)
-    {
-        if (string.IsNullOrWhiteSpace(name))
-            throw new ArgumentException("Name cannot be null or empty.");
-
-        if (name.Length < MinNameLength)
-            throw new ArgumentException($"Name must be at least {MinNameLength} characters long.");
-
-        if (name.Length > MaxNameLength)
-            throw new ArgumentException($"Name cannot exceed {MaxNameLength} characters.");
     }
 }
