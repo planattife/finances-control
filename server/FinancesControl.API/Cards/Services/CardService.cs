@@ -19,7 +19,7 @@ public class CardService : ICardService
     {
         var allCards = _repository.GetAll();
         int newId = allCards.Count == 0 ? 1 : allCards.Max(c => c.Id) + 1;
-        var card = new Card(request.CardNumber, request.ExpirationDate, request.CardNetwork, request.BankId, CardType.Debit, newId, request.CardName);
+        var card = new Card(CardMaskingHelper.MaskCardNumber(request.CardNumber), request.ExpirationDate, request.CardNetwork, request.BankId, CardType.Debit, newId, request.CardName);
         return _repository.Add(card);
     }
 
@@ -27,7 +27,7 @@ public class CardService : ICardService
     {
         var allCards = _repository.GetAll();
         int newId = allCards.Count == 0 ? 1 : allCards.Max(c => c.Id) + 1;
-        var card = new CreditCard(request.CardNumber, request.ExpirationDate, request.CardNetwork, request.BankId, request.ClosingDay, request.DueDateDay, CardType.Credit, newId, request.CardName);
+        var card = new CreditCard(CardMaskingHelper.MaskCardNumber(request.CardNumber), request.ExpirationDate, request.CardNetwork, request.BankId, request.ClosingDay, request.DueDateDay, CardType.Credit, newId, request.CardName);
         return _repository.Add(card);
     }
 
@@ -36,10 +36,9 @@ public class CardService : ICardService
         var card = _repository.GetById(cardId);
         if (card == null) return null;
 
-        var maskedNumber = CardMaskingHelper.MaskCardNumber(card.CardNumber);
         return new CardDetailResponse(
             card.Id,
-            maskedNumber,
+            card.CardNumber,
             card.CardType,
             card.CardNetwork,
             card.ExpirationDate,
@@ -56,14 +55,12 @@ public class CardService : ICardService
         var card = _repository.GetById(cardId);
         if (card == null || card is not CreditCard creditCard) return null;
 
-        var maskedNumber = CardMaskingHelper.MaskCardNumber(creditCard.CardNumber);
-
         var nextClosing = DateHelper.GetNextOccurrence(creditCard.ClosingDay);
         var nextDue = DateHelper.GetNextOccurrence(creditCard.DueDateDay);
 
         return new CreditCardDetailResponse(
             creditCard.Id,
-            maskedNumber,
+            creditCard.CardNumber,
             creditCard.CardType,
             creditCard.CardNetwork,
             creditCard.ExpirationDate,
@@ -82,7 +79,7 @@ public class CardService : ICardService
         return _repository.GetAll()
             .Select(c => new CardListItemResponse(
                 c.Id,
-                CardMaskingHelper.MaskCardNumber(c.CardNumber),
+                c.CardNumber,
                 c.CardType,
                 c.CardNetwork,
                 c.BankId,
