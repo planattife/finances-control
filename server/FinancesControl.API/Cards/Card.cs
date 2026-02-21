@@ -1,16 +1,16 @@
-using FinancesControl.API.Banks;
 using FinancesControl.API.Enums;
 
 namespace FinancesControl.API.Models;
 
 public class Card : BaseModel
 {
-    public Card(string cardNumber, DateTime expirationDate, CardNetwork cardNetwork, int bankId, CardType cardType, int id) : base(id)
+    public Card(string cardNumber, DateTime expirationDate, CardNetwork cardNetwork, int bankId, CardType cardType, int id, string? cardName = null) : base(id)
     {
         CardNumber = cardNumber;
         ExpirationDate = expirationDate;
         CardNetwork = cardNetwork;
         BankId = bankId;
+        CardName = cardName;
 
         IsActive = true;
         CardType = cardType;
@@ -22,10 +22,15 @@ public class Card : BaseModel
     public bool IsActive { get; private set; }
     public CardNetwork CardNetwork { get; private set; }
     public int BankId { get; private set; }
-    public Bank? Bank { get; private set; }
-
+    public string? CardName { get; private set; }
+    
     public void SetIsActive(bool isActive)
     {
         IsActive = isActive;
+        Touch();
+    }
+
+    public void UpdateCardName(string cardName) {
+        CardName = cardName;
     }
 }
