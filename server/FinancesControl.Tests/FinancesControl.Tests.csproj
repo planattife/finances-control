@@ -32,6 +32,10 @@
     <Folder Include="Banks\Controllers\" />
     <Folder Include="Banks\Models\" />
     <Folder Include="Banks\Services\" />
+    <Folder Include="Cards\" />
+    <Folder Include="Cards\Controllers\" />
+    <Folder Include="Cards\Models\" />
+    <Folder Include="Cards\Services\" />
   </ItemGroup>
 
 </Project>
