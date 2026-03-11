@@ -1,0 +1,67 @@
+using FinancesControl.API.TransactionCategories.DTOs;
+using FinancesControl.API.TransactionCategories.Repository;
+using FinancesControl.API.Models;
+
+namespace FinancesControl.API.TransactionCategories.Services;
+
+public class TransactionCategoryService : ITransactionCategoryService
+{
+    private readonly ITransactionCategoryRepository _repository;
+
+    public TransactionCategoryService(ITransactionCategoryRepository repository)
+    {
+        _repository = repository;
+    }
+
+    public int CreateCategory(CreateTransactionCategoryRequest request)
+    {
+        var all = _repository.GetAll();
+        int newId = all.Count == 0 ? 1 : all.Max(c => c.Id) + 1;
+        var category = new FinancesControl.API.Models.TransactionCategory(request.Name, newId);
+        return _repository.Add(category);
+    }
+
+    public TransactionCategoryDetailResponse? GetById(int categoryId)
+    {
+        var cat = _repository.GetById(categoryId);
+        if (cat == null) return null;
+        return new TransactionCategoryDetailResponse(
+            cat.Id,
+            cat.Name,
+            cat.IsActive ? "Active" : "Inactive",
+            cat.CreatedAt,
+            cat.UpdatedAt
+        );
+    }
+
+    public List<TransactionCategoryListItemResponse> GetAll()
+    {
+        return _repository.GetAll()
+            .Select(c => new TransactionCategoryListItemResponse(c.Id, c.Name))
+            .ToList();
+    }
+
+    public bool Rename(int categoryId, RenameTransactionCategoryRequest request)
+    {
+        var cat = _repository.GetById(categoryId);
+        if (cat == null) return false;
+        cat.Rename(request.Name);
+        return _repository.Update(cat);
+    }
+
+    public bool Activate(int categoryId)
+    {
+        var cat = _repository.GetById(categoryId);
+        if (cat == null) return false;
+        cat.Activate();
+        return _repository.Update(cat);
+    }
+
+    public bool Deactivate(int categoryId)
+    {
+        var cat = _repository.GetById(categoryId);
+        if (cat == null) return false;
+        cat.Deactivate();
+        return _repository.Update(cat);
+    }
+}
