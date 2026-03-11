@@ -4,6 +4,8 @@ using FinancesControl.API.Banks.Repository;
 using FinancesControl.API.Banks.Services;
 using FinancesControl.API.Cards.Repository;
 using FinancesControl.API.Cards.Services;
+using FinancesControl.API.TransactionCategories.Repository;
+using FinancesControl.API.TransactionCategories.Services;
 using FinancesControl.API.Data;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -49,6 +51,10 @@ builder.Services.AddScoped<IBankRepository, BankRepository>();
 // Card Services
 builder.Services.AddScoped<ICardService, CardService>();
 builder.Services.AddScoped<ICardRepository, CardRepository>();
+
+// Transaction category services
+builder.Services.AddScoped<ITransactionCategoryService, TransactionCategoryService>();
+builder.Services.AddScoped<ITransactionCategoryRepository, TransactionCategoryRepository>();
 
 var app = builder.Build();
 
