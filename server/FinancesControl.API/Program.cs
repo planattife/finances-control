@@ -11,6 +11,8 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.Filters;
+using FinancesControl.API.Transactions.Repository;
+using FinancesControl.API.Transactions.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -52,9 +54,14 @@ builder.Services.AddScoped<IBankRepository, BankRepository>();
 builder.Services.AddScoped<ICardService, CardService>();
 builder.Services.AddScoped<ICardRepository, CardRepository>();
 
+
 // Transaction category services
 builder.Services.AddScoped<ITransactionCategoryService, TransactionCategoryService>();
 builder.Services.AddScoped<ITransactionCategoryRepository, TransactionCategoryRepository>();
+
+// Transaction services
+builder.Services.AddScoped<ITransactionService, TransactionService>();
+builder.Services.AddScoped<ITransactionRepository, TransactionRepository>();
 
 var app = builder.Build();
 
