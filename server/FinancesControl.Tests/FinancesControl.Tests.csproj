@@ -36,6 +36,7 @@
     <Folder Include="Cards\Controllers\" />
     <Folder Include="Cards\Models\" />
     <Folder Include="Cards\Services\" />
+    <Folder Include="Transactions\" />
   </ItemGroup>
 
 </Project>
