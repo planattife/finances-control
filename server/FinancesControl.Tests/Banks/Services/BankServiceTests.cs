@@ -43,12 +43,13 @@ public class BankServiceTests
     public void CreateBank_GeneratesAutoIncrementingId()
     {
         // Arrange
+        string userId = "mock-user-id";
         var request = new CreateBankRequest("Test Bank", BankAccountType.Savings);
         var existingBanks = new List<Bank>
         {
-            new("Existing Bank 1", BankAccountType.Check, 1),
-            new("Existing Bank 2", BankAccountType.Savings, 2),
-            new("Existing Bank 3", BankAccountType.Check, 3)
+            new("Existing Bank 1", BankAccountType.Check, 1, userId),
+            new("Existing Bank 2", BankAccountType.Savings, 2, userId),
+            new("Existing Bank 3", BankAccountType.Check, 3, userId)
         };
         _repository.GetAll().Returns(existingBanks);
         _repository.Add(Arg.Any<Bank>()).Returns(4);
@@ -151,7 +152,8 @@ public class BankServiceTests
     {
         // Arrange
         var bankId = 1;
-        var bank = new Bank("Test Bank", BankAccountType.Check, bankId);
+        var userId = "mock-user-id";
+        var bank = new Bank("Test Bank", BankAccountType.Check, bankId, userId);
         _repository.GetById(bankId).Returns(bank);
 
         // Act
@@ -184,7 +186,8 @@ public class BankServiceTests
     {
         // Arrange
         var bankId = 1;
-        var bank = new Bank("Test Bank", BankAccountType.Check, bankId);
+        var userId = "mock-user-id";
+        var bank = new Bank("Test Bank", BankAccountType.Check, bankId, userId);
         bank.Deactivate();
         _repository.GetById(bankId).Returns(bank);
 
@@ -204,11 +207,12 @@ public class BankServiceTests
     public void GetAll_WithMultipleBanks_ReturnsAllBanks()
     {
         // Arrange
+        var userId = "mock-user-id";
         var banks = new List<Bank>
         {
-            new("Bank 1", BankAccountType.Check, 1),
-            new("Bank 2", BankAccountType.Savings, 2),
-            new("Bank 3", BankAccountType.Check, 3)
+            new("Bank 1", BankAccountType.Check, 1, userId),
+            new("Bank 2", BankAccountType.Savings, 2, userId),
+            new("Bank 3", BankAccountType.Check, 3, userId)
         };
         _repository.GetAll().Returns(banks);
 
@@ -242,8 +246,9 @@ public class BankServiceTests
     public void Update_WithValidIdAndName_ReturnsTrue()
     {
         // Arrange
+        var userId = "mock-user-id";
         var bankId = 1;
-        var bank = new Bank("Old Name", BankAccountType.Check, bankId);
+        var bank = new Bank("Old Name", BankAccountType.Check, bankId, userId);
         var request = new UpdateBankRequest("New Name", BankAccountType.Savings);
         _repository.GetById(bankId).Returns(bank);
         _repository.Update(Arg.Any<Bank>()).Returns(true);
@@ -276,8 +281,9 @@ public class BankServiceTests
     public void Update_ChangesAccountType()
     {
         // Arrange
+        var userId = "mock-user-id";
         var bankId = 1;
-        var bank = new Bank("Test Bank", BankAccountType.Check, bankId);
+        var bank = new Bank("Test Bank", BankAccountType.Check, bankId, userId);
         var request = new UpdateBankRequest("Test Bank", BankAccountType.Savings);
         _repository.GetById(bankId).Returns(bank);
         _repository.Update(Arg.Any<Bank>()).Returns(true);
@@ -298,8 +304,9 @@ public class BankServiceTests
     public void Activate_WithValidId_ReturnsTrue()
     {
         // Arrange
+        var userId = "mock-user-id";
         var bankId = 1;
-        var bank = new Bank("Test Bank", BankAccountType.Check, bankId);
+        var bank = new Bank("Test Bank", BankAccountType.Check, bankId, userId);
         bank.Deactivate();
         _repository.GetById(bankId).Returns(bank);
         _repository.Update(Arg.Any<Bank>()).Returns(true);
@@ -332,8 +339,9 @@ public class BankServiceTests
     public void Activate_UpdatesTimestamp()
     {
         // Arrange
+        var userId = "mock-user-id";
         var bankId = 1;
-        var bank = new Bank("Test Bank", BankAccountType.Check, bankId);
+        var bank = new Bank("Test Bank", BankAccountType.Check, bankId, userId);
         bank.Deactivate();
         var originalUpdatedAt = bank.UpdatedAt ?? DateTime.MinValue;
         _repository.GetById(bankId).Returns(bank);
@@ -354,8 +362,9 @@ public class BankServiceTests
     public void Deactivate_WithValidId_ReturnsTrue()
     {
         // Arrange
+        var userId = "mock-user-id";
         var bankId = 1;
-        var bank = new Bank("Test Bank", BankAccountType.Check, bankId);
+        var bank = new Bank("Test Bank", BankAccountType.Check, bankId, userId);
         _repository.GetById(bankId).Returns(bank);
         _repository.Update(Arg.Any<Bank>()).Returns(true);
 
@@ -387,8 +396,9 @@ public class BankServiceTests
     public void Deactivate_UpdatesTimestamp()
     {
         // Arrange
+        var userId = "mock-user-id";
         var bankId = 1;
-        var bank = new Bank("Test Bank", BankAccountType.Check, bankId);
+        var bank = new Bank("Test Bank", BankAccountType.Check, bankId, userId);
         var originalUpdatedAt = bank.UpdatedAt ?? DateTime.MinValue;
         _repository.GetById(bankId).Returns(bank);
         _repository.Update(Arg.Any<Bank>()).Returns(true);

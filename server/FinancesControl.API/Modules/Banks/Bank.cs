@@ -6,17 +6,19 @@ namespace FinancesControl.API.Banks;
 
 public class Bank : BaseModel
 {
-    public Bank(string name, BankAccountType accountType, int id) : base(id)
+    public Bank(string name, BankAccountType accountType, int id, string userId) : base(id)
     {
         ValidationHelper.ValidateName(name, 2 , 50);
         Name = name;
         AccountType = accountType;
         IsActive = true;
+        UserId = userId;
     }
 
     public string Name { get; private set; }
     public BankAccountType AccountType { get; private set; }
     public bool IsActive { get; private set; }
+    public string UserId { get; private set; }
 
     public void Activate()
     {
