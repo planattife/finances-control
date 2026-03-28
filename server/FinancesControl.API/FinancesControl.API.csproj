@@ -18,16 +18,4 @@
     <PackageReference Include="Swashbuckle.AspNetCore.Filters" Version="8.0.3" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Accounts\Controllers\" />
-    <Folder Include="Accounts\DTOs\" />
-    <Folder Include="Accounts\Repository\" />
-    <Folder Include="Accounts\Services\" />
-    <Folder Include="Enums\" />
-    <Folder Include="Models\" />
-    <Folder Include="Transactions\Controllers\" />
-    <Folder Include="Transactions\Repository\" />
-    <Folder Include="Transactions\Services\" />
-  </ItemGroup>
-
 </Project>
