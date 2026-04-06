@@ -26,17 +26,17 @@ public class TransactionService : ITransactionService
 			case PaymentMethod.Debit:
 				if (request.CardId == null || request.CardId <= 0)
 					throw new ArgumentException("Card must be provided for card transactions.");
-				transaction = new CardTransaction(request.Amount, request.PaymentMethod, request.TransactionType,  request.TransactionDate, request.CategoryId, request.CardId.Value, newId);
+				transaction = new CardTransaction(request.Amount, request.PaymentMethod, request.TransactionType,  request.TransactionDate, request.CategoryId, request.AccountId, request.CardId.Value, newId);
 				break;
 			case PaymentMethod.Pix:
 			case PaymentMethod.BankSlip:
 			case PaymentMethod.BankTransfer:
 				if (request.BankId == null || request.BankId <= 0)
 					throw new ArgumentException("Bank must be provided for general transactions.");
-				transaction = new GeneralTransaction(request.Amount, request.PaymentMethod, request.TransactionType, request.TransactionDate, request.CategoryId, request.BankId.Value, newId);
+				transaction = new GeneralTransaction(request.Amount, request.PaymentMethod, request.TransactionType, request.TransactionDate, request.CategoryId, request.AccountId, request.BankId.Value, newId);
 				break;
 			case PaymentMethod.Cash:
-				transaction = new Transaction(request.Amount, request.PaymentMethod, request.TransactionType, request.TransactionDate, request.CategoryId, newId);
+				transaction = new Transaction(request.Amount, request.PaymentMethod, request.TransactionType, request.TransactionDate, request.CategoryId, request.AccountId, newId);
 				break;
 			default:
 				throw new ArgumentException("Unsupported payment method");

@@ -12,7 +12,7 @@ public class TransactionTests
     [Fact]
     public void Constructor_Valid_SetsProperties()
     {
-        var t = new Transaction(100, PaymentMethod.Cash, TransactionType.Expense, DateTime.UtcNow, 1, 2);
+        var t = new Transaction(100, PaymentMethod.Cash, TransactionType.Expense, DateTime.UtcNow, 1, 10, 2);
         t.Id.Should().Be(2);
         t.Amount.Should().Be(100);
         t.PaymentMethod.Should().Be(PaymentMethod.Cash);
@@ -24,35 +24,35 @@ public class TransactionTests
     [Fact]
     public void Constructor_ZeroAmount_Throws()
     {
-        var ex = Record.Exception(() => new Transaction(0, PaymentMethod.Cash, TransactionType.Expense, DateTime.UtcNow, 1, 2));
+        var ex = Record.Exception(() => new Transaction(0, PaymentMethod.Cash, TransactionType.Expense, DateTime.UtcNow, 1, 10, 2));
         ex.Should().BeNull("Zero is allowed for amount");
     }
 
     [Fact]
     public void ChangeAmount_ToNegative_Throws()
     {
-        var t = new Transaction(100, PaymentMethod.Cash, TransactionType.Expense, DateTime.UtcNow, 1, 2);
+        var t = new Transaction(100, PaymentMethod.Cash, TransactionType.Expense, DateTime.UtcNow, 1, 10, 2);
         Assert.Throws<ArgumentException>(() => t.ChangeAmount(-1));
     }
 
     [Fact]
     public void ChangeCategory_ToZero_Throws()
     {
-        var t = new Transaction(100, PaymentMethod.Cash, TransactionType.Expense, DateTime.UtcNow, 1, 2);
+        var t = new Transaction(100, PaymentMethod.Cash, TransactionType.Expense, DateTime.UtcNow, 1, 10, 2);
         Assert.Throws<ArgumentException>(() => t.ChangeCategory(0));
     }
 
     [Fact]
     public void ChangeCategory_ToNegative_Throws()
     {
-        var t = new Transaction(100, PaymentMethod.Cash, TransactionType.Expense, DateTime.UtcNow, 1, 2);
+        var t = new Transaction(100, PaymentMethod.Cash, TransactionType.Expense, DateTime.UtcNow, 1, 10, 2);
         Assert.Throws<ArgumentException>(() => t.ChangeCategory(-5));
     }
 
     [Fact]
     public void Deactivate_Twice_StaysInactive()
     {
-        var t = new Transaction(100, PaymentMethod.Cash, TransactionType.Expense, DateTime.UtcNow, 1, 2);
+        var t = new Transaction(100, PaymentMethod.Cash, TransactionType.Expense, DateTime.UtcNow, 1, 10, 2);
         t.Deactivate();
         t.IsActive.Should().BeFalse();
         t.Deactivate();
@@ -62,7 +62,7 @@ public class TransactionTests
     [Fact]
     public void ChangeAmount_UpdatesAmount_AndTouches()
     {
-        var t = new Transaction(100, PaymentMethod.Cash, TransactionType.Expense, DateTime.UtcNow, 1, 2);
+        var t = new Transaction(100, PaymentMethod.Cash, TransactionType.Expense, DateTime.UtcNow, 1, 10, 2);
         var originalUpdated = t.UpdatedAt ?? DateTime.MinValue;
         t.ChangeAmount(200);
         t.Amount.Should().Be(200);
@@ -72,7 +72,7 @@ public class TransactionTests
     [Fact]
     public void ChangeCategory_UpdatesCategory_AndTouches()
     {
-        var t = new Transaction(100, PaymentMethod.Cash, TransactionType.Expense, DateTime.UtcNow, 1, 2);
+        var t = new Transaction(100, PaymentMethod.Cash, TransactionType.Expense, DateTime.UtcNow, 1, 10, 2);
         var originalUpdated = t.UpdatedAt ?? DateTime.MinValue;
         t.ChangeCategory(5);
         t.CategoryId.Should().Be(5);
@@ -82,7 +82,7 @@ public class TransactionTests
     [Fact]
     public void Deactivate_SetsInactive_AndTouches()
     {
-        var t = new Transaction(100, PaymentMethod.Cash, TransactionType.Expense, DateTime.UtcNow, 1, 2);
+        var t = new Transaction(100, PaymentMethod.Cash, TransactionType.Expense, DateTime.UtcNow, 1, 1, 2);
         t.Deactivate();
         t.IsActive.Should().BeFalse();
         t.UpdatedAt.Should().NotBeNull();
@@ -94,7 +94,7 @@ public class TransactionTests
     [InlineData(-100)]
     public void Constructor_InvalidAmount_Throws(decimal amount)
     {
-        Assert.Throws<ArgumentException>(() => new Transaction(amount, PaymentMethod.Cash, TransactionType.Expense, DateTime.UtcNow, 1, 2));
+        Assert.Throws<ArgumentException>(() => new Transaction(amount, PaymentMethod.Cash, TransactionType.Expense, DateTime.UtcNow, 1, 10, 2));
     }
 
     [Theory]
@@ -102,6 +102,6 @@ public class TransactionTests
     [InlineData(-1)]
     public void Constructor_InvalidCategoryId_Throws(int categoryId)
     {
-        Assert.Throws<ArgumentException>(() => new Transaction(100, PaymentMethod.Cash, TransactionType.Expense, DateTime.UtcNow, categoryId, 2));
+        Assert.Throws<ArgumentException>(() => new Transaction(100, PaymentMethod.Cash, TransactionType.Expense, DateTime.UtcNow, categoryId, 10, 2));
     }
 }

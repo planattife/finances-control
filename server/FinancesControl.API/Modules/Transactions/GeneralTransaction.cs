@@ -5,7 +5,7 @@ namespace FinancesControl.API.Models;
 
 public class GeneralTransaction : Transaction
 {
-    public GeneralTransaction(decimal amount, PaymentMethod paymentMethod, TransactionType transactionType, DateTime transactionDate, int categoryId, int bankId, int id) : base(amount, paymentMethod, transactionType, transactionDate, categoryId, id)
+    public GeneralTransaction(decimal amount, PaymentMethod paymentMethod, TransactionType transactionType, DateTime transactionDate, int categoryId, int bankId, int accountId, int id) : base(amount, paymentMethod, transactionType, transactionDate, categoryId, accountId, id)
     {
         BankId = bankId;
     }

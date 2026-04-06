@@ -5,12 +5,14 @@ CREATE TABLE IF NOT EXISTS "Transactions" (
     "PaymentMethod" INT NOT NULL,
     "TransactionType" INT NOT NULL,
     "CategoryId" BIGINT NOT NULL,
+    "AccountId" BIGINT NOT NULL,
     "IsActive" BOOLEAN NOT NULL,
     "BankId" BIGINT NULL,
     "CardId" BIGINT NULL,
     "CreatedAt" TIMESTAMP NOT NULL DEFAULT (now() AT TIME ZONE 'utc'),
     "UpdatedAt" TIMESTAMP NULL,
     CONSTRAINT "FK_Transactions_TransactionCategories_CategoryId" FOREIGN KEY ("CategoryId") REFERENCES "TransactionCategories"("Id") ON DELETE RESTRICT,
+    CONSTRAINT "FK_Transactions_Accounts_AccountId" FOREIGN KEY ("AccountId") REFERENCES "Accounts"("Id") ON DELETE RESTRICT,
     CONSTRAINT "FK_Transactions_Banks_BankId" FOREIGN KEY ("BankId") REFERENCES "Banks"("Id") ON DELETE RESTRICT,
     CONSTRAINT "FK_Transactions_Cards_CardId" FOREIGN KEY ("CardId") REFERENCES "Cards"("Id") ON DELETE RESTRICT
 );

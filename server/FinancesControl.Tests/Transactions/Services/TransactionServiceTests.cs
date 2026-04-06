@@ -23,7 +23,7 @@ public class TransactionServiceTests
     [Fact]
     public void CreateTransaction_WithValidRequest_ReturnsNewId()
     {
-        var request = new CreateTransactionRequest { Amount = 100, PaymentMethod = PaymentMethod.Cash, CategoryId = 1, TransactionType = TransactionType.Expense, TransactionDate = DateTime.UtcNow };
+        var request = new CreateTransactionRequest { Amount = 100, PaymentMethod = PaymentMethod.Cash, CategoryId = 1, TransactionType = TransactionType.Expense, TransactionDate = DateTime.UtcNow, AccountId = 1 };
         _repository.GetAll().Returns(new List<Transaction>());
         _repository.Add(Arg.Any<Transaction>()).Returns(1);
         var result = _service.CreateTransaction(request);
@@ -83,7 +83,7 @@ public class TransactionServiceTests
     [Fact]
     public void GetById_DeletedTransaction_ReturnsInactiveStatus()
     {
-        var t = new Transaction(100, PaymentMethod.Cash, TransactionType.Expense, DateTime.UtcNow, 1, 5);
+        var t = new Transaction(100, PaymentMethod.Cash, TransactionType.Expense, DateTime.UtcNow, 1, 1, 5);
         t.Deactivate();
         _repository.GetById(5).Returns(t);
         var result = _service.GetById(5);
@@ -93,7 +93,7 @@ public class TransactionServiceTests
     [Fact]
     public void GetById_Exists_ReturnsDetail()
     {
-        var model = new Transaction(100, PaymentMethod.Cash, TransactionType.Expense, DateTime.UtcNow, 1, 5);
+        var model = new Transaction(100, PaymentMethod.Cash, TransactionType.Expense, DateTime.UtcNow, 1, 1, 5);
         _repository.GetById(5).Returns(model);
         var result = _service.GetById(5);
         result.Should().NotBeNull();
@@ -106,7 +106,7 @@ public class TransactionServiceTests
     [Fact]
     public void Delete_ExistingTransaction_ReturnsTrue()
     {
-        var t = new Transaction(100, PaymentMethod.Cash, TransactionType.Expense, DateTime.UtcNow, 1, 5);
+        var t = new Transaction(100, PaymentMethod.Cash, TransactionType.Expense, DateTime.UtcNow, 1, 1, 5);
         _repository.GetById(5).Returns(t);
         _repository.Update(t).Returns(true);
         var result = _service.Delete(5);
@@ -125,7 +125,7 @@ public class TransactionServiceTests
     [Fact]
     public void UpdateAmount_ValidTransaction_UpdatesAmount()
     {
-        var t = new Transaction(100, PaymentMethod.Cash, TransactionType.Expense, DateTime.UtcNow, 1, 5);
+        var t = new Transaction(100, PaymentMethod.Cash, TransactionType.Expense, DateTime.UtcNow, 1, 1, 5);
         _repository.GetById(5).Returns(t);
         _repository.Update(t).Returns(true);
         var req = new UpdateTransactionAmountRequest { NewAmount = 200 };
@@ -146,7 +146,7 @@ public class TransactionServiceTests
     [Fact]
     public void UpdateAmount_NegativeAmount_Throws()
     {
-        var t = new Transaction(100, PaymentMethod.Cash, TransactionType.Expense, DateTime.UtcNow, 1, 5);
+        var t = new Transaction(100, PaymentMethod.Cash, TransactionType.Expense, DateTime.UtcNow, 1, 1, 5);
         _repository.GetById(5).Returns(t);
         var req = new UpdateTransactionAmountRequest { NewAmount = -100 };
         Assert.Throws<ArgumentException>(() => _service.UpdateAmount(5, req));
@@ -156,7 +156,7 @@ public class TransactionServiceTests
     [Fact]
     public void UpdateCategory_ValidTransaction_UpdatesCategory()
     {
-        var t = new Transaction(100, PaymentMethod.Cash, TransactionType.Expense, DateTime.UtcNow, 1, 5);
+        var t = new Transaction(100, PaymentMethod.Cash, TransactionType.Expense, DateTime.UtcNow, 1, 1, 5);
         _repository.GetById(5).Returns(t);
         _repository.Update(t).Returns(true);
         var req = new UpdateTransactionCategoryRequest { NewCategoryId = 7 };
@@ -177,7 +177,7 @@ public class TransactionServiceTests
     [Fact]
     public void UpdateCategory_ZeroCategoryId_Throws()
     {
-        var t = new Transaction(100, PaymentMethod.Cash, TransactionType.Expense, DateTime.UtcNow, 1, 5);
+        var t = new Transaction(100, PaymentMethod.Cash, TransactionType.Expense, DateTime.UtcNow, 1, 1, 5);
         _repository.GetById(5).Returns(t);
         var req = new UpdateTransactionCategoryRequest { NewCategoryId = 0 };
         Assert.Throws<ArgumentException>(() => _service.UpdateCategory(5, req));
