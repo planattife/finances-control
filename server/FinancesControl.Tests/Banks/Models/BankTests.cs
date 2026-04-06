@@ -17,14 +17,14 @@ public class BankTests
     public void Constructor_WithInvalidName_ThrowsArgumentException(string invalidName)
     {
         // Act & Assert
-        Assert.Throws<ArgumentException>(() => new Bank(invalidName, BankAccountType.Check, 1));
+        Assert.Throws<ArgumentException>(() => new Bank(invalidName, BankAccountType.Check, 1, "123"));
     }
 
     [Fact]
     public void Constructor_WithNameTooShort_ThrowsArgumentException()
     {
         // Act & Assert
-        Assert.Throws<ArgumentException>(() => new Bank("A", BankAccountType.Check, 1));
+        Assert.Throws<ArgumentException>(() => new Bank("A", BankAccountType.Check, 1, "123"));
     }
 
     [Fact]
@@ -34,14 +34,14 @@ public class BankTests
         var longName = new string('A', 51);
 
         // Act & Assert
-        Assert.Throws<ArgumentException>(() => new Bank(longName, BankAccountType.Check, 1));
+        Assert.Throws<ArgumentException>(() => new Bank(longName, BankAccountType.Check, 1, "123"));
     }
 
     [Fact]
     public void Constructor_WithValidData_CreatesBank()
     {
         // Act
-        var bank = new Bank("Valid Bank", BankAccountType.Check, 1);
+        var bank = new Bank("Valid Bank", BankAccountType.Check, 1, "123");
 
         // Assert
         bank.Id.Should().Be(1);
@@ -55,7 +55,7 @@ public class BankTests
     public void Constructor_WithSavingsAccount_CreatesSavingsBank()
     {
         // Act
-        var bank = new Bank("Savings Bank", BankAccountType.Savings, 1);
+        var bank = new Bank("Savings Bank", BankAccountType.Savings, 1, "123");
 
         // Assert
         bank.AccountType.Should().Be(BankAccountType.Savings);
@@ -69,7 +69,7 @@ public class BankTests
     public void Activate_WhenInactive_BecomesActive()
     {
         // Arrange
-        var bank = new Bank("Test Bank", BankAccountType.Check, 1);
+        var bank = new Bank("Test Bank", BankAccountType.Check, 1, "123");
         bank.Deactivate();
 
         // Act
@@ -83,7 +83,7 @@ public class BankTests
     public void Activate_UpdatesTimestamp()
     {
         // Arrange
-        var bank = new Bank("Test Bank", BankAccountType.Check, 1);
+        var bank = new Bank("Test Bank", BankAccountType.Check, 1, "123");
         bank.Deactivate();
         var originalUpdatedAt = bank.UpdatedAt ?? DateTime.MinValue;
 
@@ -102,7 +102,7 @@ public class BankTests
     public void Deactivate_WhenActive_BecomesInactive()
     {
         // Arrange
-        var bank = new Bank("Test Bank", BankAccountType.Check, 1);
+        var bank = new Bank("Test Bank", BankAccountType.Check, 1, "123");
 
         // Act
         bank.Deactivate();
@@ -115,7 +115,7 @@ public class BankTests
     public void Deactivate_UpdatesTimestamp()
     {
         // Arrange
-        var bank = new Bank("Test Bank", BankAccountType.Check, 1);
+        var bank = new Bank("Test Bank", BankAccountType.Check, 1, "123");
         var originalUpdatedAt = bank.UpdatedAt ?? DateTime.MinValue;
 
         // Act

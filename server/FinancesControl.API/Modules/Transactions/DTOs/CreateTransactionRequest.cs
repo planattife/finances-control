@@ -8,6 +8,8 @@ public class CreateTransactionRequest
     public PaymentMethod PaymentMethod { get; set; }
     public TransactionType TransactionType { get; set; }
     public int CategoryId { get; set; }
+    public int AccountId { get; set; }
     public int? CardId { get; set; }
     public int? BankId { get; set; }
-    public DateTime TransactionDate { get; set; }}
+    public DateTime TransactionDate { get; set; }
+}

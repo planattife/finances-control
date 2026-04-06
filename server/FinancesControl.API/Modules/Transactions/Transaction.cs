@@ -2,17 +2,20 @@ using FinancesControl.API.Enums;
 
 namespace FinancesControl.API.Models;
 
+
 public class Transaction : BaseModel
 {
-    public Transaction(decimal amount, PaymentMethod paymentMethod, TransactionType transactionType, DateTime transactionDate, int categoryId, int id) : base(id)
+    public Transaction(decimal amount, PaymentMethod paymentMethod, TransactionType transactionType, DateTime transactionDate, int categoryId, int accountId, int id) : base(id)
     {
         ValidateAmount(amount);
         ValidateCategoryId(categoryId);
+        ValidateAccountId(accountId);
         Amount = amount;
         PaymentMethod = paymentMethod;
         TransactionType = transactionType;
         TransactionDate = transactionDate;
         CategoryId = categoryId;
+        AccountId = accountId;
         IsActive = true;
     }
 
@@ -21,7 +24,16 @@ public class Transaction : BaseModel
     public PaymentMethod PaymentMethod { get; private set; }
     public TransactionType TransactionType { get; private set; }
     public int CategoryId { get; private set; }
+
+    public int AccountId { get; private set; }
     public bool IsActive { get; private set; }
+    private void ValidateAccountId(int accountId)
+    {
+        if (accountId <= 0)
+        {
+            throw new ArgumentException("An account must be provided.", nameof(accountId));
+        }
+    }
 
     public void Deactivate()
     {
