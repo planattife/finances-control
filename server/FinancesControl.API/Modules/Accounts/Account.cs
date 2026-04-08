@@ -5,12 +5,23 @@ namespace FinancesControl.API.Accounts;
 
 public class Account : BaseModel
 {
+    // Public constructor - for creating NEW accounts
     public Account(int id, string name, string userId) : base(id)
     {
         ValidationHelper.ValidateName(name, 2, 50);
         Name = name;
         UserId = userId;
         IsActive = true;
+    }
+
+    // Private constructor - for DB reconstruction
+    private Account(int id, string name, string userId, bool isActive, 
+        DateTime createdAt, DateTime? updatedAt) 
+        : base(id, createdAt, updatedAt)
+    {
+        Name = name;
+        UserId = userId;
+        IsActive = isActive;
     }
 
     public string Name { get; private set; }
@@ -34,5 +45,12 @@ public class Account : BaseModel
         ValidationHelper.ValidateName(newName, 2, 50);
         Name = newName;
         Touch();
+    }
+
+    // Factory method for DB reconstruction
+    internal static Account FromDatabase(int id, string name, string userId, bool isActive,
+        DateTime createdAt, DateTime? updatedAt)
+    {
+        return new Account(id, name, userId, isActive, createdAt, updatedAt);
     }
 }

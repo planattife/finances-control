@@ -24,7 +24,6 @@ public class TransactionCategoryServiceTests
     public void CreateCategory_WithValidRequest_ReturnsNewId()
     {
         var request = new CreateTransactionCategoryRequest("Food");
-        _repository.GetAll().Returns(new List<TransactionCategory>());
         _repository.Add(Arg.Any<TransactionCategory>()).Returns(1);
 
         var result = _service.CreateCategory(request);

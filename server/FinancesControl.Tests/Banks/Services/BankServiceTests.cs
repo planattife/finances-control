@@ -1,4 +1,5 @@
 using System;
+using System.Security.Claims;
 using Xunit;
 using NSubstitute;
 using FluentAssertions;
@@ -7,18 +8,23 @@ using FinancesControl.API.Banks.DTOs;
 using FinancesControl.API.Banks.Repository;
 using FinancesControl.API.Banks.Services;
 using FinancesControl.API.Enums;
+using Microsoft.AspNetCore.Http;
 
 namespace FinancesControl.Tests.Banks.Services;
 
 public class BankServiceTests
 {
     private readonly IBankRepository _repository;
+    private readonly IHttpContextAccessor _httpContextAccessor;
+
     private readonly BankService _service;
 
     public BankServiceTests()
     {
         _repository = Substitute.For<IBankRepository>();
-        _service = new BankService(_repository);
+        _httpContextAccessor = Substitute.For<IHttpContextAccessor>();
+        SetupHttpContextAccessor();
+        _service = new BankService(_repository, _httpContextAccessor);
     }
 
     #region CreateBank Tests
@@ -28,7 +34,6 @@ public class BankServiceTests
     {
         // Arrange
         var request = new CreateBankRequest("Test Bank", BankAccountType.Check);
-        _repository.GetAll().Returns(new List<Bank>());
         _repository.Add(Arg.Any<Bank>()).Returns(1);
 
         // Act
@@ -40,49 +45,10 @@ public class BankServiceTests
     }
 
     [Fact]
-    public void CreateBank_GeneratesAutoIncrementingId()
-    {
-        // Arrange
-        string userId = "mock-user-id";
-        var request = new CreateBankRequest("Test Bank", BankAccountType.Savings);
-        var existingBanks = new List<Bank>
-        {
-            new("Existing Bank 1", BankAccountType.Check, 1, userId),
-            new("Existing Bank 2", BankAccountType.Savings, 2, userId),
-            new("Existing Bank 3", BankAccountType.Check, 3, userId)
-        };
-        _repository.GetAll().Returns(existingBanks);
-        _repository.Add(Arg.Any<Bank>()).Returns(4);
-
-        // Act
-        var result = _service.CreateBank(request);
-
-        // Assert
-        result.Should().Be(4);
-        _repository.Received(1).Add(Arg.Is<Bank>(b => b.Id == 4));
-    }
-
-    [Fact]
-    public void CreateBank_FirstBankGetsId1()
-    {
-        // Arrange
-        var request = new CreateBankRequest("First Bank", BankAccountType.Check);
-        _repository.GetAll().Returns(new List<Bank>());
-        _repository.Add(Arg.Any<Bank>()).Returns(1);
-
-        // Act
-        var result = _service.CreateBank(request);
-
-        // Assert
-        result.Should().Be(1);
-    }
-
-    [Fact]
     public void CreateBank_NewBankIsActive()
     {
         // Arrange
         var request = new CreateBankRequest("Test Bank", BankAccountType.Check);
-        _repository.GetAll().Returns(new List<Bank>());
         Bank? capturedBank = null;
         _repository.Add(Arg.Any<Bank>())
             .Returns(x =>
@@ -104,7 +70,6 @@ public class BankServiceTests
     {
         // Arrange
         var request = new CreateBankRequest("Check Bank", BankAccountType.Check);
-        _repository.GetAll().Returns(new List<Bank>());
         Bank? capturedBank = null;
         _repository.Add(Arg.Any<Bank>())
             .Returns(x =>
@@ -126,7 +91,6 @@ public class BankServiceTests
     {
         // Arrange
         var request = new CreateBankRequest("Savings Bank", BankAccountType.Savings);
-        _repository.GetAll().Returns(new List<Bank>());
         Bank? capturedBank = null;
         _repository.Add(Arg.Any<Bank>())
             .Returns(x =>
@@ -408,6 +372,20 @@ public class BankServiceTests
 
         // Assert
         bank.UpdatedAt.Should().NotBe(originalUpdatedAt);
+    }
+
+    #endregion
+
+    #region Helper Methods
+
+    private void SetupHttpContextAccessor()
+    {
+        var claims = new[] { new Claim(ClaimTypes.NameIdentifier, "test-user-id") };
+        var identity = new ClaimsIdentity(claims, "TestAuthType");
+        var principal = new ClaimsPrincipal(identity);
+
+        var httpContext = new DefaultHttpContext { User = principal };
+        _httpContextAccessor.HttpContext.Returns(httpContext);
     }
 
     #endregion

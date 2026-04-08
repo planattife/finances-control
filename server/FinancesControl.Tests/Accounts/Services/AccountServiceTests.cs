@@ -28,7 +28,6 @@ public class AccountServiceTests
         // Arrange
         var request = new CreateAccountRequest("Test Account");
         var userId = "user-123";
-        _repository.GetAll().Returns(new List<Account>());
         _repository.Add(Arg.Any<Account>()).Returns(1);
 
         // Act
@@ -40,51 +39,11 @@ public class AccountServiceTests
     }
 
     [Fact]
-    public void CreateAccount_GeneratesAutoIncrementingId()
-    {
-        // Arrange
-        var request = new CreateAccountRequest("Test Account");
-        var userId = "user-123";
-        var existingAccounts = new List<Account>
-        {
-            new(1, "Existing Account 1", "user-123"),
-            new(2, "Existing Account 2", "user-123"),
-            new(3, "Existing Account 3", "user-123")
-        };
-        _repository.GetAll().Returns(existingAccounts);
-        _repository.Add(Arg.Any<Account>()).Returns(4);
-
-        // Act
-        var result = _service.CreateAccount(request, userId);
-
-        // Assert
-        result.Should().Be(4);
-        _repository.Received(1).Add(Arg.Is<Account>(a => a.Id == 4));
-    }
-
-    [Fact]
-    public void CreateAccount_FirstAccountGetsId1()
-    {
-        // Arrange
-        var request = new CreateAccountRequest("First Account");
-        var userId = "user-123";
-        _repository.GetAll().Returns(new List<Account>());
-        _repository.Add(Arg.Any<Account>()).Returns(1);
-
-        // Act
-        var result = _service.CreateAccount(request, userId);
-
-        // Assert
-        result.Should().Be(1);
-    }
-
-    [Fact]
     public void CreateAccount_NewAccountIsActive()
     {
         // Arrange
         var request = new CreateAccountRequest("Test Account");
         var userId = "user-123";
-        _repository.GetAll().Returns(new List<Account>());
         Account? capturedAccount = null;
         _repository.Add(Arg.Any<Account>())
             .Returns(x =>

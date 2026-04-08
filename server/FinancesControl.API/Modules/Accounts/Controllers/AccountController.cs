@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using FinancesControl.API.Accounts.DTOs;
 using FinancesControl.API.Accounts.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -20,7 +21,9 @@ namespace FinancesControl.API.Accounts.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateAccount(CreateAccountRequest request)
         {
-            var userId = "mock-user-id"; // Replace with actual user id retrieval
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized();
             var id = _accountService.CreateAccount(request, userId);
             return CreatedAtAction(nameof(GetById), new { accountId = id }, null);
         }

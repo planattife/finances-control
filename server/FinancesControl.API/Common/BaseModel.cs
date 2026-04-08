@@ -2,11 +2,20 @@ namespace FinancesControl.API.Models;
 
 public class BaseModel
 {
+    // Public constructor - for creating NEW entities
     public BaseModel(int id)
     {
         Id = id;
         CreatedAt = DateTime.UtcNow;
         UpdatedAt = null;
+    }
+
+    // Protected constructor - for DB reconstruction
+    protected BaseModel(int id, DateTime createdAt, DateTime? updatedAt)
+    {
+        Id = id;
+        CreatedAt = createdAt;
+        UpdatedAt = updatedAt;
     }
     
     public int Id { get; private set; }
@@ -15,6 +24,6 @@ public class BaseModel
 
     public void Touch()
     {
-        UpdatedAt = DateTime.Now;
+        UpdatedAt = DateTime.UtcNow;
     }
 }

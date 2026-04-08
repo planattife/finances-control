@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using FinancesControl.API.Banks.DTOs;
 using FinancesControl.API.Banks.Repository;
 using FinancesControl.API.Banks;
@@ -7,17 +8,23 @@ namespace FinancesControl.API.Banks.Services;
 public class BankService : IBankService
 {
     private readonly IBankRepository _repository;
-    private readonly string _userId = "mock-user-id"; // This should be replaced with actual user context in a real application
-    public BankService(IBankRepository repository)
+    private readonly IHttpContextAccessor _httpContextAccessor;
+
+    public BankService(IBankRepository repository, IHttpContextAccessor httpContextAccessor)
     {
         _repository = repository;
+        _httpContextAccessor = httpContextAccessor;
+    }
+
+    private string GetCurrentUserId()
+    {
+        return _httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new InvalidOperationException("User context is not available");
     }
 
     public int CreateBank(CreateBankRequest request)
     {
-        var allBanks = _repository.GetAll();
-        int newId = allBanks.Count == 0 ? 1 : allBanks.Max(b => b.Id) + 1;
-        var bank = new Bank(request.Name, request.AccountType, newId, _userId);
+        var userId = GetCurrentUserId();
+        var bank = new Bank(request.Name, request.AccountType, 0, userId);
         return _repository.Add(bank);
     }
 
@@ -46,7 +53,8 @@ public class BankService : IBankService
     {
         var bank = _repository.GetById(bankId);
         if (bank == null) return false;
-        bank = new Bank(request.Name, request.AccountType, bank.Id, _userId);
+        var userId = GetCurrentUserId();
+        bank = new Bank(request.Name, request.AccountType, bank.Id, userId);
         bank.Activate();
         return _repository.Update(bank);
     }

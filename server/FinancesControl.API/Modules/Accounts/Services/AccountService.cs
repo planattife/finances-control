@@ -16,8 +16,7 @@ public class AccountService : IAccountService
 
     public int CreateAccount(CreateAccountRequest request, string userId)
     {
-        int newId = GenerateNewId();
-        var account = new Account(newId, request.Name, userId);
+        var account = new Account(0, request.Name, userId);
         return _repository.Add(account);
     }
 
@@ -63,11 +62,5 @@ public class AccountService : IAccountService
         if (account == null) return false;
         account.Deactivate();
         return _repository.Update(account);
-    }
-
-    private int GenerateNewId()
-    {
-        var allAccounts = _repository.GetAll();
-        return allAccounts.Count == 0 ? 1 : allAccounts.Max(a => a.Id) + 1;
     }
 }
