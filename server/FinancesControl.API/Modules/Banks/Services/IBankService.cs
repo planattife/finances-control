@@ -10,4 +10,5 @@ public interface IBankService
     bool Update(int bankId, UpdateBankRequest request);
     bool Activate(int bankId);
     bool Deactivate(int bankId);
+    bool ValidateBankForUser(int bankId, string userId);
 }

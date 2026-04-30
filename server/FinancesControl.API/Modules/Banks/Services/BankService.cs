@@ -74,4 +74,10 @@ public class BankService : IBankService
         bank.Deactivate();
         return _repository.Update(bank);
     }
+
+    public bool ValidateBankForUser(int bankId, string userId)
+    {
+        var bank = _repository.GetById(bankId);
+        return bank != null && bank.UserId == userId && bank.IsActive;
+    }
 }

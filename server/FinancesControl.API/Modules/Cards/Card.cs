@@ -4,6 +4,7 @@ namespace FinancesControl.API.Models;
 
 public class Card : BaseModel
 {
+    // Public constructor - for creating NEW cards
     public Card(string cardNumber, DateTime expirationDate, CardNetwork cardNetwork, int bankId, CardType cardType, int id, string? cardName = null) : base(id)
     {
         CardNumber = cardNumber;
@@ -13,6 +14,21 @@ public class Card : BaseModel
         CardName = cardName;
 
         IsActive = true;
+        CardType = cardType;
+    }
+
+    // Protected constructor - for DB reconstruction (protected so CreditCard can use it)
+    protected Card(int id, string cardNumber, DateTime expirationDate, CardNetwork cardNetwork, 
+        int bankId, CardType cardType, bool isActive, string? cardName,
+        DateTime createdAt, DateTime? updatedAt)
+        : base(id, createdAt, updatedAt)
+    {
+        CardNumber = cardNumber;
+        ExpirationDate = expirationDate;
+        CardNetwork = cardNetwork;
+        BankId = bankId;
+        CardName = cardName;
+        IsActive = isActive;
         CardType = cardType;
     }
 
@@ -32,5 +48,14 @@ public class Card : BaseModel
 
     public void UpdateCardName(string cardName) {
         CardName = cardName;
+        Touch();
+    }
+
+    // Factory method for DB reconstruction
+    internal static Card FromDatabase(int id, string cardNumber, DateTime expirationDate, 
+        CardNetwork cardNetwork, int bankId, CardType cardType, bool isActive, string? cardName,
+        DateTime createdAt, DateTime? updatedAt)
+    {
+        return new Card(id, cardNumber, expirationDate, cardNetwork, bankId, cardType, isActive, cardName, createdAt, updatedAt);
     }
 }

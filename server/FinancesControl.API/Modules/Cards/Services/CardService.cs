@@ -1,3 +1,5 @@
+using System.Security.Claims;
+using FinancesControl.API.Banks.Services;
 using FinancesControl.API.Cards.DTOs;
 using FinancesControl.API.Cards.Repository;
 using FinancesControl.API.Common;
@@ -9,25 +11,39 @@ namespace FinancesControl.API.Cards.Services;
 public class CardService : ICardService
 {
     private readonly ICardRepository _repository;
+    private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly IBankService _bankService;
 
-    public CardService(ICardRepository repository)
+    public CardService(ICardRepository repository, IHttpContextAccessor httpContextAccessor, IBankService bankService)
     {
         _repository = repository;
+        _httpContextAccessor = httpContextAccessor;
+        _bankService = bankService;
+    }
+
+    private string GetCurrentUserId()
+    {
+        var userId = _httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        return userId ?? throw new InvalidOperationException("User context not available");
     }
 
     public int CreateDebitCard(CreateDebitCardRequest request)
     {
-        var allCards = _repository.GetAll();
-        int newId = allCards.Count == 0 ? 1 : allCards.Max(c => c.Id) + 1;
-        var card = new Card(CardMaskingHelper.MaskCardNumber(request.CardNumber), request.ExpirationDate, request.CardNetwork, request.BankId, CardType.Debit, newId, request.CardName);
+        var userId = GetCurrentUserId();
+        if (!_bankService.ValidateBankForUser(request.BankId, userId))
+            throw new InvalidOperationException("Bank is not valid.");
+        
+        var card = new Card(CardMaskingHelper.MaskCardNumber(request.CardNumber), request.ExpirationDate, request.CardNetwork, request.BankId, CardType.Debit, 0, request.CardName);
         return _repository.Add(card);
     }
 
     public int CreateCreditCard(CreateCreditCardRequest request)
     {
-        var allCards = _repository.GetAll();
-        int newId = allCards.Count == 0 ? 1 : allCards.Max(c => c.Id) + 1;
-        var card = new CreditCard(CardMaskingHelper.MaskCardNumber(request.CardNumber), request.ExpirationDate, request.CardNetwork, request.BankId, request.ClosingDay, request.DueDateDay, CardType.Credit, newId, request.CardName);
+        var userId = GetCurrentUserId();
+        if (!_bankService.ValidateBankForUser(request.BankId, userId))
+            throw new InvalidOperationException("Bank is not valid.");
+        
+        var card = new CreditCard(CardMaskingHelper.MaskCardNumber(request.CardNumber), request.ExpirationDate, request.CardNetwork, request.BankId, request.ClosingDay, request.DueDateDay, CardType.Credit, 0, request.CardName);
         return _repository.Add(card);
     }
 
