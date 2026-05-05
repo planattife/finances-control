@@ -7,9 +7,9 @@ public class CreateTransactionRequest
     public decimal Amount { get; set; }
     public PaymentMethod PaymentMethod { get; set; }
     public TransactionType TransactionType { get; set; }
-    public int CategoryId { get; set; }
-    public int AccountId { get; set; }
-    public int? CardId { get; set; }
-    public int? BankId { get; set; }
+    public long CategoryId { get; set; }
+    public long AccountId { get; set; }
+    public long? CardId { get; set; }
+    public long? BankId { get; set; }
     public DateTime TransactionDate { get; set; }
 }

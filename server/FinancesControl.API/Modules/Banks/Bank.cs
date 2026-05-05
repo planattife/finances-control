@@ -7,7 +7,7 @@ namespace FinancesControl.API.Banks;
 public class Bank : BaseModel
 {
     // Public constructor - for creating NEW banks
-    public Bank(string name, BankAccountType accountType, int id, string userId) : base(id)
+    public Bank(string name, BankAccountType accountType, long id, string userId) : base(id)
     {
         ValidationHelper.ValidateName(name, 2 , 50);
         Name = name;
@@ -17,7 +17,7 @@ public class Bank : BaseModel
     }
 
     // Private constructor - for DB reconstruction
-    private Bank(int id, string name, BankAccountType accountType, string userId, bool isActive,
+    private Bank(long id, string name, BankAccountType accountType, string userId, bool isActive,
         DateTime createdAt, DateTime? updatedAt)
         : base(id, createdAt, updatedAt)
     {
@@ -45,7 +45,7 @@ public class Bank : BaseModel
     }
 
     // Factory method for DB reconstruction
-    internal static Bank FromDatabase(int id, string name, BankAccountType accountType, string userId,
+    internal static Bank FromDatabase(long id, string name, BankAccountType accountType, string userId,
         bool isActive, DateTime createdAt, DateTime? updatedAt)
     {
         return new Bank(id, name, accountType, userId, isActive, createdAt, updatedAt);

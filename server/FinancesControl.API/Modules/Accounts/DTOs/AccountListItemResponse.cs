@@ -2,6 +2,6 @@ namespace FinancesControl.API.Accounts.DTOs;
 
 public record AccountListItemResponse
 (
-    int Id,
+    long Id,
     string Name
 );

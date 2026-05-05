@@ -4,10 +4,10 @@ namespace FinancesControl.API.TransactionCategories.Services;
 
 public interface ITransactionCategoryService
 {
-    int CreateCategory(CreateTransactionCategoryRequest request);
-    TransactionCategoryDetailResponse? GetById(int categoryId);
+    long CreateCategory(CreateTransactionCategoryRequest request);
+    TransactionCategoryDetailResponse? GetById(long categoryId);
     List<TransactionCategoryListItemResponse> GetAll();
-    bool Rename(int categoryId, RenameTransactionCategoryRequest request);
-    bool Activate(int categoryId);
-    bool Deactivate(int categoryId);
+    bool Rename(long categoryId, RenameTransactionCategoryRequest request);
+    bool Activate(long categoryId);
+    bool Deactivate(long categoryId);
 }

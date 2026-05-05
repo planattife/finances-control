@@ -3,7 +3,7 @@ using FinancesControl.API.Enums;
 namespace FinancesControl.API.Banks.DTOs;
 
 public record BankDetailResponse(
-    int Id,
+    long Id,
     string Name,
     BankAccountType AccountType,
     string Status,

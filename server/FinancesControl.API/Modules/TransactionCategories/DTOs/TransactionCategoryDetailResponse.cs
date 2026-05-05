@@ -1,7 +1,7 @@
 namespace FinancesControl.API.TransactionCategories.DTOs;
 
 public record TransactionCategoryDetailResponse(
-    int Id,
+    long Id,
     string Name,
     string Status,
     DateTime CreatedAt,

@@ -6,7 +6,7 @@ public record CreateCreditCardRequest(
     string CardNumber,
     DateTime ExpirationDate,
     CardNetwork CardNetwork,
-    int BankId,
+    long BankId,
     int ClosingDay,
     int DueDateDay,
     string? CardName = null

@@ -31,7 +31,7 @@ public class BankControllerTests
     {
         // Arrange
         var request = new CreateBankRequest("Test Bank", BankAccountType.Check);
-        var bankId = 1;
+        long bankId = 1;
         _bankService.CreateBank(request).Returns(bankId);
 
         // Act

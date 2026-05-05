@@ -5,8 +5,8 @@ namespace FinancesControl.API.Transactions.Repository;
 
 public interface ITransactionRepository
 {
-	int Add(Transaction transaction);
-	Transaction? GetById(int transactionId);
+	long Add(Transaction transaction);
+	Transaction? GetById(long transactionId);
 	List<Transaction> GetAll();
 	bool Update(Transaction transaction);
 }

@@ -25,7 +25,7 @@ namespace FinancesControl.API.Transactions.Controllers
 		}
 
 		[HttpGet("{transactionId}")]
-		public async Task<ActionResult<TransactionDetailResponse>> GetById(int transactionId)
+		public async Task<ActionResult<TransactionDetailResponse>> GetById(long transactionId)
 		{
 			var resp = _service.GetById(transactionId);
 			if (resp == null) return NotFound();
@@ -40,7 +40,7 @@ namespace FinancesControl.API.Transactions.Controllers
 		}
 
 		[HttpDelete("{transactionId}")]
-		public async Task<IActionResult> Delete(int transactionId)
+		public async Task<IActionResult> Delete(long transactionId)
 		{
 			var deleted = _service.Delete(transactionId);
 			if (!deleted) return NotFound();
@@ -48,7 +48,7 @@ namespace FinancesControl.API.Transactions.Controllers
 		}
 
 		[HttpPatch("{transactionId}/amount")]
-		public async Task<IActionResult> UpdateAmount(int transactionId, UpdateTransactionAmountRequest request)
+		public async Task<IActionResult> UpdateAmount(long transactionId, UpdateTransactionAmountRequest request)
 		{
 			var updated = _service.UpdateAmount(transactionId, request);
 			if (!updated) return NotFound();
@@ -56,7 +56,7 @@ namespace FinancesControl.API.Transactions.Controllers
 		}
 
 		[HttpPatch("{transactionId}/category")]
-		public async Task<IActionResult> UpdateCategory(int transactionId, UpdateTransactionCategoryRequest request)
+		public async Task<IActionResult> UpdateCategory(long transactionId, UpdateTransactionCategoryRequest request)
 		{
 			var updated = _service.UpdateCategory(transactionId, request);
 			if (!updated) return NotFound();

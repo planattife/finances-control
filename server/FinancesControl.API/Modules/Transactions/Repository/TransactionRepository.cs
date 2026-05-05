@@ -17,17 +17,17 @@ public class TransactionRepository : ITransactionRepository
 		_connectionFactory = connectionFactory;
 	}
 
-	public int Add(Transaction transaction)
+	public long Add(Transaction transaction)
 	{
 		using var connection = _connectionFactory.CreateConnection();
 		var command = new CreateTransactionCommand();
 		var (sql, parameters) = command.Build(transaction);
 		
 		var id = connection.QuerySingleOrDefault<long>(sql, parameters);
-		return (int)id;
+		return id;
 	}
 
-	public Transaction? GetById(int transactionId)
+	public Transaction? GetById(long transactionId)
 	{
 		using var connection = _connectionFactory.CreateConnection();
 		var query = new GetTransactionByIdQuery();
@@ -69,13 +69,13 @@ public class TransactionRepository : ITransactionRepository
 
 	private static Transaction MapToTransaction(dynamic row)
 	{
-		var id = (int)row.Id;
+		var id = (long)row.Id;
 		var amount = (decimal)row.Amount;
 		var paymentMethod = (PaymentMethod)row.PaymentMethod;
 		var transactionType = (TransactionType)row.TransactionType;
 		var transactionDate = (DateTime)row.TransactionDate;
-		var categoryId = (int)row.CategoryId;
-		var accountId = (int)row.AccountId;
+		var categoryId = (long)row.CategoryId;
+		var accountId = (long)row.AccountId;
 		var isActive = (bool)row.IsActive;
 		var cardId = row.CardId;
 		var bankId = row.BankId;
@@ -86,13 +86,13 @@ public class TransactionRepository : ITransactionRepository
 		if (cardId != null && cardId > 0)
 		{
 			return CardTransaction.FromDatabase(id, amount, paymentMethod, transactionType,
-				transactionDate, categoryId, accountId, (int)cardId, isActive, createdAt, updatedAt);
+				transactionDate, categoryId, accountId, (long)cardId, isActive, createdAt, updatedAt);
 		}
 
 		if (bankId != null && bankId > 0)
 		{
 			return GeneralTransaction.FromDatabase(id, amount, paymentMethod, transactionType,
-				transactionDate, categoryId, accountId, (int)bankId, isActive, createdAt, updatedAt);
+				transactionDate, categoryId, accountId, (long)bankId, isActive, createdAt, updatedAt);
 		}
 
 		// Default to basic Transaction (for Cash payments)

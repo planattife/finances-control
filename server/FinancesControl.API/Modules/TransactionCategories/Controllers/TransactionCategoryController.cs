@@ -20,12 +20,12 @@ namespace FinancesControl.API.TransactionCategories.Controllers
         [HttpPost]
         public async Task<IActionResult> Create(CreateTransactionCategoryRequest request)
         {
-            var id = _service.CreateCategory(request);
+            long id = _service.CreateCategory(request);
             return CreatedAtAction(nameof(GetById), new { categoryId = id }, null);
         }
 
         [HttpGet("{categoryId}")]
-        public async Task<ActionResult<TransactionCategoryDetailResponse>> GetById(int categoryId)
+        public async Task<ActionResult<TransactionCategoryDetailResponse>> GetById(long categoryId)
         {
             var resp = _service.GetById(categoryId);
             if (resp == null) return NotFound();
@@ -40,7 +40,7 @@ namespace FinancesControl.API.TransactionCategories.Controllers
         }
 
         [HttpPatch("{categoryId}")]
-        public async Task<IActionResult> Rename(int categoryId, RenameTransactionCategoryRequest request)
+        public async Task<IActionResult> Rename(long categoryId, RenameTransactionCategoryRequest request)
         {
             var updated = _service.Rename(categoryId, request);
             if (!updated) return NotFound();
@@ -48,7 +48,7 @@ namespace FinancesControl.API.TransactionCategories.Controllers
         }
 
         [HttpPost("{categoryId}/activate")]
-        public async Task<IActionResult> Activate(int categoryId)
+        public async Task<IActionResult> Activate(long categoryId)
         {
             var ok = _service.Activate(categoryId);
             if (!ok) return NotFound();
@@ -56,7 +56,7 @@ namespace FinancesControl.API.TransactionCategories.Controllers
         }
 
         [HttpPost("{categoryId}/deactivate")]
-        public async Task<IActionResult> Deactivate(int categoryId)
+        public async Task<IActionResult> Deactivate(long categoryId)
         {
             var ok = _service.Deactivate(categoryId);
             if (!ok) return NotFound();

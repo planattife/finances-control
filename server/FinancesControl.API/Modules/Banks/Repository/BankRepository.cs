@@ -17,17 +17,17 @@ public class BankRepository : IBankRepository
         _connectionFactory = connectionFactory;
     }
 
-    public int Add(Bank bank)
+    public long Add(Bank bank)
     {
         using var connection = _connectionFactory.CreateConnection();
         var command = new CreateBankCommand();
         var (sql, parameters) = command.Build(bank);
         
         var id = connection.QuerySingleOrDefault<long>(sql, parameters);
-        return (int)id;
+        return id;
     }
 
-    public Bank? GetById(int bankId)
+    public Bank? GetById(long bankId)
     {
         using var connection = _connectionFactory.CreateConnection();
         var query = new GetBankByIdQuery();
@@ -64,7 +64,7 @@ public class BankRepository : IBankRepository
     private static Bank MapToBank(dynamic row)
     {
         return Bank.FromDatabase(
-            id: (int)row.Id,
+            id: (long)row.Id,
             name: row.Name,
             accountType: (BankAccountType)row.AccountType,
             userId: row.UserId,

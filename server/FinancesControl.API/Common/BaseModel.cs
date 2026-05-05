@@ -3,7 +3,7 @@ namespace FinancesControl.API.Models;
 public class BaseModel
 {
     // Public constructor - for creating NEW entities
-    public BaseModel(int id)
+    public BaseModel(long id)
     {
         Id = id;
         CreatedAt = DateTime.UtcNow;
@@ -11,14 +11,14 @@ public class BaseModel
     }
 
     // Protected constructor - for DB reconstruction
-    protected BaseModel(int id, DateTime createdAt, DateTime? updatedAt)
+    protected BaseModel(long id, DateTime createdAt, DateTime? updatedAt)
     {
         Id = id;
         CreatedAt = createdAt;
         UpdatedAt = updatedAt;
     }
     
-    public int Id { get; private set; }
+    public long Id { get; private set; }
     public DateTime CreatedAt { get; private set; }
     public DateTime? UpdatedAt { get; private set; }
 

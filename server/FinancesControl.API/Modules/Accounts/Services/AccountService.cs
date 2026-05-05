@@ -14,13 +14,13 @@ public class AccountService : IAccountService
         _repository = repository;
     }
 
-    public int CreateAccount(CreateAccountRequest request, string userId)
+    public long CreateAccount(CreateAccountRequest request, string userId)
     {
         var account = new Account(0, request.Name, userId);
         return _repository.Add(account);
     }
 
-    public AccountDetailResponse? GetById(int accountId)
+    public AccountDetailResponse? GetById(long accountId)
     {
         var account = _repository.GetById(accountId);
         if (account == null) return null;
@@ -40,7 +40,7 @@ public class AccountService : IAccountService
             .ToList();
     }
 
-    public bool Update(int accountId, UpdateAccountRequest request)
+    public bool Update(long accountId, UpdateAccountRequest request)
     {
         var account = _repository.GetById(accountId);
         if (account == null) return false;
@@ -48,7 +48,7 @@ public class AccountService : IAccountService
         return _repository.Update(account);
     }
 
-    public bool Activate(int accountId)
+    public bool Activate(long accountId)
     {
         var account = _repository.GetById(accountId);
         if (account == null) return false;
@@ -56,7 +56,7 @@ public class AccountService : IAccountService
         return _repository.Update(account);
     }
 
-    public bool Deactivate(int accountId)
+    public bool Deactivate(long accountId)
     {
         var account = _repository.GetById(accountId);
         if (account == null) return false;

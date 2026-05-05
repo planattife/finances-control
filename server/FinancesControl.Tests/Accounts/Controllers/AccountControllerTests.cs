@@ -30,7 +30,7 @@ public class AccountControllerTests
     {
         // Arrange
         var request = new CreateAccountRequest("Test Account");
-        var accountId = 1;
+        long accountId = 1;
         _accountService.CreateAccount(request, Arg.Any<string>()).Returns(accountId);
 
         // Act

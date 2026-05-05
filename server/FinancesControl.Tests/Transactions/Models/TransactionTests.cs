@@ -100,7 +100,7 @@ public class TransactionTests
     [Theory]
     [InlineData(0)]
     [InlineData(-1)]
-    public void Constructor_InvalidCategoryId_Throws(int categoryId)
+    public void Constructor_InvalidCategoryId_Throws(long categoryId)
     {
         Assert.Throws<ArgumentException>(() => new Transaction(100, PaymentMethod.Cash, TransactionType.Expense, DateTime.UtcNow, categoryId, 10, 2));
     }

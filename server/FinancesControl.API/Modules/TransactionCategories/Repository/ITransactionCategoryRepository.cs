@@ -4,8 +4,8 @@ namespace FinancesControl.API.TransactionCategories.Repository;
 
 public interface ITransactionCategoryRepository
 {
-    int Add(TransactionCategory category);
-    TransactionCategory? GetById(int categoryId);
+    long Add(TransactionCategory category);
+    TransactionCategory? GetById(long categoryId);
     List<TransactionCategory> GetAll();
     bool Update(TransactionCategory category);
 } 
