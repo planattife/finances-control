@@ -1,34 +1,102 @@
 using System.Collections.Generic;
 using System.Linq;
+using Dapper;
+using FinancesControl.API.Data;
+using FinancesControl.API.Enums;
 using FinancesControl.API.Models;
+using FinancesControl.API.Transactions.Repository.SqlCommands;
 
 namespace FinancesControl.API.Transactions.Repository;
 
 public class TransactionRepository : ITransactionRepository
 {
-	private static readonly List<Transaction> _transactions = new();
+	private readonly AppDbConnectionFactory _connectionFactory;
+
+	public TransactionRepository(AppDbConnectionFactory connectionFactory)
+	{
+		_connectionFactory = connectionFactory;
+	}
 
 	public int Add(Transaction transaction)
 	{
-		_transactions.Add(transaction);
-		return transaction.Id;
+		using var connection = _connectionFactory.CreateConnection();
+		var command = new CreateTransactionCommand();
+		var (sql, parameters) = command.Build(transaction);
+		
+		var id = connection.QuerySingleOrDefault<long>(sql, parameters);
+		return (int)id;
 	}
 
 	public Transaction? GetById(int transactionId)
 	{
-		return _transactions.FirstOrDefault(t => t.Id == transactionId);
+		using var connection = _connectionFactory.CreateConnection();
+		var query = new GetTransactionByIdQuery();
+		var (sql, parameters) = query.Build(transactionId);
+		
+		var result = connection.QuerySingleOrDefault<dynamic>(sql, parameters);
+		
+		if (result == null)
+			return null;
+
+		return MapToTransaction(result);
 	}
 
 	public List<Transaction> GetAll()
 	{
-		return _transactions.ToList();
+		using var connection = _connectionFactory.CreateConnection();
+		var query = new GetAllTransactionsQuery();
+		
+		var results = connection.Query<dynamic>(query.Sql).ToList();
+		var transactions = new List<Transaction>();
+		
+		foreach (var result in results)
+		{
+			transactions.Add(MapToTransaction(result));
+		}
+		
+		return transactions;
 	}
 
 	public bool Update(Transaction transaction)
 	{
-		var idx = _transactions.FindIndex(t => t.Id == transaction.Id);
-		if (idx == -1) return false;
-		_transactions[idx] = transaction;
-		return true;
+		using var connection = _connectionFactory.CreateConnection();
+		var command = new UpdateTransactionCommand();
+		var (sql, parameters) = command.Build(transaction);
+		
+		var rowsAffected = connection.Execute(sql, parameters);
+		return rowsAffected > 0;
+	}
+
+	private static Transaction MapToTransaction(dynamic row)
+	{
+		var id = (int)row.Id;
+		var amount = (decimal)row.Amount;
+		var paymentMethod = (PaymentMethod)row.PaymentMethod;
+		var transactionType = (TransactionType)row.TransactionType;
+		var transactionDate = (DateTime)row.TransactionDate;
+		var categoryId = (int)row.CategoryId;
+		var accountId = (int)row.AccountId;
+		var isActive = (bool)row.IsActive;
+		var cardId = row.CardId;
+		var bankId = row.BankId;
+		var createdAt = (DateTime)row.CreatedAt;
+		var updatedAt = (DateTime?)row.UpdatedAt;
+
+		// Determine the transaction type based on CardId and BankId
+		if (cardId != null && cardId > 0)
+		{
+			return CardTransaction.FromDatabase(id, amount, paymentMethod, transactionType,
+				transactionDate, categoryId, accountId, (int)cardId, isActive, createdAt, updatedAt);
+		}
+
+		if (bankId != null && bankId > 0)
+		{
+			return GeneralTransaction.FromDatabase(id, amount, paymentMethod, transactionType,
+				transactionDate, categoryId, accountId, (int)bankId, isActive, createdAt, updatedAt);
+		}
+
+		// Default to basic Transaction (for Cash payments)
+		return Transaction.FromDatabase(id, amount, paymentMethod, transactionType,
+			transactionDate, categoryId, accountId, isActive, createdAt, updatedAt);
 	}
 }
