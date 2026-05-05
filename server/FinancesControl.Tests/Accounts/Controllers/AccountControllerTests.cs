@@ -1,6 +1,9 @@
+using System;
+using System.Security.Claims;
 using Xunit;
 using NSubstitute;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Http;
 using FluentAssertions;
 using FinancesControl.API.Accounts.Controllers;
 using FinancesControl.API.Accounts.Services;
@@ -17,6 +20,7 @@ public class AccountControllerTests
     {
         _accountService = Substitute.For<IAccountService>();
         _controller = new AccountController(_accountService);
+        SetupAuthorizedUser();
     }
 
     #region CreateAccount Tests
@@ -264,6 +268,20 @@ public class AccountControllerTests
         // Assert
         result.Should().BeOfType<NotFoundResult>();
         _accountService.Received(1).Deactivate(accountId);
+    }
+
+    #endregion
+
+    #region Helper Methods
+
+    private void SetupAuthorizedUser()
+    {
+        var claims = new[] { new Claim(ClaimTypes.NameIdentifier, "test-user-id") };
+        var identity = new ClaimsIdentity(claims, "TestAuthType");
+        var principal = new ClaimsPrincipal(identity);
+
+        var httpContext = new DefaultHttpContext { User = principal };
+        _controller.ControllerContext = new ControllerContext { HttpContext = httpContext };
     }
 
     #endregion

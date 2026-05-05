@@ -15,9 +15,7 @@ public class TransactionCategoryService : ITransactionCategoryService
 
     public int CreateCategory(CreateTransactionCategoryRequest request)
     {
-        var all = _repository.GetAll();
-        int newId = all.Count == 0 ? 1 : all.Max(c => c.Id) + 1;
-        var category = new FinancesControl.API.Models.TransactionCategory(request.Name, newId);
+        var category = new TransactionCategory(request.Name, 0);
         return _repository.Add(category);
     }
 

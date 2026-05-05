@@ -19,6 +19,20 @@ public class Transaction : BaseModel
         IsActive = true;
     }
 
+    protected Transaction(int id, decimal amount, PaymentMethod paymentMethod, TransactionType transactionType, 
+        DateTime transactionDate, int categoryId, int accountId, bool isActive,
+        DateTime createdAt, DateTime? updatedAt)
+        : base(id, createdAt, updatedAt)
+    {
+        Amount = amount;
+        PaymentMethod = paymentMethod;
+        TransactionType = transactionType;
+        TransactionDate = transactionDate;
+        CategoryId = categoryId;
+        AccountId = accountId;
+        IsActive = isActive;
+    }
+
     public DateTime TransactionDate { get; private set; }
     public decimal Amount { get; private set; }
     public PaymentMethod PaymentMethod { get; private set; }
@@ -69,5 +83,13 @@ public class Transaction : BaseModel
         {
             throw new ArgumentException("CategoryId must be greater than 0", nameof(categoryId));
         }
+    }
+
+    internal static Transaction FromDatabase(int id, decimal amount, PaymentMethod paymentMethod, 
+        TransactionType transactionType, DateTime transactionDate, int categoryId, int accountId, 
+        bool isActive, DateTime createdAt, DateTime? updatedAt)
+    {
+        return new Transaction(id, amount, paymentMethod, transactionType, transactionDate, categoryId, 
+            accountId, isActive, createdAt, updatedAt);
     }
 }

@@ -1,6 +1,8 @@
+using System.Security.Claims;
 using Xunit;
 using NSubstitute;
 using FluentAssertions;
+using FinancesControl.API.Banks.Services;
 using FinancesControl.API.Cards;
 using FinancesControl.API.Cards.DTOs;
 using FinancesControl.API.Cards.Repository;
@@ -8,18 +10,37 @@ using FinancesControl.API.Cards.Services;
 using FinancesControl.API.Common;
 using FinancesControl.API.Enums;
 using FinancesControl.API.Models;
+using Microsoft.AspNetCore.Http;
 
 namespace FinancesControl.Tests.Cards.Services;
 
 public class CardServiceTests
 {
     private readonly ICardRepository _repository;
+    private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly IBankService _bankService;
     private readonly CardService _service;
+    private const string UserId = "test-user-id";
 
     public CardServiceTests()
     {
         _repository = Substitute.For<ICardRepository>();
-        _service = new CardService(_repository);
+        _httpContextAccessor = Substitute.For<IHttpContextAccessor>();
+        _bankService = Substitute.For<IBankService>();
+        _service = new CardService(_repository, _httpContextAccessor, _bankService);
+    }
+
+    private void SetupAuthorizedUser()
+    {
+        var claims = new List<Claim>
+        {
+            new(ClaimTypes.NameIdentifier, UserId)
+        };
+        var identity = new ClaimsIdentity(claims);
+        var principal = new ClaimsPrincipal(identity);
+        var httpContext = Substitute.For<HttpContext>();
+        httpContext.User.Returns(principal);
+        _httpContextAccessor.HttpContext.Returns(httpContext);
     }
 
     #region CreateDebitCard Tests
@@ -28,8 +49,9 @@ public class CardServiceTests
     public void CreateDebitCard_WithValidRequest_ReturnsNewCardId()
     {
         // Arrange
+        SetupAuthorizedUser();
         var request = new CreateDebitCardRequest("4111111111111111", DateTime.UtcNow.AddYears(5), CardNetwork.Visa, 1);
-        _repository.GetAll().Returns(new List<Card>());
+        _bankService.ValidateBankForUser(1, UserId).Returns(true);
         _repository.Add(Arg.Any<Card>()).Returns(1);
 
         // Act
@@ -38,50 +60,16 @@ public class CardServiceTests
         // Assert
         result.Should().Be(1);
         _repository.Received(1).Add(Arg.Any<Card>());
-    }
-
-    [Fact]
-    public void CreateDebitCard_GeneratesAutoIncrementingId()
-    {
-        // Arrange
-        var request = new CreateDebitCardRequest("4111111111111111", DateTime.UtcNow.AddYears(5), CardNetwork.Visa, 1);
-        var existingCards = new List<Card>
-        {
-            new("4111111111111111", DateTime.UtcNow.AddYears(5), CardNetwork.Visa, 1, CardType.Debit, 1),
-            new("5555555555554444", DateTime.UtcNow.AddYears(5), CardNetwork.Mastercard, 1, CardType.Debit, 2)
-        };
-        _repository.GetAll().Returns(existingCards);
-        _repository.Add(Arg.Any<Card>()).Returns(3);
-
-        // Act
-        var result = _service.CreateDebitCard(request);
-
-        // Assert
-        result.Should().Be(3);
-        _repository.Received(1).Add(Arg.Is<Card>(c => c.Id == 3));
-    }
-
-    [Fact]
-    public void CreateDebitCard_FirstCardGetsId1()
-    {
-        // Arrange
-        var request = new CreateDebitCardRequest("4111111111111111", DateTime.UtcNow.AddYears(5), CardNetwork.Visa, 1);
-        _repository.GetAll().Returns(new List<Card>());
-        _repository.Add(Arg.Any<Card>()).Returns(1);
-
-        // Act
-        var result = _service.CreateDebitCard(request);
-
-        // Assert
-        result.Should().Be(1);
+        _bankService.Received(1).ValidateBankForUser(1, UserId);
     }
 
     [Fact]
     public void CreateDebitCard_NewCardIsActive()
     {
         // Arrange
+        SetupAuthorizedUser();
         var request = new CreateDebitCardRequest("4111111111111111", DateTime.UtcNow.AddYears(5), CardNetwork.Visa, 1);
-        _repository.GetAll().Returns(new List<Card>());
+        _bankService.ValidateBankForUser(1, UserId).Returns(true);
         Card? capturedCard = null;
         _repository.Add(Arg.Any<Card>())
             .Returns(x =>
@@ -102,8 +90,9 @@ public class CardServiceTests
     public void CreateDebitCard_WithCardName()
     {
         // Arrange
+        SetupAuthorizedUser();
         var request = new CreateDebitCardRequest("4111111111111111", DateTime.UtcNow.AddYears(5), CardNetwork.Visa, 1, "My Debit Card");
-        _repository.GetAll().Returns(new List<Card>());
+        _bankService.ValidateBankForUser(1, UserId).Returns(true);
         Card? capturedCard = null;
         _repository.Add(Arg.Any<Card>())
             .Returns(x =>
@@ -128,8 +117,9 @@ public class CardServiceTests
     public void CreateCreditCard_WithValidRequest_ReturnsNewCardId()
     {
         // Arrange
+        SetupAuthorizedUser();
         var request = new CreateCreditCardRequest("5555555555554444", DateTime.UtcNow.AddYears(5), CardNetwork.Mastercard, 1, 10, 20);
-        _repository.GetAll().Returns(new List<Card>());
+        _bankService.ValidateBankForUser(1, UserId).Returns(true);
         _repository.Add(Arg.Any<Card>()).Returns(1);
 
         // Act
@@ -138,14 +128,16 @@ public class CardServiceTests
         // Assert
         result.Should().Be(1);
         _repository.Received(1).Add(Arg.Any<Card>());
+        _bankService.Received(1).ValidateBankForUser(1, UserId);
     }
 
     [Fact]
     public void CreateCreditCard_CreatesCreditCardType()
     {
         // Arrange
+        SetupAuthorizedUser();
         var request = new CreateCreditCardRequest("5555555555554444", DateTime.UtcNow.AddYears(5), CardNetwork.Mastercard, 1, 10, 20);
-        _repository.GetAll().Returns(new List<Card>());
+        _bankService.ValidateBankForUser(1, UserId).Returns(true);
         Card? capturedCard = null;
         _repository.Add(Arg.Any<Card>())
             .Returns(x =>
@@ -167,8 +159,9 @@ public class CardServiceTests
     public void CreateCreditCard_WithCardName()
     {
         // Arrange
+        SetupAuthorizedUser();
         var request = new CreateCreditCardRequest("5555555555554444", DateTime.UtcNow.AddYears(5), CardNetwork.Mastercard, 1, 10, 20, "My Credit Card");
-        _repository.GetAll().Returns(new List<Card>());
+        _bankService.ValidateBankForUser(1, UserId).Returns(true);
         Card? capturedCard = null;
         _repository.Add(Arg.Any<Card>())
             .Returns(x =>
