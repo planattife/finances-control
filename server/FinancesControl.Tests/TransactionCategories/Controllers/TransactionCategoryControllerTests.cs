@@ -24,14 +24,15 @@ public class TransactionCategoryControllerTests
     public async Task Create_WithValidRequest_ReturnsCreated()
     {
         var request = new CreateTransactionCategoryRequest("Food");
-        _service.CreateCategory(request).Returns(10);
+        long transactionCategoryId = 10;
+        _service.CreateCategory(request).Returns(transactionCategoryId);
 
         var result = await _controller.Create(request);
 
         result.Should().BeOfType<CreatedAtActionResult>();
         var created = result as CreatedAtActionResult;
         created.ActionName.Should().Be(nameof(_controller.GetById));
-        created.RouteValues["categoryId"].Should().Be(10);
+        created.RouteValues["categoryId"].Should().Be(transactionCategoryId);
     }
 
     [Fact]

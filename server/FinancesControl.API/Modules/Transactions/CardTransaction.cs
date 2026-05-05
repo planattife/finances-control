@@ -5,24 +5,24 @@ namespace FinancesControl.API.Models;
 
 public class CardTransaction : Transaction
 {
-    public CardTransaction(decimal amount, PaymentMethod paymentMethod, TransactionType transactionType, DateTime transactionDate, int categoryId, int cardId, int accountId, int id) 
+    public CardTransaction(decimal amount, PaymentMethod paymentMethod, TransactionType transactionType, DateTime transactionDate, long categoryId, long cardId, long accountId, long id) 
     : base(amount, paymentMethod, transactionType, transactionDate, categoryId, accountId, id)
     {
         CardId = cardId;
     }
 
-    protected CardTransaction(int id, decimal amount, PaymentMethod paymentMethod, TransactionType transactionType,
-        DateTime transactionDate, int categoryId, int accountId, int cardId, bool isActive,
+    protected CardTransaction(long id, decimal amount, PaymentMethod paymentMethod, TransactionType transactionType,
+        DateTime transactionDate, long categoryId, long accountId, long cardId, bool isActive,
         DateTime createdAt, DateTime? updatedAt)
         : base(id, amount, paymentMethod, transactionType, transactionDate, categoryId, accountId, isActive, createdAt, updatedAt)
     {
         CardId = cardId;
     }
 
-    public int CardId { get; private set; }
+    public long CardId { get; private set; }
 
-    internal static CardTransaction FromDatabase(int id, decimal amount, PaymentMethod paymentMethod,
-        TransactionType transactionType, DateTime transactionDate, int categoryId, int accountId, int cardId,
+    internal static CardTransaction FromDatabase(long id, decimal amount, PaymentMethod paymentMethod,
+        TransactionType transactionType, DateTime transactionDate, long categoryId, long accountId, long cardId,
         bool isActive, DateTime createdAt, DateTime? updatedAt)
     {
         return new CardTransaction(id, amount, paymentMethod, transactionType, transactionDate, categoryId,

@@ -27,7 +27,7 @@ public class CardService : ICardService
         return userId ?? throw new InvalidOperationException("User context not available");
     }
 
-    public int CreateDebitCard(CreateDebitCardRequest request)
+    public long CreateDebitCard(CreateDebitCardRequest request)
     {
         var userId = GetCurrentUserId();
         if (!_bankService.ValidateBankForUser(request.BankId, userId))
@@ -37,7 +37,7 @@ public class CardService : ICardService
         return _repository.Add(card);
     }
 
-    public int CreateCreditCard(CreateCreditCardRequest request)
+    public long CreateCreditCard(CreateCreditCardRequest request)
     {
         var userId = GetCurrentUserId();
         if (!_bankService.ValidateBankForUser(request.BankId, userId))
@@ -47,7 +47,7 @@ public class CardService : ICardService
         return _repository.Add(card);
     }
 
-    public CardDetailResponse? GetById(int cardId)
+    public CardDetailResponse? GetById(long cardId)
     {
         var card = _repository.GetById(cardId);
         if (card == null) return null;
@@ -66,7 +66,7 @@ public class CardService : ICardService
         );
     }
 
-    public CreditCardDetailResponse? GetCreditById(int cardId)
+    public CreditCardDetailResponse? GetCreditById(long cardId)
     {
         var card = _repository.GetById(cardId);
         if (card == null || card is not CreditCard creditCard) return null;
@@ -104,7 +104,7 @@ public class CardService : ICardService
             .ToList();
     }
 
-    public bool UpdateCardName(int cardId, string cardName)
+    public bool UpdateCardName(long cardId, string cardName)
     {
         var card = _repository.GetById(cardId);
         if (card == null) return false;
@@ -114,7 +114,7 @@ public class CardService : ICardService
         return _repository.Update(card);
     }
 
-    public bool UpdateCreditCardDates(int cardId, UpdateCreditCardRequest request)
+    public bool UpdateCreditCardDates(long cardId, UpdateCreditCardRequest request)
     {
         var card = _repository.GetById(cardId);
         if (card == null || card is not CreditCard creditCard) return false;
@@ -124,7 +124,7 @@ public class CardService : ICardService
         return _repository.Update(creditCard);
     }
 
-    public bool Activate(int cardId)
+    public bool Activate(long cardId)
     {
         var card = _repository.GetById(cardId);
         if (card == null) return false;
@@ -132,7 +132,7 @@ public class CardService : ICardService
         return _repository.Update(card);
     }
 
-    public bool Deactivate(int cardId)
+    public bool Deactivate(long cardId)
     {
         var card = _repository.GetById(cardId);
         if (card == null) return false;

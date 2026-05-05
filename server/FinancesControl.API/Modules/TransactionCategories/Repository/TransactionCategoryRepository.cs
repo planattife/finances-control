@@ -16,17 +16,17 @@ public class TransactionCategoryRepository : ITransactionCategoryRepository
         _connectionFactory = connectionFactory;
     }
 
-    public int Add(TransactionCategory category)
+    public long Add(TransactionCategory category)
     {
         using var connection = _connectionFactory.CreateConnection();
         var command = new CreateTransactionCategoryCommand();
         var (sql, parameters) = command.Build(category);
         
         var id = connection.QuerySingleOrDefault<long>(sql, parameters);
-        return (int)id;
+        return id;
     }
 
-    public TransactionCategory? GetById(int categoryId)
+    public TransactionCategory? GetById(long categoryId)
     {
         using var connection = _connectionFactory.CreateConnection();
         var query = new GetTransactionCategoryByIdQuery();
@@ -63,7 +63,7 @@ public class TransactionCategoryRepository : ITransactionCategoryRepository
     private static TransactionCategory MapToTransactionCategory(dynamic row)
     {
         return TransactionCategory.FromDatabase(
-            id: (int)row.Id,
+            id: (long)row.Id,
             name: row.Name,
             isActive: row.IsActive,
             createdAt: row.CreatedAt,

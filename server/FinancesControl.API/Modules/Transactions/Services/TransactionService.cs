@@ -31,7 +31,7 @@ public class TransactionService : ITransactionService
 		_bankRepository = bankRepository;
 	}
 
-	public int CreateTransaction(CreateTransactionRequest request)
+	public long CreateTransaction(CreateTransactionRequest request)
 	{
 		// Validate foreign key constraints before attempting insert
 		ValidateForeignKeys(request);
@@ -93,7 +93,7 @@ public class TransactionService : ITransactionService
 		}
 	}
 
-	public TransactionDetailResponse? GetById(int transactionId)
+	public TransactionDetailResponse? GetById(long transactionId)
 	{
 		var t = _repository.GetById(transactionId);
 		if (t == null) return null;
@@ -132,7 +132,7 @@ public class TransactionService : ITransactionService
 			.ToList();
 	}
 
-	public bool Delete(int transactionId)
+	public bool Delete(long transactionId)
 	{
 		var transaction = _repository.GetById(transactionId);
 		if (transaction == null) return false;
@@ -140,7 +140,7 @@ public class TransactionService : ITransactionService
 		return _repository.Update(transaction);
 	}
 
-	public bool UpdateAmount(int transactionId, UpdateTransactionAmountRequest request)
+	public bool UpdateAmount(long transactionId, UpdateTransactionAmountRequest request)
 	{
 		var transaction = _repository.GetById(transactionId);
 		if (transaction == null) return false;
@@ -148,7 +148,7 @@ public class TransactionService : ITransactionService
 		return _repository.Update(transaction);
 	}
 
-	public bool UpdateCategory(int transactionId, UpdateTransactionCategoryRequest request)
+	public bool UpdateCategory(long transactionId, UpdateTransactionCategoryRequest request)
 	{
 		var transaction = _repository.GetById(transactionId);
 		if (transaction == null) return false;

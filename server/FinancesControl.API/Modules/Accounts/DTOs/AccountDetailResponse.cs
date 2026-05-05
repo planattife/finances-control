@@ -2,7 +2,7 @@ namespace FinancesControl.API.Accounts.DTOs;
 
 public record AccountDetailResponse
 (
-    int Id,
+    long Id,
     string Name,
     string Status,
     DateTime CreatedAt,

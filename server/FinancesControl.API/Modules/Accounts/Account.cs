@@ -6,7 +6,7 @@ namespace FinancesControl.API.Accounts;
 public class Account : BaseModel
 {
     // Public constructor - for creating NEW accounts
-    public Account(int id, string name, string userId) : base(id)
+    public Account(long id, string name, string userId) : base(id)
     {
         ValidationHelper.ValidateName(name, 2, 50);
         Name = name;
@@ -15,7 +15,7 @@ public class Account : BaseModel
     }
 
     // Private constructor - for DB reconstruction
-    private Account(int id, string name, string userId, bool isActive, 
+    private Account(long id, string name, string userId, bool isActive, 
         DateTime createdAt, DateTime? updatedAt) 
         : base(id, createdAt, updatedAt)
     {
@@ -48,7 +48,7 @@ public class Account : BaseModel
     }
 
     // Factory method for DB reconstruction
-    internal static Account FromDatabase(int id, string name, string userId, bool isActive,
+    internal static Account FromDatabase(long id, string name, string userId, bool isActive,
         DateTime createdAt, DateTime? updatedAt)
     {
         return new Account(id, name, userId, isActive, createdAt, updatedAt);

@@ -4,13 +4,13 @@ namespace FinancesControl.API.Cards.Services;
 
 public interface ICardService
 {
-    int CreateDebitCard(CreateDebitCardRequest request);
-    int CreateCreditCard(CreateCreditCardRequest request);
-    CardDetailResponse? GetById(int cardId);
-    CreditCardDetailResponse? GetCreditById(int cardId);
+    long CreateDebitCard(CreateDebitCardRequest request);
+    long CreateCreditCard(CreateCreditCardRequest request);
+    CardDetailResponse? GetById(long cardId);
+    CreditCardDetailResponse? GetCreditById(long cardId);
     List<CardListItemResponse> GetAll();
-    bool UpdateCardName(int cardId, string cardName);
-    bool UpdateCreditCardDates(int cardId, UpdateCreditCardRequest request);
-    bool Activate(int cardId);
-    bool Deactivate(int cardId);
+    bool UpdateCardName(long cardId, string cardName);
+    bool UpdateCreditCardDates(long cardId, UpdateCreditCardRequest request);
+    bool Activate(long cardId);
+    bool Deactivate(long cardId);
 }

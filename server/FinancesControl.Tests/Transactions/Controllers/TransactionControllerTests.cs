@@ -26,14 +26,15 @@ public class TransactionControllerTests
     public async Task Create_WithValidRequest_ReturnsCreated()
     {
         var request = new CreateTransactionRequest { Amount = 100, PaymentMethod = API.Enums.PaymentMethod.Cash, CategoryId = 1, TransactionType = API.Enums.TransactionType.Expense, TransactionDate = DateTime.UtcNow };
-        _service.CreateTransaction(request).Returns(10);
+        long transactionId = 10;
+        _service.CreateTransaction(request).Returns(transactionId);
 
         var result = await _controller.Create(request);
 
         result.Should().BeOfType<CreatedAtActionResult>();
         var created = result as CreatedAtActionResult;
         created.ActionName.Should().Be(nameof(_controller.GetById));
-        created.RouteValues["transactionId"].Should().Be(10);
+        created.RouteValues["transactionId"].Should().Be(transactionId);
     }
 
     [Fact]

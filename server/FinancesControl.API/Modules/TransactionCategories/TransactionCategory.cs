@@ -5,7 +5,7 @@ namespace FinancesControl.API.Models;
 public class TransactionCategory : BaseModel
 {
     // Public constructor - for creating NEW categories
-    public TransactionCategory(string name, int id) : base(id)
+    public TransactionCategory(string name, long id) : base(id)
     {
         ValidationHelper.ValidateName(name);
         Name = name;
@@ -13,7 +13,7 @@ public class TransactionCategory : BaseModel
     }
 
     // Private constructor - for DB reconstruction
-    private TransactionCategory(int id, string name, bool isActive,
+    private TransactionCategory(long id, string name, bool isActive,
         DateTime createdAt, DateTime? updatedAt)
         : base(id, createdAt, updatedAt)
     {
@@ -44,7 +44,7 @@ public class TransactionCategory : BaseModel
     }
 
     // Factory method for DB reconstruction
-    internal static TransactionCategory FromDatabase(int id, string name, bool isActive,
+    internal static TransactionCategory FromDatabase(long id, string name, bool isActive,
         DateTime createdAt, DateTime? updatedAt)
     {
         return new TransactionCategory(id, name, isActive, createdAt, updatedAt);

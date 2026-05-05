@@ -16,17 +16,17 @@ public class AccountRepository : IAccountRepository
         _connectionFactory = connectionFactory;
     }
 
-    public int Add(Account account)
+    public long Add(Account account)
     {
         using var connection = _connectionFactory.CreateConnection();
         var command = new CreateAccountCommand();
         var (sql, parameters) = command.Build(account);
         
         var id = connection.QuerySingleOrDefault<long>(sql, parameters);
-        return (int)id;
+        return id;
     }
 
-    public Account? GetById(int accountId)
+    public Account? GetById(long accountId)
     {
         using var connection = _connectionFactory.CreateConnection();
         var query = new GetAccountByIdQuery();
@@ -63,7 +63,7 @@ public class AccountRepository : IAccountRepository
     private static Account MapToAccount(dynamic row)
     {
         return Account.FromDatabase(
-            id: (int)row.Id,
+            id: (long)row.Id,
             name: row.Name,
             userId: row.UserId,
             isActive: row.IsActive,

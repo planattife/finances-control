@@ -13,13 +13,13 @@ public class TransactionCategoryService : ITransactionCategoryService
         _repository = repository;
     }
 
-    public int CreateCategory(CreateTransactionCategoryRequest request)
+    public long CreateCategory(CreateTransactionCategoryRequest request)
     {
         var category = new TransactionCategory(request.Name, 0);
         return _repository.Add(category);
     }
 
-    public TransactionCategoryDetailResponse? GetById(int categoryId)
+    public TransactionCategoryDetailResponse? GetById(long categoryId)
     {
         var cat = _repository.GetById(categoryId);
         if (cat == null) return null;
@@ -39,7 +39,7 @@ public class TransactionCategoryService : ITransactionCategoryService
             .ToList();
     }
 
-    public bool Rename(int categoryId, RenameTransactionCategoryRequest request)
+    public bool Rename(long categoryId, RenameTransactionCategoryRequest request)
     {
         var cat = _repository.GetById(categoryId);
         if (cat == null) return false;
@@ -47,7 +47,7 @@ public class TransactionCategoryService : ITransactionCategoryService
         return _repository.Update(cat);
     }
 
-    public bool Activate(int categoryId)
+    public bool Activate(long categoryId)
     {
         var cat = _repository.GetById(categoryId);
         if (cat == null) return false;
@@ -55,7 +55,7 @@ public class TransactionCategoryService : ITransactionCategoryService
         return _repository.Update(cat);
     }
 
-    public bool Deactivate(int categoryId)
+    public bool Deactivate(long categoryId)
     {
         var cat = _repository.GetById(categoryId);
         if (cat == null) return false;

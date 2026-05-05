@@ -1,6 +1,6 @@
 namespace FinancesControl.API.TransactionCategories.DTOs;
 
 public record TransactionCategoryListItemResponse(
-    int Id,
+    long Id,
     string Name
 );

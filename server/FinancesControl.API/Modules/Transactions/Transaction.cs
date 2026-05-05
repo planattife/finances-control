@@ -5,7 +5,7 @@ namespace FinancesControl.API.Models;
 
 public class Transaction : BaseModel
 {
-    public Transaction(decimal amount, PaymentMethod paymentMethod, TransactionType transactionType, DateTime transactionDate, int categoryId, int accountId, int id) : base(id)
+    public Transaction(decimal amount, PaymentMethod paymentMethod, TransactionType transactionType, DateTime transactionDate, long categoryId, long accountId, long id) : base(id)
     {
         ValidateAmount(amount);
         ValidateCategoryId(categoryId);
@@ -19,8 +19,8 @@ public class Transaction : BaseModel
         IsActive = true;
     }
 
-    protected Transaction(int id, decimal amount, PaymentMethod paymentMethod, TransactionType transactionType, 
-        DateTime transactionDate, int categoryId, int accountId, bool isActive,
+    protected Transaction(long id, decimal amount, PaymentMethod paymentMethod, TransactionType transactionType, 
+        DateTime transactionDate, long categoryId, long accountId, bool isActive,
         DateTime createdAt, DateTime? updatedAt)
         : base(id, createdAt, updatedAt)
     {
@@ -37,11 +37,11 @@ public class Transaction : BaseModel
     public decimal Amount { get; private set; }
     public PaymentMethod PaymentMethod { get; private set; }
     public TransactionType TransactionType { get; private set; }
-    public int CategoryId { get; private set; }
+    public long CategoryId { get; private set; }
 
-    public int AccountId { get; private set; }
+    public long AccountId { get; private set; }
     public bool IsActive { get; private set; }
-    private void ValidateAccountId(int accountId)
+    private void ValidateAccountId(long accountId)
     {
         if (accountId <= 0)
         {
@@ -62,7 +62,7 @@ public class Transaction : BaseModel
         Touch();
     }
 
-    public void ChangeCategory(int newCategoryId)
+    public void ChangeCategory(long newCategoryId)
     {
         ValidateCategoryId(newCategoryId);
         CategoryId = newCategoryId;
@@ -77,7 +77,7 @@ public class Transaction : BaseModel
         }
     }
 
-    private void ValidateCategoryId(int categoryId)
+    private void ValidateCategoryId(long categoryId)
     {
         if (categoryId <= 0)
         {
@@ -85,8 +85,8 @@ public class Transaction : BaseModel
         }
     }
 
-    internal static Transaction FromDatabase(int id, decimal amount, PaymentMethod paymentMethod, 
-        TransactionType transactionType, DateTime transactionDate, int categoryId, int accountId, 
+    internal static Transaction FromDatabase(long id, decimal amount, PaymentMethod paymentMethod, 
+        TransactionType transactionType, DateTime transactionDate, long categoryId, long accountId, 
         bool isActive, DateTime createdAt, DateTime? updatedAt)
     {
         return new Transaction(id, amount, paymentMethod, transactionType, transactionDate, categoryId, 

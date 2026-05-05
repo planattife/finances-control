@@ -3,12 +3,12 @@ using FinancesControl.API.Enums;
 namespace FinancesControl.API.Cards.DTOs;
 
 public record CardDetailResponse(
-    int Id,
+    long Id,
     string CardNumber,
     CardType CardType,
     CardNetwork CardNetwork,
     DateTime ExpirationDate,
-    int BankId,
+    long BankId,
     string CardName,
     string Status,
     DateTime CreatedAt,

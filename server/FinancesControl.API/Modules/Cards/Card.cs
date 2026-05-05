@@ -5,7 +5,7 @@ namespace FinancesControl.API.Models;
 public class Card : BaseModel
 {
     // Public constructor - for creating NEW cards
-    public Card(string cardNumber, DateTime expirationDate, CardNetwork cardNetwork, int bankId, CardType cardType, int id, string? cardName = null) : base(id)
+    public Card(string cardNumber, DateTime expirationDate, CardNetwork cardNetwork, long bankId, CardType cardType, long id, string? cardName = null) : base(id)
     {
         CardNumber = cardNumber;
         ExpirationDate = expirationDate;
@@ -18,8 +18,8 @@ public class Card : BaseModel
     }
 
     // Protected constructor - for DB reconstruction (protected so CreditCard can use it)
-    protected Card(int id, string cardNumber, DateTime expirationDate, CardNetwork cardNetwork, 
-        int bankId, CardType cardType, bool isActive, string? cardName,
+    protected Card(long id, string cardNumber, DateTime expirationDate, CardNetwork cardNetwork, 
+        long bankId, CardType cardType, bool isActive, string? cardName,
         DateTime createdAt, DateTime? updatedAt)
         : base(id, createdAt, updatedAt)
     {
@@ -37,7 +37,7 @@ public class Card : BaseModel
     public DateTime ExpirationDate { get; private set; }
     public bool IsActive { get; private set; }
     public CardNetwork CardNetwork { get; private set; }
-    public int BankId { get; private set; }
+    public long BankId { get; private set; }
     public string? CardName { get; private set; }
     
     public void SetIsActive(bool isActive)
@@ -52,8 +52,8 @@ public class Card : BaseModel
     }
 
     // Factory method for DB reconstruction
-    internal static Card FromDatabase(int id, string cardNumber, DateTime expirationDate, 
-        CardNetwork cardNetwork, int bankId, CardType cardType, bool isActive, string? cardName,
+    internal static Card FromDatabase(long id, string cardNumber, DateTime expirationDate, 
+        CardNetwork cardNetwork, long bankId, CardType cardType, bool isActive, string? cardName,
         DateTime createdAt, DateTime? updatedAt)
     {
         return new Card(id, cardNumber, expirationDate, cardNetwork, bankId, cardType, isActive, cardName, createdAt, updatedAt);

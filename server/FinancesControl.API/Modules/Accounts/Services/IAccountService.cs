@@ -5,10 +5,10 @@ namespace FinancesControl.API.Accounts.Services;
 
 public interface IAccountService
 {
-    int CreateAccount(CreateAccountRequest request, string userId);
-    AccountDetailResponse? GetById(int accountId);
+    long CreateAccount(CreateAccountRequest request, string userId);
+    AccountDetailResponse? GetById(long accountId);
     List<AccountListItemResponse> GetAll();
-    bool Update(int accountId, UpdateAccountRequest request);
-    bool Activate(int accountId);
-    bool Deactivate(int accountId);
+    bool Update(long accountId, UpdateAccountRequest request);
+    bool Activate(long accountId);
+    bool Deactivate(long accountId);
 }

@@ -29,7 +29,7 @@ namespace FinancesControl.API.Accounts.Controllers
         }
 
         [HttpGet("{accountId}")]
-        public async Task<ActionResult<AccountDetailResponse>> GetById(int accountId)
+        public async Task<ActionResult<AccountDetailResponse>> GetById(long accountId)
         {
             var response = _accountService.GetById(accountId);
             if (response == null)
@@ -45,7 +45,7 @@ namespace FinancesControl.API.Accounts.Controllers
         }
 
         [HttpPut("{accountId}")]
-        public async Task<IActionResult> Update(int accountId, UpdateAccountRequest request)
+        public async Task<IActionResult> Update(long accountId, UpdateAccountRequest request)
         {
             var updated = _accountService.Update(accountId, request);
             if (!updated)
@@ -54,7 +54,7 @@ namespace FinancesControl.API.Accounts.Controllers
         }
 
         [HttpPost("{accountId}/activate")]
-        public async Task<IActionResult> Activate(int accountId)
+        public async Task<IActionResult> Activate(long accountId)
         {
             var activated = _accountService.Activate(accountId);
             if (!activated)
@@ -63,7 +63,7 @@ namespace FinancesControl.API.Accounts.Controllers
         }
 
         [HttpPost("{accountId}/deactivate")]
-        public async Task<IActionResult> Deactivate(int accountId)
+        public async Task<IActionResult> Deactivate(long accountId)
         {
             var deactivated = _accountService.Deactivate(accountId);
             if (!deactivated)

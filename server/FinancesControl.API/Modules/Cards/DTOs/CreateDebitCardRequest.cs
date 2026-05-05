@@ -6,6 +6,6 @@ public record CreateDebitCardRequest(
     string CardNumber,
     DateTime ExpirationDate,
     CardNetwork CardNetwork,
-    int BankId,
+    long BankId,
     string? CardName = null
 );

@@ -20,19 +20,19 @@ namespace FinancesControl.API.Cards.Controllers
         [HttpPost("debit")]
         public async Task<IActionResult> CreateDebitCard(CreateDebitCardRequest request)
         {
-            var id = _cardService.CreateDebitCard(request);
+            long id = _cardService.CreateDebitCard(request);
             return CreatedAtAction(nameof(GetById), new { cardId = id }, null);
         }
 
         [HttpPost("credit")]
         public async Task<IActionResult> CreateCreditCard(CreateCreditCardRequest request)
         {
-            var id = _cardService.CreateCreditCard(request);
+            long id = _cardService.CreateCreditCard(request);
             return CreatedAtAction(nameof(GetCreditById), new { cardId = id }, null);
         }
 
         [HttpGet("{cardId}")]
-        public async Task<ActionResult<CardDetailResponse>> GetById(int cardId)
+        public async Task<ActionResult<CardDetailResponse>> GetById(long cardId)
         {
             var response = _cardService.GetById(cardId);
             if (response == null)
@@ -41,7 +41,7 @@ namespace FinancesControl.API.Cards.Controllers
         }
 
         [HttpGet("credit/{cardId}")]
-        public async Task<ActionResult<CreditCardDetailResponse>> GetCreditById(int cardId)
+        public async Task<ActionResult<CreditCardDetailResponse>> GetCreditById(long cardId)
         {
             var response = _cardService.GetCreditById(cardId);
             if (response == null)
@@ -57,7 +57,7 @@ namespace FinancesControl.API.Cards.Controllers
         }
 
         [HttpPut("{cardId}")]
-        public async Task<IActionResult> UpdateCardName(int cardId, string cardName)
+        public async Task<IActionResult> UpdateCardName(long cardId, string cardName)
         {
             var updated = _cardService.UpdateCardName(cardId, cardName);
             if (!updated)
@@ -66,7 +66,7 @@ namespace FinancesControl.API.Cards.Controllers
         }
 
         [HttpPut("{cardId}/credit-card-dates")]
-        public async Task<IActionResult> UpdateCreditCardDates(int cardId, UpdateCreditCardRequest request)
+        public async Task<IActionResult> UpdateCreditCardDates(long cardId, UpdateCreditCardRequest request)
         {
             var updated = _cardService.UpdateCreditCardDates(cardId, request);
             if (!updated)
@@ -75,7 +75,7 @@ namespace FinancesControl.API.Cards.Controllers
         }
 
         [HttpPost("{cardId}/activate")]
-        public async Task<IActionResult> Activate(int cardId)
+        public async Task<IActionResult> Activate(long cardId)
         {
             var activated = _cardService.Activate(cardId);
             if (!activated)
@@ -84,7 +84,7 @@ namespace FinancesControl.API.Cards.Controllers
         }
 
         [HttpPost("{cardId}/deactivate")]
-        public async Task<IActionResult> Deactivate(int cardId)
+        public async Task<IActionResult> Deactivate(long cardId)
         {
             var deactivated = _cardService.Deactivate(cardId);
             if (!deactivated)

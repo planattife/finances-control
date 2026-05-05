@@ -4,11 +4,11 @@ namespace FinancesControl.API.Banks.Services;
 
 public interface IBankService
 {
-    int CreateBank(CreateBankRequest request);
-    BankDetailResponse? GetById(int bankId);
+    long CreateBank(CreateBankRequest request);
+    BankDetailResponse? GetById(long bankId);
     List<BankListItemResponse> GetAll();
-    bool Update(int bankId, UpdateBankRequest request);
-    bool Activate(int bankId);
-    bool Deactivate(int bankId);
-    bool ValidateBankForUser(int bankId, string userId);
+    bool Update(long bankId, UpdateBankRequest request);
+    bool Activate(long bankId);
+    bool Deactivate(long bankId);
+    bool ValidateBankForUser(long bankId, string userId);
 }

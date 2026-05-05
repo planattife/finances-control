@@ -30,7 +30,7 @@ public class CardControllerTests
     {
         // Arrange
         var request = new CreateDebitCardRequest("4111111111111111", DateTime.UtcNow.AddYears(5), CardNetwork.Visa, 1);
-        var cardId = 1;
+        long cardId = 1;
         _cardService.CreateDebitCard(request).Returns(cardId);
 
         // Act
@@ -68,7 +68,7 @@ public class CardControllerTests
     {
         // Arrange
         var request = new CreateCreditCardRequest("5555555555554444", DateTime.UtcNow.AddYears(5), CardNetwork.Mastercard, 1, 10, 20);
-        var cardId = 1;
+        long cardId = 1;
         _cardService.CreateCreditCard(request).Returns(cardId);
 
         // Act

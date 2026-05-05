@@ -17,7 +17,7 @@ public class CardRepository : ICardRepository
         _connectionFactory = connectionFactory;
     }
 
-    public int Add(Card card)
+    public long Add(Card card)
     {
         using var connection = _connectionFactory.CreateConnection();
         connection.Open();
@@ -39,7 +39,7 @@ public class CardRepository : ICardRepository
             }
             
             transaction.Commit();
-            return (int)id;
+            return id;
         }
         catch
         {
@@ -48,7 +48,7 @@ public class CardRepository : ICardRepository
         }
     }
 
-    public Card? GetById(int cardId)
+    public Card? GetById(long cardId)
     {
         using var connection = _connectionFactory.CreateConnection();
         var query = new GetCardByIdQuery();
@@ -124,11 +124,11 @@ public class CardRepository : ICardRepository
     private static Card MapToCard(dynamic row)
     {
         return Card.FromDatabase(
-            id: (int)row.Id,
+            id: (long)row.Id,
             cardNumber: row.CardNumber,
             expirationDate: row.ExpirationDate,
             cardNetwork: (CardNetwork)row.CardNetwork,
-            bankId: (int)row.BankId,
+            bankId: (long)row.BankId,
             cardType: (CardType)row.CardType,
             isActive: row.IsActive,
             cardName: row.CardName,
@@ -140,11 +140,11 @@ public class CardRepository : ICardRepository
     private static CreditCard MapToCreditCard(dynamic row)
     {
         return CreditCard.FromDatabase(
-            id: (int)row.Id,
+            id: (long)row.Id,
             cardNumber: row.CardNumber,
             expirationDate: row.ExpirationDate,
             cardNetwork: (CardNetwork)row.CardNetwork,
-            bankId: (int)row.BankId,
+            bankId: (long)row.BankId,
             closingDay: row.ClosingDay,
             dueDateDay: row.DueDateDay,
             isActive: row.IsActive,

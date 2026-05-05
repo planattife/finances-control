@@ -5,8 +5,8 @@ namespace FinancesControl.API.Accounts.Repository;
 
 public interface IAccountRepository
 {
-    int Add(Account account);
-    Account? GetById(int accountId);
+    long Add(Account account);
+    Account? GetById(long accountId);
     List<Account> GetAll();
     bool Update(Account account);
 }

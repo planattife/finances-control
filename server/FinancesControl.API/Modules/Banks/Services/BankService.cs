@@ -21,14 +21,14 @@ public class BankService : IBankService
         return _httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new InvalidOperationException("User context is not available");
     }
 
-    public int CreateBank(CreateBankRequest request)
+    public long CreateBank(CreateBankRequest request)
     {
         var userId = GetCurrentUserId();
         var bank = new Bank(request.Name, request.AccountType, 0, userId);
         return _repository.Add(bank);
     }
 
-    public BankDetailResponse? GetById(int bankId)
+    public BankDetailResponse? GetById(long bankId)
     {
         var bank = _repository.GetById(bankId);
         if (bank == null) return null;
@@ -49,7 +49,7 @@ public class BankService : IBankService
             .ToList();
     }
 
-    public bool Update(int bankId, UpdateBankRequest request)
+    public bool Update(long bankId, UpdateBankRequest request)
     {
         var bank = _repository.GetById(bankId);
         if (bank == null) return false;
@@ -59,7 +59,7 @@ public class BankService : IBankService
         return _repository.Update(bank);
     }
 
-    public bool Activate(int bankId)
+    public bool Activate(long bankId)
     {
         var bank = _repository.GetById(bankId);
         if (bank == null) return false;
@@ -67,7 +67,7 @@ public class BankService : IBankService
         return _repository.Update(bank);
     }
 
-    public bool Deactivate(int bankId)
+    public bool Deactivate(long bankId)
     {
         var bank = _repository.GetById(bankId);
         if (bank == null) return false;
@@ -75,7 +75,7 @@ public class BankService : IBankService
         return _repository.Update(bank);
     }
 
-    public bool ValidateBankForUser(int bankId, string userId)
+    public bool ValidateBankForUser(long bankId, string userId)
     {
         var bank = _repository.GetById(bankId);
         return bank != null && bank.UserId == userId && bank.IsActive;

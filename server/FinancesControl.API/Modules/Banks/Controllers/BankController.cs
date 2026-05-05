@@ -25,7 +25,7 @@ namespace FinancesControl.API.Banks.Controllers
         }
 
         [HttpGet("{bankId}")]
-        public async Task<ActionResult<BankDetailResponse>> GetById(int bankId)
+        public async Task<ActionResult<BankDetailResponse>> GetById(long bankId)
         {
             var response = _bankService.GetById(bankId);
             if (response == null)
@@ -41,7 +41,7 @@ namespace FinancesControl.API.Banks.Controllers
         }
 
         [HttpPut("{bankId}")]
-        public async Task<IActionResult> Update(int bankId, UpdateBankRequest request)
+        public async Task<IActionResult> Update(long bankId, UpdateBankRequest request)
         {
             var updated = _bankService.Update(bankId, request);
             if (!updated)
@@ -50,7 +50,7 @@ namespace FinancesControl.API.Banks.Controllers
         }
 
         [HttpPost("{bankId}/activate")]
-        public async Task<IActionResult> Activate(int bankId)
+        public async Task<IActionResult> Activate(long bankId)
         {
             var activated = _bankService.Activate(bankId);
             if (!activated)
@@ -59,7 +59,7 @@ namespace FinancesControl.API.Banks.Controllers
         }
 
         [HttpPost("{bankId}/deactivate")]
-        public async Task<IActionResult> Deactivate(int bankId)
+        public async Task<IActionResult> Deactivate(long bankId)
         {
             var deactivated = _bankService.Deactivate(bankId);
             if (!deactivated)
