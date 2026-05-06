@@ -245,63 +245,117 @@ public class TransactionServiceTests
 
 
     [Fact]
-    public void UpdateAmount_ValidTransaction_UpdatesAmount()
+    public void Update_WithAmountOnly_UpdatesAmount()
     {
         var t = new Transaction(100, PaymentMethod.Cash, TransactionType.Expense, DateTime.UtcNow, 1, 1, 5);
         _repository.GetById(5).Returns(t);
         _repository.Update(t).Returns(true);
-        var req = new UpdateTransactionAmountRequest { NewAmount = 200 };
-        var result = _service.UpdateAmount(5, req);
+        var req = new UpdateTransactionRequest { NewAmount = 250 };
+        var result = _service.Update(5, req);
         result.Should().BeTrue();
-        t.Amount.Should().Be(200);
+        t.Amount.Should().Be(250);
     }
 
     [Fact]
-    public void UpdateAmount_NonexistentTransaction_ReturnsFalse()
-    {
-        _repository.GetById(999).Returns((Transaction?)null);
-        var req = new UpdateTransactionAmountRequest { NewAmount = 200 };
-        var result = _service.UpdateAmount(999, req);
-        result.Should().BeFalse();
-    }
-
-    [Fact]
-    public void UpdateAmount_NegativeAmount_Throws()
+    public void Update_WithCategoryOnly_UpdatesCategory()
     {
         var t = new Transaction(100, PaymentMethod.Cash, TransactionType.Expense, DateTime.UtcNow, 1, 1, 5);
         _repository.GetById(5).Returns(t);
-        var req = new UpdateTransactionAmountRequest { NewAmount = -100 };
-        Assert.Throws<ArgumentException>(() => _service.UpdateAmount(5, req));
+        _categoryRepository.GetById(3).Returns(new TransactionCategory("Updated Category", 3));
+        _repository.Update(t).Returns(true);
+        var req = new UpdateTransactionRequest { NewCategoryId = 3 };
+        var result = _service.Update(5, req);
+        result.Should().BeTrue();
+        t.CategoryId.Should().Be(3);
     }
 
-
     [Fact]
-    public void UpdateCategory_ValidTransaction_UpdatesCategory()
+    public void Update_WithDescriptionOnly_UpdatesDescription()
     {
         var t = new Transaction(100, PaymentMethod.Cash, TransactionType.Expense, DateTime.UtcNow, 1, 1, 5);
         _repository.GetById(5).Returns(t);
         _repository.Update(t).Returns(true);
-        var req = new UpdateTransactionCategoryRequest { NewCategoryId = 7 };
-        var result = _service.UpdateCategory(5, req);
+        var req = new UpdateTransactionRequest { NewDescription = "Test expense", HasDescriptionUpdate = true };
+        var result = _service.Update(5, req);
         result.Should().BeTrue();
-        t.CategoryId.Should().Be(7);
+        t.Description.Should().Be("Test expense");
     }
 
     [Fact]
-    public void UpdateCategory_NonexistentTransaction_ReturnsFalse()
+    public void Update_WithAllFields_UpdatesAll()
+    {
+        var t = new Transaction(100, PaymentMethod.Cash, TransactionType.Expense, DateTime.UtcNow, 1, 1, 5);
+        _repository.GetById(5).Returns(t);
+        _categoryRepository.GetById(2).Returns(new TransactionCategory("Updated Category", 2));
+        _repository.Update(t).Returns(true);
+        var req = new UpdateTransactionRequest { NewAmount = 300, NewCategoryId = 2, NewDescription = "Updated transaction", HasDescriptionUpdate = true };
+        var result = _service.Update(5, req);
+        result.Should().BeTrue();
+        t.Amount.Should().Be(300);
+        t.CategoryId.Should().Be(2);
+        t.Description.Should().Be("Updated transaction");
+    }
+
+    [Fact]
+    public void Update_NonexistentTransaction_ReturnsFalse()
     {
         _repository.GetById(999).Returns((Transaction?)null);
-        var req = new UpdateTransactionCategoryRequest { NewCategoryId = 7 };
-        var result = _service.UpdateCategory(999, req);
+        var req = new UpdateTransactionRequest { NewAmount = 200 };
+        var result = _service.Update(999, req);
         result.Should().BeFalse();
     }
 
     [Fact]
-    public void UpdateCategory_ZeroCategoryId_Throws()
+    public void Update_WithNegativeAmount_Throws()
     {
         var t = new Transaction(100, PaymentMethod.Cash, TransactionType.Expense, DateTime.UtcNow, 1, 1, 5);
         _repository.GetById(5).Returns(t);
-        var req = new UpdateTransactionCategoryRequest { NewCategoryId = 0 };
-        Assert.Throws<ArgumentException>(() => _service.UpdateCategory(5, req));
+        var req = new UpdateTransactionRequest { NewAmount = -50 };
+        Assert.Throws<ArgumentException>(() => _service.Update(5, req));
+    }
+
+    [Fact]
+    public void Update_WithNullDescription_ClearsDescription()
+    {
+        var t = new Transaction(100, PaymentMethod.Cash, TransactionType.Expense, DateTime.UtcNow, 1, 1, 5, "Original description");
+        _repository.GetById(5).Returns(t);
+        _repository.Update(t).Returns(true);
+        var req = new UpdateTransactionRequest { NewDescription = null, HasDescriptionUpdate = true };
+        var result = _service.Update(5, req);
+        result.Should().BeTrue();
+        t.Description.Should().BeNull();
+    }
+
+    [Fact]
+    public void CreateTransaction_WithDescription_StoresDescription()
+    {
+        var request = new CreateTransactionRequest 
+        { 
+            Amount = 100, 
+            PaymentMethod = PaymentMethod.Cash, 
+            CategoryId = 1, 
+            TransactionType = TransactionType.Expense, 
+            TransactionDate = DateTime.UtcNow, 
+            AccountId = 1,
+            Description = "Test purchase"
+        };
+        
+        _accountRepository.GetById(1).Returns(new Account(1, "Test Account", "user123"));
+        _categoryRepository.GetById(1).Returns(new TransactionCategory("Test Category", 1));
+        _repository.Add(Arg.Any<Transaction>()).Returns(1);
+        
+        var result = _service.CreateTransaction(request);
+        result.Should().Be(1);
+        _repository.Received(1).Add(Arg.Is<Transaction>(t => t.Description == "Test purchase"));
+    }
+
+    [Fact]
+    public void GetById_ReturnsDescriptionInDetail()
+    {
+        var t = new Transaction(100, PaymentMethod.Cash, TransactionType.Expense, DateTime.UtcNow, 1, 1, 5, "Test description");
+        _repository.GetById(5).Returns(t);
+        var result = _service.GetById(5);
+        result.Should().NotBeNull();
+        result.Description.Should().Be("Test description");
     }
 }
