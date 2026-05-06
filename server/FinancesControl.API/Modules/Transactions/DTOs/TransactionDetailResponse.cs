@@ -10,6 +10,7 @@ public class TransactionDetailResponse
     public long CategoryId { get; set; }
     public long? CardId { get; set; }
     public long? BankId { get; set; }
+    public string? Description { get; set; }
     public string Status { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }

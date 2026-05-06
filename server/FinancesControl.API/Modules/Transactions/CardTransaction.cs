@@ -5,16 +5,16 @@ namespace FinancesControl.API.Models;
 
 public class CardTransaction : Transaction
 {
-    public CardTransaction(decimal amount, PaymentMethod paymentMethod, TransactionType transactionType, DateTime transactionDate, long categoryId, long cardId, long accountId, long id) 
-    : base(amount, paymentMethod, transactionType, transactionDate, categoryId, accountId, id)
+    public CardTransaction(decimal amount, PaymentMethod paymentMethod, TransactionType transactionType, DateTime transactionDate, long categoryId, long cardId, long accountId, long id, string? description = null) 
+    : base(amount, paymentMethod, transactionType, transactionDate, categoryId, accountId, id, description)
     {
         CardId = cardId;
     }
 
     protected CardTransaction(long id, decimal amount, PaymentMethod paymentMethod, TransactionType transactionType,
         DateTime transactionDate, long categoryId, long accountId, long cardId, bool isActive,
-        DateTime createdAt, DateTime? updatedAt)
-        : base(id, amount, paymentMethod, transactionType, transactionDate, categoryId, accountId, isActive, createdAt, updatedAt)
+        DateTime createdAt, DateTime? updatedAt, string? description = null)
+        : base(id, amount, paymentMethod, transactionType, transactionDate, categoryId, accountId, isActive, createdAt, updatedAt, description)
     {
         CardId = cardId;
     }
@@ -23,9 +23,9 @@ public class CardTransaction : Transaction
 
     internal static CardTransaction FromDatabase(long id, decimal amount, PaymentMethod paymentMethod,
         TransactionType transactionType, DateTime transactionDate, long categoryId, long accountId, long cardId,
-        bool isActive, DateTime createdAt, DateTime? updatedAt)
+        bool isActive, DateTime createdAt, DateTime? updatedAt, string? description = null)
     {
         return new CardTransaction(id, amount, paymentMethod, transactionType, transactionDate, categoryId,
-            accountId, cardId, isActive, createdAt, updatedAt);
+            accountId, cardId, isActive, createdAt, updatedAt, description);
     }
 }
