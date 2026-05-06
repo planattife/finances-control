@@ -12,4 +12,5 @@ public class CreateTransactionRequest
     public long? CardId { get; set; }
     public long? BankId { get; set; }
     public DateTime TransactionDate { get; set; }
+    public string? Description { get; set; }
 }

@@ -81,22 +81,23 @@ public class TransactionRepository : ITransactionRepository
 		var bankId = row.BankId;
 		var createdAt = (DateTime)row.CreatedAt;
 		var updatedAt = (DateTime?)row.UpdatedAt;
+		var description = (string?)row.Description;
 
 		// Determine the transaction type based on CardId and BankId
 		if (cardId != null && cardId > 0)
 		{
 			return CardTransaction.FromDatabase(id, amount, paymentMethod, transactionType,
-				transactionDate, categoryId, accountId, (long)cardId, isActive, createdAt, updatedAt);
+				transactionDate, categoryId, accountId, (long)cardId, isActive, createdAt, updatedAt, description);
 		}
 
 		if (bankId != null && bankId > 0)
 		{
 			return GeneralTransaction.FromDatabase(id, amount, paymentMethod, transactionType,
-				transactionDate, categoryId, accountId, (long)bankId, isActive, createdAt, updatedAt);
+				transactionDate, categoryId, accountId, (long)bankId, isActive, createdAt, updatedAt, description);
 		}
 
 		// Default to basic Transaction (for Cash payments)
 		return Transaction.FromDatabase(id, amount, paymentMethod, transactionType,
-			transactionDate, categoryId, accountId, isActive, createdAt, updatedAt);
+			transactionDate, categoryId, accountId, isActive, createdAt, updatedAt, description);
 	}
 }

@@ -10,6 +10,5 @@ public interface ITransactionService
 	TransactionDetailResponse? GetById(long transactionId);
 	List<TransactionListItemResponse> GetAll();
 	bool Delete(long transactionId);
-	bool UpdateAmount(long transactionId, UpdateTransactionAmountRequest request);
-	bool UpdateCategory(long transactionId, UpdateTransactionCategoryRequest request);
+	bool Update(long transactionId, UpdateTransactionRequest request);
 }

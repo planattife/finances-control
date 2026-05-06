@@ -11,7 +11,7 @@ public class UpdateTransactionCommand
             UPDATE ""Transactions""
             SET ""TransactionDate"" = @TransactionDate, ""Amount"" = @Amount, ""PaymentMethod"" = @PaymentMethod, 
                 ""TransactionType"" = @TransactionType, ""CategoryId"" = @CategoryId, ""IsActive"" = @IsActive, 
-                ""UpdatedAt"" = @UpdatedAt
+                ""UpdatedAt"" = @UpdatedAt, ""Description"" = @Description
             WHERE ""Id"" = @Id;
         ";
 
@@ -24,6 +24,7 @@ public class UpdateTransactionCommand
         parameters.Add("@CategoryId", transaction.CategoryId);
         parameters.Add("@IsActive", transaction.IsActive);
         parameters.Add("@UpdatedAt", transaction.UpdatedAt);
+        parameters.Add("@Description", transaction.Description);
 
         return (sql, parameters);
     }

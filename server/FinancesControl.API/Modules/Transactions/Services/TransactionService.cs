@@ -44,17 +44,17 @@ public class TransactionService : ITransactionService
 			case PaymentMethod.Debit:
 				if (request.CardId == null || request.CardId <= 0)
 					throw new ArgumentException("Card must be provided for card transactions.");
-				transaction = new CardTransaction(request.Amount, request.PaymentMethod, request.TransactionType,  request.TransactionDate, request.CategoryId, request.CardId.Value, request.AccountId, 0);
+				transaction = new CardTransaction(request.Amount, request.PaymentMethod, request.TransactionType,  request.TransactionDate, request.CategoryId, request.CardId.Value, request.AccountId, 0, request.Description);
 				break;
 			case PaymentMethod.Pix:
 			case PaymentMethod.BankSlip:
 			case PaymentMethod.BankTransfer:
 				if (request.BankId == null || request.BankId <= 0)
 					throw new ArgumentException("Bank must be provided for general transactions.");
-				transaction = new GeneralTransaction(request.Amount, request.PaymentMethod, request.TransactionType, request.TransactionDate, request.CategoryId, request.BankId.Value, request.AccountId, 0);
+				transaction = new GeneralTransaction(request.Amount, request.PaymentMethod, request.TransactionType, request.TransactionDate, request.CategoryId, request.BankId.Value, request.AccountId, 0, request.Description);
 				break;
 			case PaymentMethod.Cash:
-				transaction = new Transaction(request.Amount, request.PaymentMethod, request.TransactionType, request.TransactionDate, request.CategoryId, request.AccountId, 0);
+				transaction = new Transaction(request.Amount, request.PaymentMethod, request.TransactionType, request.TransactionDate, request.CategoryId, request.AccountId, 0, request.Description);
 				break;
 			default:
 				throw new ArgumentException("Unsupported payment method");
@@ -105,6 +105,7 @@ public class TransactionService : ITransactionService
 			TransactionType = t.TransactionType.ToString(),
 			TransactionDate = t.TransactionDate,
 			CategoryId = t.CategoryId,
+			Description = t.Description,
 			Status = t.IsActive ? "Active" : "Inactive",
 			CreatedAt = t.CreatedAt,
 			UpdatedAt = t.UpdatedAt ?? null
@@ -140,19 +141,28 @@ public class TransactionService : ITransactionService
 		return _repository.Update(transaction);
 	}
 
-	public bool UpdateAmount(long transactionId, UpdateTransactionAmountRequest request)
+	public bool Update(long transactionId, UpdateTransactionRequest request)
 	{
 		var transaction = _repository.GetById(transactionId);
 		if (transaction == null) return false;
-		transaction.ChangeAmount(request.NewAmount);
-		return _repository.Update(transaction);
-	}
 
-	public bool UpdateCategory(long transactionId, UpdateTransactionCategoryRequest request)
-	{
-		var transaction = _repository.GetById(transactionId);
-		if (transaction == null) return false;
-		transaction.ChangeCategory(request.NewCategoryId);
+		if (request.NewAmount.HasValue && request.NewAmount != 0)
+		{
+			transaction.ChangeAmount(request.NewAmount.Value);
+		}
+
+		if (request.NewCategoryId.HasValue && request.NewCategoryId > 0)
+		{
+			if (_categoryRepository.GetById(request.NewCategoryId.Value) == null)
+				throw new ArgumentException($"Transaction category with ID {request.NewCategoryId.Value} does not exist.", nameof(request.NewCategoryId));
+			transaction.ChangeCategory(request.NewCategoryId.Value);
+		}
+
+		if (request.HasDescriptionUpdate)
+		{
+			transaction.ChangeDescription(request.NewDescription);
+		}
+
 		return _repository.Update(transaction);
 	}
 }

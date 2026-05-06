@@ -9,7 +9,7 @@ public class GetTransactionByIdQuery
         var sql = @"
             SELECT ""Id"", ""TransactionDate"", ""Amount"", ""PaymentMethod"", ""TransactionType"", 
                    ""CategoryId"", ""AccountId"", ""IsActive"", ""BankId"", ""CardId"", 
-                   ""CreatedAt"", ""UpdatedAt""
+                   ""CreatedAt"", ""UpdatedAt"", ""Description""
             FROM ""Transactions""
             WHERE ""Id"" = @Id;
         ";

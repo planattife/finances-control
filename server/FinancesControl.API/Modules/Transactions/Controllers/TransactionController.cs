@@ -47,18 +47,10 @@ namespace FinancesControl.API.Transactions.Controllers
 			return NoContent();
 		}
 
-		[HttpPatch("{transactionId}/amount")]
-		public async Task<IActionResult> UpdateAmount(long transactionId, UpdateTransactionAmountRequest request)
+		[HttpPatch("{transactionId}")]
+		public async Task<IActionResult> Update(long transactionId, UpdateTransactionRequest request)
 		{
-			var updated = _service.UpdateAmount(transactionId, request);
-			if (!updated) return NotFound();
-			return NoContent();
-		}
-
-		[HttpPatch("{transactionId}/category")]
-		public async Task<IActionResult> UpdateCategory(long transactionId, UpdateTransactionCategoryRequest request)
-		{
-			var updated = _service.UpdateCategory(transactionId, request);
+			var updated = _service.Update(transactionId, request);
 			if (!updated) return NotFound();
 			return NoContent();
 		}

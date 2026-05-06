@@ -9,9 +9,9 @@ public class CreateTransactionCommand
     {
         var sql = @"
             INSERT INTO ""Transactions"" (""TransactionDate"", ""Amount"", ""PaymentMethod"", ""TransactionType"", 
-                ""CategoryId"", ""AccountId"", ""IsActive"", ""BankId"", ""CardId"", ""CreatedAt"")
+                ""CategoryId"", ""AccountId"", ""IsActive"", ""BankId"", ""CardId"", ""CreatedAt"", ""Description"")
             VALUES (@TransactionDate, @Amount, @PaymentMethod, @TransactionType, 
-                @CategoryId, @AccountId, @IsActive, @BankId, @CardId, @CreatedAt)
+                @CategoryId, @AccountId, @IsActive, @BankId, @CardId, @CreatedAt, @Description)
             RETURNING ""Id"";
         ";
 
@@ -26,7 +26,8 @@ public class CreateTransactionCommand
         parameters.Add("@BankId", transaction is GeneralTransaction gt ? gt.BankId : (long?)null);
         parameters.Add("@CardId", transaction is CardTransaction ct ? ct.CardId : (long?)null);
         parameters.Add("@CreatedAt", transaction.CreatedAt);
-
+        parameters.Add("@Description", transaction.Description);
+        
         return (sql, parameters);
     }
 }
