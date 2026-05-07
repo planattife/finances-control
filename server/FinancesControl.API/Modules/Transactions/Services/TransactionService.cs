@@ -65,7 +65,7 @@ public class TransactionService : ITransactionService
 	private void ValidateForeignKeys(CreateTransactionRequest request, string? userId)
 	{
 		// Validate Account exists
-		if (_accountRepository.GetById(request.AccountId) == null)
+		if (userId != null && _accountRepository.GetById(request.AccountId, userId) == null)
 			throw new ArgumentException($"Account with ID {request.AccountId} does not exist.", nameof(request.AccountId));
 
 		// Validate Category exists

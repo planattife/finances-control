@@ -20,9 +20,9 @@ public class AccountService : IAccountService
         return _repository.Add(account);
     }
 
-    public AccountDetailResponse? GetById(long accountId)
+    public AccountDetailResponse? GetById(long accountId, string userId)
     {
-        var account = _repository.GetById(accountId);
+        var account = _repository.GetById(accountId, userId);
         if (account == null) return null;
         return new AccountDetailResponse(
             account.Id,
@@ -33,32 +33,32 @@ public class AccountService : IAccountService
         );
     }
 
-    public List<AccountListItemResponse> GetAll()
+    public List<AccountListItemResponse> GetAll(string userId)
     {
-        return _repository.GetAll()
+        return _repository.GetAll(userId)
             .Select(a => new AccountListItemResponse(a.Id, a.Name))
             .ToList();
     }
 
-    public bool Update(long accountId, UpdateAccountRequest request)
+    public bool Update(long accountId, UpdateAccountRequest request, string userId)
     {
-        var account = _repository.GetById(accountId);
+        var account = _repository.GetById(accountId, userId);
         if (account == null) return false;
         account.Rename(request.Name);
         return _repository.Update(account);
     }
 
-    public bool Activate(long accountId)
+    public bool Activate(long accountId, string userId)
     {
-        var account = _repository.GetById(accountId);
+        var account = _repository.GetById(accountId, userId);
         if (account == null) return false;
         account.Activate();
         return _repository.Update(account);
     }
 
-    public bool Deactivate(long accountId)
+    public bool Deactivate(long accountId, string userId)
     {
-        var account = _repository.GetById(accountId);
+        var account = _repository.GetById(accountId, userId);
         if (account == null) return false;
         account.Deactivate();
         return _repository.Update(account);
