@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using FinancesControl.API.Transactions.DTOs;
 using FinancesControl.API.Transactions.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -17,10 +18,16 @@ namespace FinancesControl.API.Transactions.Controllers
 			_service = service;
 		}
 
+		private string? GetUserId()
+		{
+			return User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+		}
+
 		[HttpPost]
 		public async Task<IActionResult> Create(CreateTransactionRequest request)
 		{
-			var id = _service.CreateTransaction(request);
+			var userId = GetUserId();
+			var id = _service.CreateTransaction(request, userId);
 			return CreatedAtAction(nameof(GetById), new { transactionId = id }, null);
 		}
 
@@ -50,7 +57,8 @@ namespace FinancesControl.API.Transactions.Controllers
 		[HttpPatch("{transactionId}")]
 		public async Task<IActionResult> Update(long transactionId, UpdateTransactionRequest request)
 		{
-			var updated = _service.Update(transactionId, request);
+			var userId = GetUserId();
+			var updated = _service.Update(transactionId, request, userId);
 			if (!updated) return NotFound();
 			return NoContent();
 		}

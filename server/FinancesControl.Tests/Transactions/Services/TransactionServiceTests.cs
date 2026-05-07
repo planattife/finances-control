@@ -23,6 +23,7 @@ public class TransactionServiceTests
     private readonly ICardRepository _cardRepository;
     private readonly IBankRepository _bankRepository;
     private readonly TransactionService _service;
+    private const string TestUserId = "test-user-123";
 
     public TransactionServiceTests()
     {
@@ -43,7 +44,7 @@ public class TransactionServiceTests
         var request = new CreateTransactionRequest { Amount = 100, PaymentMethod = PaymentMethod.Cash, CategoryId = 1, TransactionType = TransactionType.Expense, TransactionDate = DateTime.UtcNow, AccountId = 999 };
         _accountRepository.GetById(999).Returns((Account?)null);
         
-        var ex = Assert.Throws<ArgumentException>(() => _service.CreateTransaction(request));
+        var ex = Assert.Throws<ArgumentException>(() => _service.CreateTransaction(request, TestUserId));
         ex.Message.Should().Contain("Account with ID 999 does not exist");
         ex.ParamName.Should().Be(nameof(request.AccountId));
     }
@@ -53,9 +54,9 @@ public class TransactionServiceTests
     {
         var request = new CreateTransactionRequest { Amount = 100, PaymentMethod = PaymentMethod.Cash, CategoryId = 999, TransactionType = TransactionType.Expense, TransactionDate = DateTime.UtcNow, AccountId = 1 };
         _accountRepository.GetById(1).Returns(new Account(1, "Test Account", "user123"));
-        _categoryRepository.GetById(999).Returns((TransactionCategory?)null);
+        _categoryRepository.GetById(999, TestUserId).Returns((TransactionCategory?)null);
         
-        var ex = Assert.Throws<ArgumentException>(() => _service.CreateTransaction(request));
+        var ex = Assert.Throws<ArgumentException>(() => _service.CreateTransaction(request, TestUserId));
         ex.Message.Should().Contain("Transaction category with ID 999 does not exist");
         ex.ParamName.Should().Be(nameof(request.CategoryId));
     }
@@ -65,10 +66,10 @@ public class TransactionServiceTests
     {
         var request = new CreateTransactionRequest { Amount = 100, PaymentMethod = PaymentMethod.Credit, CategoryId = 1, TransactionType = TransactionType.Expense, TransactionDate = DateTime.UtcNow, AccountId = 1, CardId = 999 };
         _accountRepository.GetById(1).Returns(new Account(1, "Test Account", "user123"));
-        _categoryRepository.GetById(1).Returns(new TransactionCategory("Test Category", 1));
+        _categoryRepository.GetById(1, TestUserId).Returns(new TransactionCategory("Test Category", 1, TestUserId));
         _cardRepository.GetById(999).Returns((Card?)null);
         
-        var ex = Assert.Throws<ArgumentException>(() => _service.CreateTransaction(request));
+        var ex = Assert.Throws<ArgumentException>(() => _service.CreateTransaction(request, TestUserId));
         ex.Message.Should().Contain("Card with ID 999 does not exist");
         ex.ParamName.Should().Be(nameof(request.CardId));
     }
@@ -78,10 +79,10 @@ public class TransactionServiceTests
     {
         var request = new CreateTransactionRequest { Amount = 100, PaymentMethod = PaymentMethod.Debit, CategoryId = 1, TransactionType = TransactionType.Expense, TransactionDate = DateTime.UtcNow, AccountId = 1, CardId = 999 };
         _accountRepository.GetById(1).Returns(new Account(1, "Test Account", "user123"));
-        _categoryRepository.GetById(1).Returns(new TransactionCategory("Test Category", 1));
+        _categoryRepository.GetById(1, TestUserId).Returns(new TransactionCategory("Test Category", 1, TestUserId));
         _cardRepository.GetById(999).Returns((Card?)null);
         
-        var ex = Assert.Throws<ArgumentException>(() => _service.CreateTransaction(request));
+        var ex = Assert.Throws<ArgumentException>(() => _service.CreateTransaction(request, TestUserId));
         ex.Message.Should().Contain("Card with ID 999 does not exist");
         ex.ParamName.Should().Be(nameof(request.CardId));
     }
@@ -91,10 +92,10 @@ public class TransactionServiceTests
     {
         var request = new CreateTransactionRequest { Amount = 100, PaymentMethod = PaymentMethod.Pix, CategoryId = 1, TransactionType = TransactionType.Expense, TransactionDate = DateTime.UtcNow, AccountId = 1, BankId = 999 };
         _accountRepository.GetById(1).Returns(new Account(1, "Test Account", "user123"));
-        _categoryRepository.GetById(1).Returns(new TransactionCategory("Test Category", 1));
+        _categoryRepository.GetById(1, TestUserId).Returns(new TransactionCategory("Test Category", 1, TestUserId));
         _bankRepository.GetById(999).Returns((Bank?)null);
         
-        var ex = Assert.Throws<ArgumentException>(() => _service.CreateTransaction(request));
+        var ex = Assert.Throws<ArgumentException>(() => _service.CreateTransaction(request, TestUserId));
         ex.Message.Should().Contain("Bank with ID 999 does not exist");
         ex.ParamName.Should().Be(nameof(request.BankId));
     }
@@ -104,10 +105,10 @@ public class TransactionServiceTests
     {
         var request = new CreateTransactionRequest { Amount = 100, PaymentMethod = PaymentMethod.BankSlip, CategoryId = 1, TransactionType = TransactionType.Expense, TransactionDate = DateTime.UtcNow, AccountId = 1, BankId = 999 };
         _accountRepository.GetById(1).Returns(new Account(1, "Test Account", "user123"));
-        _categoryRepository.GetById(1).Returns(new TransactionCategory("Test Category", 1));
+        _categoryRepository.GetById(1, TestUserId).Returns(new TransactionCategory("Test Category", 1, TestUserId));
         _bankRepository.GetById(999).Returns((Bank?)null);
         
-        var ex = Assert.Throws<ArgumentException>(() => _service.CreateTransaction(request));
+        var ex = Assert.Throws<ArgumentException>(() => _service.CreateTransaction(request, TestUserId));
         ex.Message.Should().Contain("Bank with ID 999 does not exist");
         ex.ParamName.Should().Be(nameof(request.BankId));
     }
@@ -117,10 +118,10 @@ public class TransactionServiceTests
     {
         var request = new CreateTransactionRequest { Amount = 100, PaymentMethod = PaymentMethod.BankTransfer, CategoryId = 1, TransactionType = TransactionType.Expense, TransactionDate = DateTime.UtcNow, AccountId = 1, BankId = 999 };
         _accountRepository.GetById(1).Returns(new Account(1, "Test Account", "user123"));
-        _categoryRepository.GetById(1).Returns(new TransactionCategory("Test Category", 1));
+        _categoryRepository.GetById(1, TestUserId).Returns(new TransactionCategory("Test Category", 1, TestUserId));
         _bankRepository.GetById(999).Returns((Bank?)null);
         
-        var ex = Assert.Throws<ArgumentException>(() => _service.CreateTransaction(request));
+        var ex = Assert.Throws<ArgumentException>(() => _service.CreateTransaction(request, TestUserId));
         ex.Message.Should().Contain("Bank with ID 999 does not exist");
         ex.ParamName.Should().Be(nameof(request.BankId));
     }
@@ -131,10 +132,10 @@ public class TransactionServiceTests
         var request = new CreateTransactionRequest { Amount = 100, PaymentMethod = PaymentMethod.Cash, CategoryId = 1, TransactionType = TransactionType.Expense, TransactionDate = DateTime.UtcNow, AccountId = 1 };
         
         _accountRepository.GetById(1).Returns(new Account(1, "Test Account", "user123"));
-        _categoryRepository.GetById(1).Returns(new TransactionCategory("Test Category", 1));
+        _categoryRepository.GetById(1, TestUserId).Returns(new TransactionCategory("Test Category", 1, TestUserId));
         _repository.Add(Arg.Any<Transaction>()).Returns(1);
         
-        var result = _service.CreateTransaction(request);
+        var result = _service.CreateTransaction(request, TestUserId);
         result.Should().Be(1);
         _repository.Received(1).Add(Arg.Any<Transaction>());
     }
@@ -145,9 +146,9 @@ public class TransactionServiceTests
         var request = new CreateTransactionRequest { Amount = -10, PaymentMethod = PaymentMethod.Cash, CategoryId = 1, TransactionType = TransactionType.Expense, TransactionDate = DateTime.UtcNow, AccountId = 1 };
         
         _accountRepository.GetById(1).Returns(new Account(1, "Test Account", "user123"));
-        _categoryRepository.GetById(1).Returns(new TransactionCategory("Test Category", 1));
+        _categoryRepository.GetById(1, TestUserId).Returns(new TransactionCategory("Test Category", 1, TestUserId));
         
-        Assert.Throws<ArgumentException>(() => _service.CreateTransaction(request));
+        Assert.Throws<ArgumentException>(() => _service.CreateTransaction(request, TestUserId));
     }
 
     [Fact]
@@ -157,7 +158,7 @@ public class TransactionServiceTests
         
         _accountRepository.GetById(1).Returns(new Account(1, "Test Account", "user123"));
         
-        Assert.Throws<ArgumentException>(() => _service.CreateTransaction(request));
+        Assert.Throws<ArgumentException>(() => _service.CreateTransaction(request, TestUserId));
     }
 
     [Fact]
@@ -166,9 +167,9 @@ public class TransactionServiceTests
         var request = new CreateTransactionRequest { Amount = 10, PaymentMethod = (PaymentMethod)999, CategoryId = 1, TransactionType = TransactionType.Expense, TransactionDate = DateTime.UtcNow, AccountId = 1 };
         
         _accountRepository.GetById(1).Returns(new Account(1, "Test Account", "user123"));
-        _categoryRepository.GetById(1).Returns(new TransactionCategory("Test Category", 1));
+        _categoryRepository.GetById(1, TestUserId).Returns(new TransactionCategory("Test Category", 1, TestUserId));
         
-        Assert.Throws<ArgumentException>(() => _service.CreateTransaction(request));
+        Assert.Throws<ArgumentException>(() => _service.CreateTransaction(request, TestUserId));
     }
 
     [Fact]
@@ -177,9 +178,9 @@ public class TransactionServiceTests
         var request = new CreateTransactionRequest { Amount = 10, PaymentMethod = PaymentMethod.Credit, CategoryId = 1, TransactionType = TransactionType.Expense, TransactionDate = DateTime.UtcNow, CardId = null, AccountId = 1 };
         
         _accountRepository.GetById(1).Returns(new Account(1, "Test Account", "user123"));
-        _categoryRepository.GetById(1).Returns(new TransactionCategory("Test Category", 1));
+        _categoryRepository.GetById(1, TestUserId).Returns(new TransactionCategory("Test Category", 1, TestUserId));
         
-        Assert.Throws<ArgumentException>(() => _service.CreateTransaction(request));
+        Assert.Throws<ArgumentException>(() => _service.CreateTransaction(request, TestUserId));
     }
 
     [Fact]
@@ -188,9 +189,9 @@ public class TransactionServiceTests
         var request = new CreateTransactionRequest { Amount = 10, PaymentMethod = PaymentMethod.Pix, CategoryId = 1, TransactionType = TransactionType.Expense, TransactionDate = DateTime.UtcNow, BankId = null, AccountId = 1 };
         
         _accountRepository.GetById(1).Returns(new Account(1, "Test Account", "user123"));
-        _categoryRepository.GetById(1).Returns(new TransactionCategory("Test Category", 1));
+        _categoryRepository.GetById(1, TestUserId).Returns(new TransactionCategory("Test Category", 1, TestUserId));
         
-        Assert.Throws<ArgumentException>(() => _service.CreateTransaction(request));
+        Assert.Throws<ArgumentException>(() => _service.CreateTransaction(request, TestUserId));
     }
 
 
@@ -251,7 +252,7 @@ public class TransactionServiceTests
         _repository.GetById(5).Returns(t);
         _repository.Update(t).Returns(true);
         var req = new UpdateTransactionRequest { NewAmount = 250 };
-        var result = _service.Update(5, req);
+        var result = _service.Update(5, req, TestUserId);
         result.Should().BeTrue();
         t.Amount.Should().Be(250);
     }
@@ -261,10 +262,10 @@ public class TransactionServiceTests
     {
         var t = new Transaction(100, PaymentMethod.Cash, TransactionType.Expense, DateTime.UtcNow, 1, 1, 5);
         _repository.GetById(5).Returns(t);
-        _categoryRepository.GetById(3).Returns(new TransactionCategory("Updated Category", 3));
+        _categoryRepository.GetById(3, TestUserId).Returns(new TransactionCategory("Updated Category", 3, TestUserId));
         _repository.Update(t).Returns(true);
         var req = new UpdateTransactionRequest { NewCategoryId = 3 };
-        var result = _service.Update(5, req);
+        var result = _service.Update(5, req, TestUserId);
         result.Should().BeTrue();
         t.CategoryId.Should().Be(3);
     }
@@ -276,7 +277,7 @@ public class TransactionServiceTests
         _repository.GetById(5).Returns(t);
         _repository.Update(t).Returns(true);
         var req = new UpdateTransactionRequest { NewDescription = "Test expense", HasDescriptionUpdate = true };
-        var result = _service.Update(5, req);
+        var result = _service.Update(5, req, TestUserId);
         result.Should().BeTrue();
         t.Description.Should().Be("Test expense");
     }
@@ -286,10 +287,10 @@ public class TransactionServiceTests
     {
         var t = new Transaction(100, PaymentMethod.Cash, TransactionType.Expense, DateTime.UtcNow, 1, 1, 5);
         _repository.GetById(5).Returns(t);
-        _categoryRepository.GetById(2).Returns(new TransactionCategory("Updated Category", 2));
+        _categoryRepository.GetById(2, TestUserId).Returns(new TransactionCategory("Updated Category", 2, TestUserId));
         _repository.Update(t).Returns(true);
         var req = new UpdateTransactionRequest { NewAmount = 300, NewCategoryId = 2, NewDescription = "Updated transaction", HasDescriptionUpdate = true };
-        var result = _service.Update(5, req);
+        var result = _service.Update(5, req, TestUserId);
         result.Should().BeTrue();
         t.Amount.Should().Be(300);
         t.CategoryId.Should().Be(2);
@@ -301,7 +302,7 @@ public class TransactionServiceTests
     {
         _repository.GetById(999).Returns((Transaction?)null);
         var req = new UpdateTransactionRequest { NewAmount = 200 };
-        var result = _service.Update(999, req);
+        var result = _service.Update(999, req, TestUserId);
         result.Should().BeFalse();
     }
 
@@ -311,7 +312,7 @@ public class TransactionServiceTests
         var t = new Transaction(100, PaymentMethod.Cash, TransactionType.Expense, DateTime.UtcNow, 1, 1, 5);
         _repository.GetById(5).Returns(t);
         var req = new UpdateTransactionRequest { NewAmount = -50 };
-        Assert.Throws<ArgumentException>(() => _service.Update(5, req));
+        Assert.Throws<ArgumentException>(() => _service.Update(5, req, TestUserId));
     }
 
     [Fact]
@@ -321,7 +322,7 @@ public class TransactionServiceTests
         _repository.GetById(5).Returns(t);
         _repository.Update(t).Returns(true);
         var req = new UpdateTransactionRequest { NewDescription = null, HasDescriptionUpdate = true };
-        var result = _service.Update(5, req);
+        var result = _service.Update(5, req, TestUserId);
         result.Should().BeTrue();
         t.Description.Should().BeNull();
     }
@@ -341,10 +342,10 @@ public class TransactionServiceTests
         };
         
         _accountRepository.GetById(1).Returns(new Account(1, "Test Account", "user123"));
-        _categoryRepository.GetById(1).Returns(new TransactionCategory("Test Category", 1));
+        _categoryRepository.GetById(1, TestUserId).Returns(new TransactionCategory("Test Category", 1, TestUserId));
         _repository.Add(Arg.Any<Transaction>()).Returns(1);
         
-        var result = _service.CreateTransaction(request);
+        var result = _service.CreateTransaction(request, TestUserId);
         result.Should().Be(1);
         _repository.Received(1).Add(Arg.Is<Transaction>(t => t.Description == "Test purchase"));
     }

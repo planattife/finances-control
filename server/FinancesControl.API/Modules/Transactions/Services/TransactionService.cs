@@ -31,10 +31,10 @@ public class TransactionService : ITransactionService
 		_bankRepository = bankRepository;
 	}
 
-	public long CreateTransaction(CreateTransactionRequest request)
+	public long CreateTransaction(CreateTransactionRequest request, string? userId)
 	{
 		// Validate foreign key constraints before attempting insert
-		ValidateForeignKeys(request);
+		ValidateForeignKeys(request, userId);
 
 		Transaction transaction;
 
@@ -62,14 +62,14 @@ public class TransactionService : ITransactionService
 		return _repository.Add(transaction);
 	}
 
-	private void ValidateForeignKeys(CreateTransactionRequest request)
+	private void ValidateForeignKeys(CreateTransactionRequest request, string? userId)
 	{
 		// Validate Account exists
 		if (_accountRepository.GetById(request.AccountId) == null)
 			throw new ArgumentException($"Account with ID {request.AccountId} does not exist.", nameof(request.AccountId));
 
 		// Validate Category exists
-		if (_categoryRepository.GetById(request.CategoryId) == null)
+		if (_categoryRepository.GetById(request.CategoryId, userId) == null)
 			throw new ArgumentException($"Transaction category with ID {request.CategoryId} does not exist.", nameof(request.CategoryId));
 
 		// Validate Card exists (if applicable)
@@ -141,7 +141,7 @@ public class TransactionService : ITransactionService
 		return _repository.Update(transaction);
 	}
 
-	public bool Update(long transactionId, UpdateTransactionRequest request)
+	public bool Update(long transactionId, UpdateTransactionRequest request, string? userId)
 	{
 		var transaction = _repository.GetById(transactionId);
 		if (transaction == null) return false;
@@ -153,7 +153,7 @@ public class TransactionService : ITransactionService
 
 		if (request.NewCategoryId.HasValue && request.NewCategoryId > 0)
 		{
-			if (_categoryRepository.GetById(request.NewCategoryId.Value) == null)
+			if (_categoryRepository.GetById(request.NewCategoryId.Value, userId) == null)
 				throw new ArgumentException($"Transaction category with ID {request.NewCategoryId.Value} does not exist.", nameof(request.NewCategoryId));
 			transaction.ChangeCategory(request.NewCategoryId.Value);
 		}

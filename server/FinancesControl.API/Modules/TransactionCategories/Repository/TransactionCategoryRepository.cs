@@ -26,11 +26,11 @@ public class TransactionCategoryRepository : ITransactionCategoryRepository
         return id;
     }
 
-    public TransactionCategory? GetById(long categoryId)
+    public TransactionCategory? GetById(long categoryId, string? userId)
     {
         using var connection = _connectionFactory.CreateConnection();
         var query = new GetTransactionCategoryByIdQuery();
-        var (sql, parameters) = query.Build(categoryId);
+        var (sql, parameters) = query.Build(categoryId, userId);
         
         var result = connection.QuerySingleOrDefault<dynamic>(sql, parameters);
         
@@ -40,12 +40,13 @@ public class TransactionCategoryRepository : ITransactionCategoryRepository
         return MapToTransactionCategory(result);
     }
 
-    public List<TransactionCategory> GetAll()
+    public List<TransactionCategory> GetAll(string? userId)
     {
         using var connection = _connectionFactory.CreateConnection();
         var query = new GetAllTransactionCategoriesQuery();
+        var (sql, parameters) = query.Build(userId);
         
-        var results = connection.Query<dynamic>(query.Sql).ToList();
+        var results = connection.Query<dynamic>(sql, parameters).ToList();
         
         return results.Select(MapToTransactionCategory).ToList();
     }
@@ -66,6 +67,8 @@ public class TransactionCategoryRepository : ITransactionCategoryRepository
             id: (long)row.Id,
             name: row.Name,
             isActive: row.IsActive,
+            isDefault: row.IsDefault,
+            userId: row.UserId,
             createdAt: row.CreatedAt,
             updatedAt: row.UpdatedAt
         );
