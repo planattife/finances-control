@@ -1,4 +1,5 @@
 using System;
+using System.Security.Claims;
 using Xunit;
 using NSubstitute;
 using Microsoft.AspNetCore.Mvc;
@@ -13,11 +14,27 @@ public class TransactionCategoryControllerTests
 {
     private readonly ITransactionCategoryService _service;
     private readonly TransactionCategoryController _controller;
+    private const string TestUserId = "test-user-123";
 
     public TransactionCategoryControllerTests()
     {
         _service = Substitute.For<ITransactionCategoryService>();
         _controller = new TransactionCategoryController(_service);
+        SetupControllerUser();
+    }
+
+    private void SetupControllerUser()
+    {
+        var claims = new List<Claim>
+        {
+            new Claim(ClaimTypes.NameIdentifier, TestUserId)
+        };
+        var identity = new ClaimsIdentity(claims);
+        var principal = new ClaimsPrincipal(identity);
+        _controller.ControllerContext = new ControllerContext
+        {
+            HttpContext = new Microsoft.AspNetCore.Http.DefaultHttpContext { User = principal }
+        };
     }
 
     [Fact]
@@ -25,7 +42,7 @@ public class TransactionCategoryControllerTests
     {
         var request = new CreateTransactionCategoryRequest("Food");
         long transactionCategoryId = 10;
-        _service.CreateCategory(request).Returns(transactionCategoryId);
+        _service.CreateCategory(request, TestUserId).Returns(transactionCategoryId);
 
         var result = await _controller.Create(request);
 
@@ -39,7 +56,7 @@ public class TransactionCategoryControllerTests
     public async Task GetById_ValidId_ReturnsOk()
     {
         var detail = new TransactionCategoryDetailResponse(1, "Food", "Active", DateTime.UtcNow, null);
-        _service.GetById(1).Returns(detail);
+        _service.GetById(1, TestUserId).Returns(detail);
 
         var result = await _controller.GetById(1);
         result.Result.Should().BeOfType<OkObjectResult>();
@@ -48,7 +65,7 @@ public class TransactionCategoryControllerTests
     [Fact]
     public async Task GetById_InvalidId_ReturnsNotFound()
     {
-        _service.GetById(999).Returns((TransactionCategoryDetailResponse?)null);
+        _service.GetById(999, TestUserId).Returns((TransactionCategoryDetailResponse?)null);
         var result = await _controller.GetById(999);
         result.Result.Should().BeOfType<NotFoundResult>();
     }
@@ -61,7 +78,7 @@ public class TransactionCategoryControllerTests
             new(1, "Food"),
             new(2, "Bills")
         };
-        _service.GetAll().Returns(list);
+        _service.GetAll(TestUserId).Returns(list);
         var result = await _controller.Get();
         var ok = result.Result as OkObjectResult;
         ok.Value.Should().Be(list);
@@ -71,7 +88,7 @@ public class TransactionCategoryControllerTests
     public async Task Rename_ValidId_ReturnsNoContent()
     {
         var req = new RenameTransactionCategoryRequest("NewName");
-        _service.Rename(2, req).Returns(true);
+        _service.Rename(2, req, TestUserId).Returns(true);
         var result = await _controller.Rename(2, req);
         result.Should().BeOfType<NoContentResult>();
     }
@@ -80,7 +97,7 @@ public class TransactionCategoryControllerTests
     public async Task Rename_InvalidId_ReturnsNotFound()
     {
         var req = new RenameTransactionCategoryRequest("NewName");
-        _service.Rename(999, req).Returns(false);
+        _service.Rename(999, req, TestUserId).Returns(false);
         var result = await _controller.Rename(999, req);
         result.Should().BeOfType<NotFoundResult>();
     }
@@ -88,7 +105,7 @@ public class TransactionCategoryControllerTests
     [Fact]
     public async Task Activate_ValidId_ReturnsNoContent()
     {
-        _service.Activate(3).Returns(true);
+        _service.Activate(3, TestUserId).Returns(true);
         var result = await _controller.Activate(3);
         result.Should().BeOfType<NoContentResult>();
     }
@@ -96,7 +113,7 @@ public class TransactionCategoryControllerTests
     [Fact]
     public async Task Deactivate_ValidId_ReturnsNoContent()
     {
-        _service.Deactivate(3).Returns(true);
+        _service.Deactivate(3, TestUserId).Returns(true);
         var result = await _controller.Deactivate(3);
         result.Should().BeOfType<NoContentResult>();
     }
