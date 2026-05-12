@@ -82,6 +82,7 @@ public class AccountControllerTests
     {
         // Arrange
         var accountId = 1;
+        var userId = "test-user-id";
         var response = new AccountDetailResponse(
             accountId,
             "Test Account",
@@ -89,7 +90,7 @@ public class AccountControllerTests
             DateTime.UtcNow,
             null
         );
-        _accountService.GetById(accountId).Returns(response);
+        _accountService.GetById(accountId, userId).Returns(response);
 
         // Act
         var result = await _controller.GetById(accountId);
@@ -99,7 +100,7 @@ public class AccountControllerTests
         var okResult = result.Result as OkObjectResult;
         okResult.StatusCode.Should().Be(200);
         okResult.Value.Should().Be(response);
-        _accountService.Received(1).GetById(accountId);
+        _accountService.Received(1).GetById(accountId, userId);
     }
 
     [Fact]
@@ -107,14 +108,33 @@ public class AccountControllerTests
     {
         // Arrange
         var accountId = 999;
-        _accountService.GetById(accountId).Returns((AccountDetailResponse?)null);
+        var userId = "test-user-id";
+        _accountService.GetById(accountId, userId).Returns((AccountDetailResponse?)null);
 
         // Act
         var result = await _controller.GetById(accountId);
 
         // Assert
         result.Result.Should().BeOfType<NotFoundResult>();
-        _accountService.Received(1).GetById(accountId);
+        _accountService.Received(1).GetById(accountId, userId);
+    }
+
+    [Fact]
+    public async Task GetById_WithAccountFromDifferentUser_Returns404NotFound()
+    {
+        // Arrange
+        var accountId = 1;
+        var userId = "test-user-id";
+        // Account belongs to different user - service returns null
+        _accountService.GetById(accountId, userId).Returns((AccountDetailResponse?)null);
+
+        // Act
+        var result = await _controller.GetById(accountId);
+
+        // Assert
+        // Returns 404 (not found) instead of 403 (forbidden) to avoid exposing account existence
+        result.Result.Should().BeOfType<NotFoundResult>();
+        _accountService.Received(1).GetById(accountId, userId);
     }
 
     #endregion
@@ -125,12 +145,13 @@ public class AccountControllerTests
     public async Task Get_WithMultipleAccounts_Returns200Ok()
     {
         // Arrange
+        var userId = "test-user-id";
         var accounts = new List<AccountListItemResponse>
         {
             new(1, "Account 1"),
             new(2, "Account 2")
         };
-        _accountService.GetAll().Returns(accounts);
+        _accountService.GetAll(userId).Returns(accounts);
 
         // Act
         var result = await _controller.Get();
@@ -145,15 +166,16 @@ public class AccountControllerTests
         returnedList[0].Name.Should().Be("Account 1");
         returnedList[1].Id.Should().Be(2);
         returnedList[1].Name.Should().Be("Account 2");
-        _accountService.Received(1).GetAll();
+        _accountService.Received(1).GetAll(userId);
     }
 
     [Fact]
     public async Task Get_WithNoAccounts_Returns200OkWithEmptyList()
     {
         // Arrange
+        var userId = "test-user-id";
         var emptyList = new List<AccountListItemResponse>();
-        _accountService.GetAll().Returns(emptyList);
+        _accountService.GetAll(userId).Returns(emptyList);
 
         // Act
         var result = await _controller.Get();
@@ -175,15 +197,16 @@ public class AccountControllerTests
     {
         // Arrange
         var accountId = 1;
+        var userId = "test-user-id";
         var request = new UpdateAccountRequest("Updated Account");
-        _accountService.Update(accountId, request).Returns(true);
+        _accountService.Update(accountId, request, userId).Returns(true);
 
         // Act
         var result = await _controller.Update(accountId, request);
 
         // Assert
         result.Should().BeOfType<NoContentResult>();
-        _accountService.Received(1).Update(accountId, request);
+        _accountService.Received(1).Update(accountId, request, userId);
     }
 
     [Fact]
@@ -191,15 +214,16 @@ public class AccountControllerTests
     {
         // Arrange
         var accountId = 999;
+        var userId = "test-user-id";
         var request = new UpdateAccountRequest("Updated Account");
-        _accountService.Update(accountId, request).Returns(false);
+        _accountService.Update(accountId, request, userId).Returns(false);
 
         // Act
         var result = await _controller.Update(accountId, request);
 
         // Assert
         result.Should().BeOfType<NotFoundResult>();
-        _accountService.Received(1).Update(accountId, request);
+        _accountService.Received(1).Update(accountId, request, userId);
     }
 
     #endregion
@@ -211,14 +235,15 @@ public class AccountControllerTests
     {
         // Arrange
         var accountId = 1;
-        _accountService.Activate(accountId).Returns(true);
+        var userId = "test-user-id";
+        _accountService.Activate(accountId, userId).Returns(true);
 
         // Act
         var result = await _controller.Activate(accountId);
 
         // Assert
         result.Should().BeOfType<NoContentResult>();
-        _accountService.Received(1).Activate(accountId);
+        _accountService.Received(1).Activate(accountId, userId);
     }
 
     [Fact]
@@ -226,14 +251,15 @@ public class AccountControllerTests
     {
         // Arrange
         var accountId = 999;
-        _accountService.Activate(accountId).Returns(false);
+        var userId = "test-user-id";
+        _accountService.Activate(accountId, userId).Returns(false);
 
         // Act
         var result = await _controller.Activate(accountId);
 
         // Assert
         result.Should().BeOfType<NotFoundResult>();
-        _accountService.Received(1).Activate(accountId);
+        _accountService.Received(1).Activate(accountId, userId);
     }
 
     #endregion
@@ -245,14 +271,15 @@ public class AccountControllerTests
     {
         // Arrange
         var accountId = 1;
-        _accountService.Deactivate(accountId).Returns(true);
+        var userId = "test-user-id";
+        _accountService.Deactivate(accountId, userId).Returns(true);
 
         // Act
         var result = await _controller.Deactivate(accountId);
 
         // Assert
         result.Should().BeOfType<NoContentResult>();
-        _accountService.Received(1).Deactivate(accountId);
+        _accountService.Received(1).Deactivate(accountId, userId);
     }
 
     [Fact]
@@ -260,14 +287,15 @@ public class AccountControllerTests
     {
         // Arrange
         var accountId = 999;
-        _accountService.Deactivate(accountId).Returns(false);
+        var userId = "test-user-id";
+        _accountService.Deactivate(accountId, userId).Returns(false);
 
         // Act
         var result = await _controller.Deactivate(accountId);
 
         // Assert
         result.Should().BeOfType<NotFoundResult>();
-        _accountService.Received(1).Deactivate(accountId);
+        _accountService.Received(1).Deactivate(accountId, userId);
     }
 
     #endregion
