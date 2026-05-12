@@ -27,11 +27,11 @@ public class BankRepository : IBankRepository
         return id;
     }
 
-    public Bank? GetById(long bankId)
+    public Bank? GetById(long bankId, string userId)
     {
         using var connection = _connectionFactory.CreateConnection();
         var query = new GetBankByIdQuery();
-        var (sql, parameters) = query.Build(bankId);
+        var (sql, parameters) = query.Build(bankId, userId);
         
         var result = connection.QuerySingleOrDefault<dynamic>(sql, parameters);
         
@@ -41,12 +41,13 @@ public class BankRepository : IBankRepository
         return MapToBank(result);
     }
 
-    public List<Bank> GetAll()
+    public List<Bank> GetAll(string userId)
     {
         using var connection = _connectionFactory.CreateConnection();
         var query = new GetAllBanksQuery();
+        var (sql, parameters) = query.Build(userId);
         
-        var results = connection.Query<dynamic>(query.Sql).ToList();
+        var results = connection.Query<dynamic>(sql, parameters).ToList();
         
         return results.Select(MapToBank).ToList();
     }

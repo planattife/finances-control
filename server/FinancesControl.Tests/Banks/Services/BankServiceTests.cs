@@ -118,10 +118,10 @@ public class BankServiceTests
         var bankId = 1;
         var userId = "mock-user-id";
         var bank = new Bank("Test Bank", BankAccountType.Check, bankId, userId);
-        _repository.GetById(bankId).Returns(bank);
+        _repository.GetById(bankId, userId).Returns(bank);
 
         // Act
-        var result = _service.GetById(bankId);
+        var result = _service.GetById(bankId, userId);
 
         // Assert
         result.Should().NotBeNull();
@@ -136,10 +136,11 @@ public class BankServiceTests
     {
         // Arrange
         var bankId = 999;
-        _repository.GetById(bankId).Returns((Bank?)null);
+        var userId = "mock-user-id";
+        _repository.GetById(bankId, userId).Returns((Bank?)null);
 
         // Act
-        var result = _service.GetById(bankId);
+        var result = _service.GetById(bankId, userId);
 
         // Assert
         result.Should().BeNull();
@@ -153,10 +154,10 @@ public class BankServiceTests
         var userId = "mock-user-id";
         var bank = new Bank("Test Bank", BankAccountType.Check, bankId, userId);
         bank.Deactivate();
-        _repository.GetById(bankId).Returns(bank);
+        _repository.GetById(bankId, userId).Returns(bank);
 
         // Act
-        var result = _service.GetById(bankId);
+        var result = _service.GetById(bankId, userId);
 
         // Assert
         result.Should().NotBeNull();
@@ -178,10 +179,10 @@ public class BankServiceTests
             new("Bank 2", BankAccountType.Savings, 2, userId),
             new("Bank 3", BankAccountType.Check, 3, userId)
         };
-        _repository.GetAll().Returns(banks);
+        _repository.GetAll(userId).Returns(banks);
 
         // Act
-        var result = _service.GetAll();
+        var result = _service.GetAll(userId);
 
         // Assert
         result.Should().HaveCount(3);
@@ -193,10 +194,11 @@ public class BankServiceTests
     public void GetAll_WithNoBanks_ReturnsEmptyList()
     {
         // Arrange
-        _repository.GetAll().Returns(new List<Bank>());
+        var userId = "mock-user-id";
+        _repository.GetAll(userId).Returns(new List<Bank>());
 
         // Act
-        var result = _service.GetAll();
+        var result = _service.GetAll(userId);
 
         // Assert
         result.Should().BeEmpty();
@@ -214,11 +216,11 @@ public class BankServiceTests
         var bankId = 1;
         var bank = new Bank("Old Name", BankAccountType.Check, bankId, userId);
         var request = new UpdateBankRequest("New Name", BankAccountType.Savings);
-        _repository.GetById(bankId).Returns(bank);
+        _repository.GetById(bankId, userId).Returns(bank);
         _repository.Update(Arg.Any<Bank>()).Returns(true);
 
         // Act
-        var result = _service.Update(bankId, request);
+        var result = _service.Update(bankId, request, userId);
 
         // Assert
         result.Should().BeTrue();
@@ -229,12 +231,13 @@ public class BankServiceTests
     public void Update_WithInvalidId_ReturnsFalse()
     {
         // Arrange
+        var userId = "mock-user-id";
         var bankId = 999;
         var request = new UpdateBankRequest("New Name", BankAccountType.Savings);
-        _repository.GetById(bankId).Returns((Bank?)null);
+        _repository.GetById(bankId, userId).Returns((Bank?)null);
 
         // Act
-        var result = _service.Update(bankId, request);
+        var result = _service.Update(bankId, request, userId);
 
         // Assert
         result.Should().BeFalse();
@@ -249,11 +252,11 @@ public class BankServiceTests
         var bankId = 1;
         var bank = new Bank("Test Bank", BankAccountType.Check, bankId, userId);
         var request = new UpdateBankRequest("Test Bank", BankAccountType.Savings);
-        _repository.GetById(bankId).Returns(bank);
+        _repository.GetById(bankId, userId).Returns(bank);
         _repository.Update(Arg.Any<Bank>()).Returns(true);
 
         // Act
-        var result = _service.Update(bankId, request);
+        var result = _service.Update(bankId, request, userId);
 
         // Assert
         result.Should().BeTrue();
@@ -272,11 +275,11 @@ public class BankServiceTests
         var bankId = 1;
         var bank = new Bank("Test Bank", BankAccountType.Check, bankId, userId);
         bank.Deactivate();
-        _repository.GetById(bankId).Returns(bank);
+        _repository.GetById(bankId, userId).Returns(bank);
         _repository.Update(Arg.Any<Bank>()).Returns(true);
 
         // Act
-        var result = _service.Activate(bankId);
+        var result = _service.Activate(bankId, userId);
 
         // Assert
         result.Should().BeTrue();
@@ -288,11 +291,12 @@ public class BankServiceTests
     public void Activate_WithInvalidId_ReturnsFalse()
     {
         // Arrange
+        var userId = "mock-user-id";
         var bankId = 999;
-        _repository.GetById(bankId).Returns((Bank?)null);
+        _repository.GetById(bankId, userId).Returns((Bank?)null);
 
         // Act
-        var result = _service.Activate(bankId);
+        var result = _service.Activate(bankId, userId);
 
         // Assert
         result.Should().BeFalse();
@@ -308,11 +312,11 @@ public class BankServiceTests
         var bank = new Bank("Test Bank", BankAccountType.Check, bankId, userId);
         bank.Deactivate();
         var originalUpdatedAt = bank.UpdatedAt ?? DateTime.MinValue;
-        _repository.GetById(bankId).Returns(bank);
+        _repository.GetById(bankId, userId).Returns(bank);
         _repository.Update(Arg.Any<Bank>()).Returns(true);
 
         // Act
-        _service.Activate(bankId);
+        _service.Activate(bankId, userId);
 
         // Assert
         bank.UpdatedAt.Should().NotBe(originalUpdatedAt);
@@ -329,11 +333,11 @@ public class BankServiceTests
         var userId = "mock-user-id";
         var bankId = 1;
         var bank = new Bank("Test Bank", BankAccountType.Check, bankId, userId);
-        _repository.GetById(bankId).Returns(bank);
+        _repository.GetById(bankId, userId).Returns(bank);
         _repository.Update(Arg.Any<Bank>()).Returns(true);
 
         // Act
-        var result = _service.Deactivate(bankId);
+        var result = _service.Deactivate(bankId, userId);
 
         // Assert
         result.Should().BeTrue();
@@ -345,11 +349,12 @@ public class BankServiceTests
     public void Deactivate_WithInvalidId_ReturnsFalse()
     {
         // Arrange
+        var userId = "mock-user-id";
         var bankId = 999;
-        _repository.GetById(bankId).Returns((Bank?)null);
+        _repository.GetById(bankId, userId).Returns((Bank?)null);
 
         // Act
-        var result = _service.Deactivate(bankId);
+        var result = _service.Deactivate(bankId, userId);
 
         // Assert
         result.Should().BeFalse();
@@ -364,11 +369,11 @@ public class BankServiceTests
         var bankId = 1;
         var bank = new Bank("Test Bank", BankAccountType.Check, bankId, userId);
         var originalUpdatedAt = bank.UpdatedAt ?? DateTime.MinValue;
-        _repository.GetById(bankId).Returns(bank);
+        _repository.GetById(bankId, userId).Returns(bank);
         _repository.Update(Arg.Any<Bank>()).Returns(true);
 
         // Act
-        _service.Deactivate(bankId);
+        _service.Deactivate(bankId, userId);
 
         // Assert
         bank.UpdatedAt.Should().NotBe(originalUpdatedAt);

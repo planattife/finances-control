@@ -28,9 +28,9 @@ public class BankService : IBankService
         return _repository.Add(bank);
     }
 
-    public BankDetailResponse? GetById(long bankId)
+    public BankDetailResponse? GetById(long bankId, string userId)
     {
-        var bank = _repository.GetById(bankId);
+        var bank = _repository.GetById(bankId, userId);
         if (bank == null) return null;
         return new BankDetailResponse(
             bank.Id,
@@ -42,34 +42,36 @@ public class BankService : IBankService
         );
     }
 
-    public List<BankListItemResponse> GetAll()
+    public List<BankListItemResponse> GetAll(string userId)
     {
-        return _repository.GetAll()
+        return _repository.GetAll(userId)
             .Select(b => new BankListItemResponse(b.Id, b.Name, b.AccountType))
             .ToList();
     }
 
-    public bool Update(long bankId, UpdateBankRequest request)
+    public bool Update(long bankId, UpdateBankRequest request, string userId)
     {
-        var bank = _repository.GetById(bankId);
+        var bank = _repository.GetById(bankId, userId);
         if (bank == null) return false;
-        var userId = GetCurrentUserId();
-        bank = new Bank(request.Name, request.AccountType, bank.Id, userId);
+        var updatedBank = new Bank(request.Name, request.AccountType, bank.Id, userId);
+        if (bank.IsActive)
+            updatedBank.Activate();
+        else
+            updatedBank.Deactivate();
+        return _repository.Update(updatedBank);
+    }
+
+    public bool Activate(long bankId, string userId)
+    {
+        var bank = _repository.GetById(bankId, userId);
+        if (bank == null) return false;
         bank.Activate();
         return _repository.Update(bank);
     }
 
-    public bool Activate(long bankId)
+    public bool Deactivate(long bankId, string userId)
     {
-        var bank = _repository.GetById(bankId);
-        if (bank == null) return false;
-        bank.Activate();
-        return _repository.Update(bank);
-    }
-
-    public bool Deactivate(long bankId)
-    {
-        var bank = _repository.GetById(bankId);
+        var bank = _repository.GetById(bankId, userId);
         if (bank == null) return false;
         bank.Deactivate();
         return _repository.Update(bank);
@@ -77,7 +79,7 @@ public class BankService : IBankService
 
     public bool ValidateBankForUser(long bankId, string userId)
     {
-        var bank = _repository.GetById(bankId);
-        return bank != null && bank.UserId == userId && bank.IsActive;
+        var bank = _repository.GetById(bankId, userId);
+        return bank != null && bank.IsActive;
     }
 }
