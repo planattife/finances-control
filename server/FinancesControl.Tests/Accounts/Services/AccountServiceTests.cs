@@ -69,11 +69,12 @@ public class AccountServiceTests
     {
         // Arrange
         var accountId = 1;
-        var account = new Account(accountId, "Test Account", "user-123");
-        _repository.GetById(accountId).Returns(account);
+        var userId = "user-123";
+        var account = new Account(accountId, "Test Account", userId);
+        _repository.GetById(accountId, userId).Returns(account);
 
         // Act
-        var result = _service.GetById(accountId);
+        var result = _service.GetById(accountId, userId);
 
         // Assert
         result.Should().NotBeNull();
@@ -87,10 +88,28 @@ public class AccountServiceTests
     {
         // Arrange
         var accountId = 999;
-        _repository.GetById(accountId).Returns((Account?)null);
+        var userId = "user-123";
+        _repository.GetById(accountId, userId).Returns((Account?)null);
 
         // Act
-        var result = _service.GetById(accountId);
+        var result = _service.GetById(accountId, userId);
+
+        // Assert
+        result.Should().BeNull();
+    }
+
+    [Fact]
+    public void GetById_WithDifferentUser_ReturnsNull()
+    {
+        // Arrange - Account belongs to different user
+        var accountId = 1;
+        var userId = "user-123";
+        var otherUserId = "user-456";
+        var account = new Account(accountId, "Test Account", otherUserId);
+        _repository.GetById(accountId, userId).Returns((Account?)null);
+
+        // Act
+        var result = _service.GetById(accountId, userId);
 
         // Assert
         result.Should().BeNull();
@@ -101,12 +120,13 @@ public class AccountServiceTests
     {
         // Arrange
         var accountId = 1;
-        var account = new Account(accountId, "Test Account", "user-123");
+        var userId = "user-123";
+        var account = new Account(accountId, "Test Account", userId);
         account.Deactivate();
-        _repository.GetById(accountId).Returns(account);
+        _repository.GetById(accountId, userId).Returns(account);
 
         // Act
-        var result = _service.GetById(accountId);
+        var result = _service.GetById(accountId, userId);
 
         // Assert
         result.Should().NotBeNull();
@@ -121,16 +141,17 @@ public class AccountServiceTests
     public void GetAll_WithMultipleAccounts_ReturnsAllAccounts()
     {
         // Arrange
+        var userId = "user-123";
         var accounts = new List<Account>
         {
-            new(1, "Account 1", "user-123"),
-            new(2, "Account 2", "user-123"),
-            new(3, "Account 3", "user-123")
+            new(1, "Account 1", userId),
+            new(2, "Account 2", userId),
+            new(3, "Account 3", userId)
         };
-        _repository.GetAll().Returns(accounts);
+        _repository.GetAll(userId).Returns(accounts);
 
         // Act
-        var result = _service.GetAll();
+        var result = _service.GetAll(userId);
 
         // Assert
         result.Should().HaveCount(3);
@@ -140,10 +161,11 @@ public class AccountServiceTests
     public void GetAll_WithNoAccounts_ReturnsEmptyList()
     {
         // Arrange
-        _repository.GetAll().Returns(new List<Account>());
+        var userId = "user-123";
+        _repository.GetAll(userId).Returns(new List<Account>());
 
         // Act
-        var result = _service.GetAll();
+        var result = _service.GetAll(userId);
 
         // Assert
         result.Should().BeEmpty();
@@ -158,13 +180,14 @@ public class AccountServiceTests
     {
         // Arrange
         var accountId = 1;
-        var account = new Account(accountId, "Old Name", "user-123");
+        var userId = "user-123";
+        var account = new Account(accountId, "Old Name", userId);
         var request = new UpdateAccountRequest("New Name");
-        _repository.GetById(accountId).Returns(account);
+        _repository.GetById(accountId, userId).Returns(account);
         _repository.Update(Arg.Any<Account>()).Returns(true);
 
         // Act
-        var result = _service.Update(accountId, request);
+        var result = _service.Update(accountId, request, userId);
 
         // Assert
         result.Should().BeTrue();
@@ -177,11 +200,30 @@ public class AccountServiceTests
     {
         // Arrange
         var accountId = 999;
+        var userId = "user-123";
         var request = new UpdateAccountRequest("New Name");
-        _repository.GetById(accountId).Returns((Account?)null);
+        _repository.GetById(accountId, userId).Returns((Account?)null);
 
         // Act
-        var result = _service.Update(accountId, request);
+        var result = _service.Update(accountId, request, userId);
+
+        // Assert
+        result.Should().BeFalse();
+        _repository.DidNotReceive().Update(Arg.Any<Account>());
+    }
+
+    [Fact]
+    public void Update_WithDifferentUser_ReturnsFalse()
+    {
+        // Arrange - Account belongs to different user
+        var accountId = 1;
+        var userId = "user-123";
+        var otherUserId = "user-456";
+        var request = new UpdateAccountRequest("New Name");
+        _repository.GetById(accountId, userId).Returns((Account?)null);
+
+        // Act
+        var result = _service.Update(accountId, request, userId);
 
         // Assert
         result.Should().BeFalse();
@@ -193,14 +235,15 @@ public class AccountServiceTests
     {
         // Arrange
         var accountId = 1;
-        var account = new Account(accountId, "Old Name", "user-123");
+        var userId = "user-123";
+        var account = new Account(accountId, "Old Name", userId);
         DateTime originalUpdatedAt = account.UpdatedAt ?? DateTime.MinValue;
         var request = new UpdateAccountRequest("New Name");
-        _repository.GetById(accountId).Returns(account);
+        _repository.GetById(accountId, userId).Returns(account);
         _repository.Update(Arg.Any<Account>()).Returns(true);
 
         // Act
-        _service.Update(accountId, request);
+        _service.Update(accountId, request, userId);
 
         // Assert
         account.UpdatedAt.Should().NotBe(originalUpdatedAt);
@@ -216,13 +259,14 @@ public class AccountServiceTests
     {
         // Arrange
         var accountId = 1;
-        var account = new Account(accountId, "Test Account", "user-123");
+        var userId = "user-123";
+        var account = new Account(accountId, "Test Account", userId);
         account.Deactivate();
-        _repository.GetById(accountId).Returns(account);
+        _repository.GetById(accountId, userId).Returns(account);
         _repository.Update(Arg.Any<Account>()).Returns(true);
 
         // Act
-        var result = _service.Activate(accountId);
+        var result = _service.Activate(accountId, userId);
 
         // Assert
         result.Should().BeTrue();
@@ -235,10 +279,27 @@ public class AccountServiceTests
     {
         // Arrange
         var accountId = 999;
-        _repository.GetById(accountId).Returns((Account?)null);
+        var userId = "user-123";
+        _repository.GetById(accountId, userId).Returns((Account?)null);
 
         // Act
-        var result = _service.Activate(accountId);
+        var result = _service.Activate(accountId, userId);
+
+        // Assert
+        result.Should().BeFalse();
+        _repository.DidNotReceive().Update(Arg.Any<Account>());
+    }
+
+    [Fact]
+    public void Activate_WithDifferentUser_ReturnsFalse()
+    {
+        // Arrange - Account belongs to different user
+        var accountId = 1;
+        var userId = "user-123";
+        _repository.GetById(accountId, userId).Returns((Account?)null);
+
+        // Act
+        var result = _service.Activate(accountId, userId);
 
         // Assert
         result.Should().BeFalse();
@@ -254,12 +315,13 @@ public class AccountServiceTests
     {
         // Arrange
         var accountId = 1;
-        var account = new Account(accountId, "Test Account", "user-123");
-        _repository.GetById(accountId).Returns(account);
+        var userId = "user-123";
+        var account = new Account(accountId, "Test Account", userId);
+        _repository.GetById(accountId, userId).Returns(account);
         _repository.Update(Arg.Any<Account>()).Returns(true);
 
         // Act
-        var result = _service.Deactivate(accountId);
+        var result = _service.Deactivate(accountId, userId);
 
         // Assert
         result.Should().BeTrue();
@@ -272,10 +334,27 @@ public class AccountServiceTests
     {
         // Arrange
         var accountId = 999;
-        _repository.GetById(accountId).Returns((Account?)null);
+        var userId = "user-123";
+        _repository.GetById(accountId, userId).Returns((Account?)null);
 
         // Act
-        var result = _service.Deactivate(accountId);
+        var result = _service.Deactivate(accountId, userId);
+
+        // Assert
+        result.Should().BeFalse();
+        _repository.DidNotReceive().Update(Arg.Any<Account>());
+    }
+
+    [Fact]
+    public void Deactivate_WithDifferentUser_ReturnsFalse()
+    {
+        // Arrange - Account belongs to different user
+        var accountId = 1;
+        var userId = "user-123";
+        _repository.GetById(accountId, userId).Returns((Account?)null);
+
+        // Act
+        var result = _service.Deactivate(accountId, userId);
 
         // Assert
         result.Should().BeFalse();

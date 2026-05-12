@@ -26,11 +26,11 @@ public class AccountRepository : IAccountRepository
         return id;
     }
 
-    public Account? GetById(long accountId)
+    public Account? GetById(long accountId, string userId)
     {
         using var connection = _connectionFactory.CreateConnection();
         var query = new GetAccountByIdQuery();
-        var (sql, parameters) = query.Build(accountId);
+        var (sql, parameters) = query.Build(accountId, userId);
         
         var result = connection.QuerySingleOrDefault<dynamic>(sql, parameters);
         
@@ -40,12 +40,13 @@ public class AccountRepository : IAccountRepository
         return MapToAccount(result);
     }
 
-    public List<Account> GetAll()
+    public List<Account> GetAll(string userId)
     {
         using var connection = _connectionFactory.CreateConnection();
         var query = new GetAllAccountsQuery();
+        var (sql, parameters) = query.Build(userId);
         
-        var results = connection.Query<dynamic>(query.Sql).ToList();
+        var results = connection.Query<dynamic>(sql, parameters).ToList();
         
         return results.Select(MapToAccount).ToList();
     }
@@ -72,3 +73,4 @@ public class AccountRepository : IAccountRepository
         );
     }
 }
+

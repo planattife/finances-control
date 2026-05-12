@@ -31,7 +31,10 @@ namespace FinancesControl.API.Accounts.Controllers
         [HttpGet("{accountId}")]
         public async Task<ActionResult<AccountDetailResponse>> GetById(long accountId)
         {
-            var response = _accountService.GetById(accountId);
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized();
+            var response = _accountService.GetById(accountId, userId);
             if (response == null)
                 return NotFound();
             return Ok(response);
@@ -40,14 +43,20 @@ namespace FinancesControl.API.Accounts.Controllers
         [HttpGet]
         public async Task<ActionResult<List<AccountListItemResponse>>> Get()
         {
-            var response = _accountService.GetAll();
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized();
+            var response = _accountService.GetAll(userId);
             return Ok(response);
         }
 
         [HttpPut("{accountId}")]
         public async Task<IActionResult> Update(long accountId, UpdateAccountRequest request)
         {
-            var updated = _accountService.Update(accountId, request);
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized();
+            var updated = _accountService.Update(accountId, request, userId);
             if (!updated)
                 return NotFound();
             return NoContent();
@@ -56,7 +65,10 @@ namespace FinancesControl.API.Accounts.Controllers
         [HttpPost("{accountId}/activate")]
         public async Task<IActionResult> Activate(long accountId)
         {
-            var activated = _accountService.Activate(accountId);
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized();
+            var activated = _accountService.Activate(accountId, userId);
             if (!activated)
                 return NotFound();
             return NoContent();
@@ -65,10 +77,14 @@ namespace FinancesControl.API.Accounts.Controllers
         [HttpPost("{accountId}/deactivate")]
         public async Task<IActionResult> Deactivate(long accountId)
         {
-            var deactivated = _accountService.Deactivate(accountId);
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized();
+            var deactivated = _accountService.Deactivate(accountId, userId);
             if (!deactivated)
                 return NotFound();
             return NoContent();
         }
     }
 }
+
