@@ -88,7 +88,7 @@ public class TransactionService : ITransactionService
 			if (request.BankId == null || request.BankId <= 0)
 				throw new ArgumentException("Bank ID must be provided for pix/bank slip/bank transfer transactions.", nameof(request.BankId));
 
-			if (_bankRepository.GetById(request.BankId.Value) == null)
+			if (_bankRepository.GetById(request.BankId.Value, userId) == null)
 				throw new ArgumentException($"Bank with ID {request.BankId} does not exist.", nameof(request.BankId));
 		}
 	}

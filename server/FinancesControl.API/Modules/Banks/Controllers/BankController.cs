@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using FinancesControl.API.Banks.DTOs;
 using FinancesControl.API.Banks.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -17,6 +18,12 @@ namespace FinancesControl.API.Banks.Controllers
             _bankService = bankService;
         }
 
+        private string GetCurrentUserId()
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            return userId ?? throw new InvalidOperationException("User context is not available");
+        }
+
         [HttpPost]
         public async Task<IActionResult> CreateBank(CreateBankRequest request)
         {
@@ -27,7 +34,8 @@ namespace FinancesControl.API.Banks.Controllers
         [HttpGet("{bankId}")]
         public async Task<ActionResult<BankDetailResponse>> GetById(long bankId)
         {
-            var response = _bankService.GetById(bankId);
+            var userId = GetCurrentUserId();
+            var response = _bankService.GetById(bankId, userId);
             if (response == null)
                 return NotFound();
             return Ok(response);
@@ -36,14 +44,16 @@ namespace FinancesControl.API.Banks.Controllers
         [HttpGet]
         public async Task<ActionResult<List<BankListItemResponse>>> Get()
         {
-            var response = _bankService.GetAll();
+            var userId = GetCurrentUserId();
+            var response = _bankService.GetAll(userId);
             return Ok(response);
         }
 
         [HttpPut("{bankId}")]
         public async Task<IActionResult> Update(long bankId, UpdateBankRequest request)
         {
-            var updated = _bankService.Update(bankId, request);
+            var userId = GetCurrentUserId();
+            var updated = _bankService.Update(bankId, request, userId);
             if (!updated)
                 return NotFound();
             return NoContent();
@@ -52,7 +62,8 @@ namespace FinancesControl.API.Banks.Controllers
         [HttpPost("{bankId}/activate")]
         public async Task<IActionResult> Activate(long bankId)
         {
-            var activated = _bankService.Activate(bankId);
+            var userId = GetCurrentUserId();
+            var activated = _bankService.Activate(bankId, userId);
             if (!activated)
                 return NotFound();
             return NoContent();
@@ -61,7 +72,8 @@ namespace FinancesControl.API.Banks.Controllers
         [HttpPost("{bankId}/deactivate")]
         public async Task<IActionResult> Deactivate(long bankId)
         {
-            var deactivated = _bankService.Deactivate(bankId);
+            var userId = GetCurrentUserId();
+            var deactivated = _bankService.Deactivate(bankId, userId);
             if (!deactivated)
                 return NotFound();
             return NoContent();

@@ -93,7 +93,7 @@ public class TransactionServiceTests
         var request = new CreateTransactionRequest { Amount = 100, PaymentMethod = PaymentMethod.Pix, CategoryId = 1, TransactionType = TransactionType.Expense, TransactionDate = DateTime.UtcNow, AccountId = 1, BankId = 999 };
         _accountRepository.GetById(1, TestUserId).Returns(new Account(1, "Test Account", "user123"));
         _categoryRepository.GetById(1, TestUserId).Returns(new TransactionCategory("Test Category", 1, TestUserId));
-        _bankRepository.GetById(999).Returns((Bank?)null);
+        _bankRepository.GetById(999, TestUserId).Returns((Bank?)null);
         
         var ex = Assert.Throws<ArgumentException>(() => _service.CreateTransaction(request, TestUserId));
         ex.Message.Should().Contain("Bank with ID 999 does not exist");
@@ -106,7 +106,7 @@ public class TransactionServiceTests
         var request = new CreateTransactionRequest { Amount = 100, PaymentMethod = PaymentMethod.BankSlip, CategoryId = 1, TransactionType = TransactionType.Expense, TransactionDate = DateTime.UtcNow, AccountId = 1, BankId = 999 };
         _accountRepository.GetById(1, TestUserId).Returns(new Account(1, "Test Account", "user123"));
         _categoryRepository.GetById(1, TestUserId).Returns(new TransactionCategory("Test Category", 1, TestUserId));
-        _bankRepository.GetById(999).Returns((Bank?)null);
+        _bankRepository.GetById(999, TestUserId).Returns((Bank?)null);
         
         var ex = Assert.Throws<ArgumentException>(() => _service.CreateTransaction(request, TestUserId));
         ex.Message.Should().Contain("Bank with ID 999 does not exist");
@@ -119,7 +119,7 @@ public class TransactionServiceTests
         var request = new CreateTransactionRequest { Amount = 100, PaymentMethod = PaymentMethod.BankTransfer, CategoryId = 1, TransactionType = TransactionType.Expense, TransactionDate = DateTime.UtcNow, AccountId = 1, BankId = 999 };
         _accountRepository.GetById(1, TestUserId).Returns(new Account(1, "Test Account", "user123"));
         _categoryRepository.GetById(1, TestUserId).Returns(new TransactionCategory("Test Category", 1, TestUserId));
-        _bankRepository.GetById(999).Returns((Bank?)null);
+        _bankRepository.GetById(999, TestUserId).Returns((Bank?)null);
         
         var ex = Assert.Throws<ArgumentException>(() => _service.CreateTransaction(request, TestUserId));
         ex.Message.Should().Contain("Bank with ID 999 does not exist");

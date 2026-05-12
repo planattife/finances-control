@@ -70,6 +70,7 @@ public class BankControllerTests
     {
         // Arrange
         var bankId = 1;
+        var userId = "test-user-id";
         var response = new BankDetailResponse(
             bankId,
             "Test Bank",
@@ -78,7 +79,7 @@ public class BankControllerTests
             DateTime.UtcNow,
             null
         );
-        _bankService.GetById(bankId).Returns(response);
+        _bankService.GetById(bankId, userId).Returns(response);
 
         // Act
         var result = await _controller.GetById(bankId);
@@ -88,7 +89,7 @@ public class BankControllerTests
         var okResult = result.Result as OkObjectResult;
         okResult.StatusCode.Should().Be(200);
         okResult.Value.Should().Be(response);
-        _bankService.Received(1).GetById(bankId);
+        _bankService.Received(1).GetById(bankId, userId);
     }
 
     [Fact]
@@ -96,14 +97,15 @@ public class BankControllerTests
     {
         // Arrange
         var bankId = 999;
-        _bankService.GetById(bankId).Returns((BankDetailResponse?)null);
+        var userId = "test-user-id";
+        _bankService.GetById(bankId, userId).Returns((BankDetailResponse?)null);
 
         // Act
         var result = await _controller.GetById(bankId);
 
         // Assert
         result.Result.Should().BeOfType<NotFoundResult>();
-        _bankService.Received(1).GetById(bankId);
+        _bankService.Received(1).GetById(bankId, userId);
     }
 
     #endregion
@@ -114,12 +116,13 @@ public class BankControllerTests
     public async Task Get_WithMultipleBanks_Returns200Ok()
     {
         // Arrange
+        var userId = "test-user-id";
         var banks = new List<BankListItemResponse>
         {
             new(1, "Bank 1", BankAccountType.Check),
             new(2, "Bank 2", BankAccountType.Savings)
         };
-        _bankService.GetAll().Returns(banks);
+        _bankService.GetAll(userId).Returns(banks);
 
         // Act
         var result = await _controller.Get();
@@ -134,15 +137,16 @@ public class BankControllerTests
         returnedList[0].Name.Should().Be("Bank 1");
         returnedList[1].Id.Should().Be(2);
         returnedList[1].Name.Should().Be("Bank 2");
-        _bankService.Received(1).GetAll();
+        _bankService.Received(1).GetAll(userId);
     }
 
     [Fact]
     public async Task Get_WithNoBanks_Returns200OkWithEmptyList()
     {
         // Arrange
+        var userId = "test-user-id";
         var emptyList = new List<BankListItemResponse>();
-        _bankService.GetAll().Returns(emptyList);
+        _bankService.GetAll(userId).Returns(emptyList);
 
         // Act
         var result = await _controller.Get();
@@ -164,15 +168,16 @@ public class BankControllerTests
     {
         // Arrange
         var bankId = 1;
+        var userId = "test-user-id";
         var request = new UpdateBankRequest("Updated Bank", BankAccountType.Savings);
-        _bankService.Update(bankId, request).Returns(true);
+        _bankService.Update(bankId, request, userId).Returns(true);
 
         // Act
         var result = await _controller.Update(bankId, request);
 
         // Assert
         result.Should().BeOfType<NoContentResult>();
-        _bankService.Received(1).Update(bankId, request);
+        _bankService.Received(1).Update(bankId, request, userId);
     }
 
     [Fact]
@@ -180,15 +185,16 @@ public class BankControllerTests
     {
         // Arrange
         var bankId = 999;
+        var userId = "test-user-id";
         var request = new UpdateBankRequest("Updated Bank", BankAccountType.Savings);
-        _bankService.Update(bankId, request).Returns(false);
+        _bankService.Update(bankId, request, userId).Returns(false);
 
         // Act
         var result = await _controller.Update(bankId, request);
 
         // Assert
         result.Should().BeOfType<NotFoundResult>();
-        _bankService.Received(1).Update(bankId, request);
+        _bankService.Received(1).Update(bankId, request, userId);
     }
 
     #endregion
@@ -200,14 +206,15 @@ public class BankControllerTests
     {
         // Arrange
         var bankId = 1;
-        _bankService.Activate(bankId).Returns(true);
+        var userId = "test-user-id";
+        _bankService.Activate(bankId, userId).Returns(true);
 
         // Act
         var result = await _controller.Activate(bankId);
 
         // Assert
         result.Should().BeOfType<NoContentResult>();
-        _bankService.Received(1).Activate(bankId);
+        _bankService.Received(1).Activate(bankId, userId);
     }
 
     [Fact]
@@ -215,14 +222,15 @@ public class BankControllerTests
     {
         // Arrange
         var bankId = 999;
-        _bankService.Activate(bankId).Returns(false);
+        var userId = "test-user-id";
+        _bankService.Activate(bankId, userId).Returns(false);
 
         // Act
         var result = await _controller.Activate(bankId);
 
         // Assert
         result.Should().BeOfType<NotFoundResult>();
-        _bankService.Received(1).Activate(bankId);
+        _bankService.Received(1).Activate(bankId, userId);
     }
 
     #endregion
@@ -234,14 +242,15 @@ public class BankControllerTests
     {
         // Arrange
         var bankId = 1;
-        _bankService.Deactivate(bankId).Returns(true);
+        var userId = "test-user-id";
+        _bankService.Deactivate(bankId, userId).Returns(true);
 
         // Act
         var result = await _controller.Deactivate(bankId);
 
         // Assert
         result.Should().BeOfType<NoContentResult>();
-        _bankService.Received(1).Deactivate(bankId);
+        _bankService.Received(1).Deactivate(bankId, userId);
     }
 
     [Fact]
@@ -249,14 +258,15 @@ public class BankControllerTests
     {
         // Arrange
         var bankId = 999;
-        _bankService.Deactivate(bankId).Returns(false);
+        var userId = "test-user-id";
+        _bankService.Deactivate(bankId, userId).Returns(false);
 
         // Act
         var result = await _controller.Deactivate(bankId);
 
         // Assert
         result.Should().BeOfType<NotFoundResult>();
-        _bankService.Received(1).Deactivate(bankId);
+        _bankService.Received(1).Deactivate(bankId, userId);
     }
 
     #endregion

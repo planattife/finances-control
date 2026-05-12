@@ -9,7 +9,7 @@ public class UpdateBankCommand
         var sql = @"
             UPDATE ""Banks""
             SET ""Name"" = @Name, ""AccountType"" = @AccountType, ""IsActive"" = @IsActive, ""UpdatedAt"" = @UpdatedAt
-            WHERE ""Id"" = @Id;
+            WHERE ""Id"" = @Id AND ""UserId"" = @UserId;
         ";
 
         var parameters = new DynamicParameters();
@@ -17,7 +17,8 @@ public class UpdateBankCommand
         parameters.Add("@Name", bank.Name);
         parameters.Add("@AccountType", (int)bank.AccountType);
         parameters.Add("@IsActive", bank.IsActive);
-        parameters.Add("@UpdatedAt", bank.UpdatedAt ??DateTime.UtcNow);
+        parameters.Add("@UserId", bank.UserId);
+        parameters.Add("@UpdatedAt", bank.UpdatedAt ?? DateTime.UtcNow);
 
         return (sql, parameters);
     }
