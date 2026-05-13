@@ -48,11 +48,11 @@ public class CardRepository : ICardRepository
         }
     }
 
-    public Card? GetById(long cardId)
+    public Card? GetById(long cardId, long accountId)
     {
         using var connection = _connectionFactory.CreateConnection();
         var query = new GetCardByIdQuery();
-        var (sql, parameters) = query.Build(cardId);
+        var (sql, parameters) = query.Build(cardId, accountId);
         
         var result = connection.QuerySingleOrDefault<dynamic>(sql, parameters);
         
@@ -63,7 +63,7 @@ public class CardRepository : ICardRepository
         if ((int)result.CardType == 1) // CardType.Credit
         {
             var creditQuery = new GetCreditCardByIdQuery();
-            var (creditSql, creditParams) = creditQuery.Build(cardId);
+            var (creditSql, creditParams) = creditQuery.Build(cardId, accountId);
             var creditResult = connection.QuerySingleOrDefault<dynamic>(creditSql, creditParams);
             
             if (creditResult != null)
@@ -73,12 +73,13 @@ public class CardRepository : ICardRepository
         return MapToCard(result);
     }
 
-    public List<Card> GetAll()
+    public List<Card> GetAll(long accountId)
     {
         using var connection = _connectionFactory.CreateConnection();
         var query = new GetAllCardsQuery();
+        var (sql, parameters) = query.Build(accountId);
         
-        var results = connection.Query<dynamic>(query.Sql).ToList();
+        var results = connection.Query<dynamic>(sql, parameters).ToList();
         var cards = new List<Card>();
         
         foreach (var result in results)
@@ -89,7 +90,7 @@ public class CardRepository : ICardRepository
         return cards;
     }
 
-    public bool Update(Card card)
+    public bool Update(Card card, long accountId)
     {
         using var connection = _connectionFactory.CreateConnection();
         connection.Open();
@@ -99,7 +100,7 @@ public class CardRepository : ICardRepository
         try
         {
             var command = new UpdateCardCommand();
-            var (sql, parameters) = command.Build(card);
+            var (sql, parameters) = command.Build(card, accountId);
             
             var rowsAffected = connection.Execute(sql, parameters, transaction);
             
@@ -129,6 +130,7 @@ public class CardRepository : ICardRepository
             expirationDate: row.ExpirationDate,
             cardNetwork: (CardNetwork)row.CardNetwork,
             bankId: (long)row.BankId,
+            accountId: (long)row.AccountId,
             cardType: (CardType)row.CardType,
             isActive: row.IsActive,
             cardName: row.CardName,
@@ -145,6 +147,7 @@ public class CardRepository : ICardRepository
             expirationDate: row.ExpirationDate,
             cardNetwork: (CardNetwork)row.CardNetwork,
             bankId: (long)row.BankId,
+            accountId: (long)row.AccountId,
             closingDay: row.ClosingDay,
             dueDateDay: row.DueDateDay,
             isActive: row.IsActive,
