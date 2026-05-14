@@ -16,6 +16,7 @@ public class TransactionControllerTests
     private readonly ITransactionService _service;
     private readonly TransactionController _controller;
     private const string TestUserId = "test-user-123";
+    private const long AccountId = 1;
 
     public TransactionControllerTests()
     {
@@ -38,60 +39,118 @@ public class TransactionControllerTests
         };
     }
 
-
     [Fact]
     public async Task Create_WithValidRequest_ReturnsCreated()
     {
-        var request = new CreateTransactionRequest { Amount = 100, PaymentMethod = API.Enums.PaymentMethod.Cash, CategoryId = 1, TransactionType = API.Enums.TransactionType.Expense, TransactionDate = DateTime.UtcNow };
+        var request = new CreateTransactionRequest 
+        { 
+            Amount = 100, 
+            PaymentMethod = API.Enums.PaymentMethod.Cash, 
+            CategoryId = 1, 
+            TransactionType = API.Enums.TransactionType.Expense, 
+            TransactionDate = DateTime.UtcNow,
+            AccountId = AccountId
+        };
         long transactionId = 10;
-        _service.CreateTransaction(request, TestUserId).Returns(transactionId);
+        _service.CreateTransaction(request, AccountId, TestUserId).Returns(transactionId);
 
-        var result = await _controller.Create(request);
+        var result = await _controller.Create(AccountId, request);
 
         result.Should().BeOfType<CreatedAtActionResult>();
         var created = result as CreatedAtActionResult;
         created.ActionName.Should().Be(nameof(_controller.GetById));
+        created.RouteValues["accountId"].Should().Be(AccountId);
         created.RouteValues["transactionId"].Should().Be(transactionId);
     }
 
     [Fact]
-    public async Task Create_WithInvalidAmount_ReturnsException()
+    public async Task Create_WithAccountIdMismatch_ReturnsBadRequest()
     {
-        var request = new CreateTransactionRequest { Amount = -1, PaymentMethod = API.Enums.PaymentMethod.Cash, CategoryId = 1, TransactionType = API.Enums.TransactionType.Expense, TransactionDate = DateTime.UtcNow };
-        _service.When(s => s.CreateTransaction(request, TestUserId)).Do(x => { throw new ArgumentException(); });
-        await Assert.ThrowsAsync<ArgumentException>(async () => await _controller.Create(request));
+        var request = new CreateTransactionRequest 
+        { 
+            Amount = 100, 
+            PaymentMethod = API.Enums.PaymentMethod.Cash, 
+            CategoryId = 1, 
+            TransactionType = API.Enums.TransactionType.Expense, 
+            TransactionDate = DateTime.UtcNow,
+            AccountId = 2
+        };
+        _service.When(s => s.CreateTransaction(request, AccountId, TestUserId))
+            .Do(x => { throw new ArgumentException("Invalid account"); });
+
+        var result = await _controller.Create(AccountId, request);
+
+        result.Should().BeOfType<BadRequestObjectResult>();
     }
 
     [Fact]
-    public async Task Create_WithInvalidCategoryId_ReturnsException()
+    public async Task Create_WithInvalidAmount_ReturnsBadRequest()
     {
-        var request = new CreateTransactionRequest { Amount = 100, PaymentMethod = API.Enums.PaymentMethod.Cash, CategoryId = 0, TransactionType = API.Enums.TransactionType.Expense, TransactionDate = DateTime.UtcNow };
-        _service.When(s => s.CreateTransaction(request, TestUserId)).Do(x => { throw new ArgumentException(); });
-        await Assert.ThrowsAsync<ArgumentException>(async () => await _controller.Create(request));
+        var request = new CreateTransactionRequest 
+        { 
+            Amount = -1, 
+            PaymentMethod = API.Enums.PaymentMethod.Cash, 
+            CategoryId = 1, 
+            TransactionType = API.Enums.TransactionType.Expense, 
+            TransactionDate = DateTime.UtcNow,
+            AccountId = AccountId
+        };
+        _service.When(s => s.CreateTransaction(request, AccountId, TestUserId))
+            .Do(x => { throw new ArgumentException(); });
+        
+        var result = await _controller.Create(AccountId, request);
+        result.Should().BeOfType<BadRequestObjectResult>();
     }
 
+    [Fact]
+    public async Task Create_WithInvalidCategoryId_ReturnsBadRequest()
+    {
+        var request = new CreateTransactionRequest 
+        { 
+            Amount = 100, 
+            PaymentMethod = API.Enums.PaymentMethod.Cash, 
+            CategoryId = 0, 
+            TransactionType = API.Enums.TransactionType.Expense, 
+            TransactionDate = DateTime.UtcNow,
+            AccountId = AccountId
+        };
+        _service.When(s => s.CreateTransaction(request, AccountId, TestUserId))
+            .Do(x => { throw new ArgumentException(); });
+        
+        var result = await _controller.Create(AccountId, request);
+        result.Should().BeOfType<BadRequestObjectResult>();
+    }
 
     [Fact]
     public async Task GetById_ValidId_ReturnsOk()
     {
-        var detail = new TransactionDetailResponse { Id = 1, Amount = 100, PaymentMethod = "Cash", TransactionType = "Expense", TransactionDate = DateTime.UtcNow, CategoryId = 1, Status = "Active", CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow };
-        _service.GetById(1).Returns(detail);
+        var detail = new TransactionDetailResponse 
+        { 
+            Id = 1, 
+            Amount = 100, 
+            PaymentMethod = "Cash", 
+            TransactionType = "Expense", 
+            TransactionDate = DateTime.UtcNow, 
+            CategoryId = 1, 
+            Status = "Active", 
+            CreatedAt = DateTime.UtcNow, 
+            UpdatedAt = DateTime.UtcNow 
+        };
+        _service.GetById(1, AccountId, TestUserId).Returns(detail);
 
-        var result = await _controller.GetById(1);
+        var result = await _controller.GetById(AccountId, 1);
         result.Result.Should().BeOfType<OkObjectResult>();
         var ok = result.Result as OkObjectResult;
         ok.Value.Should().Be(detail);
     }
 
-
     [Fact]
     public async Task GetById_InvalidId_ReturnsNotFound()
     {
-        _service.GetById(999).Returns((TransactionDetailResponse?)null);
-        var result = await _controller.GetById(999);
+        _service.GetById(999, AccountId, TestUserId).Returns((TransactionDetailResponse?)null);
+        var result = await _controller.GetById(AccountId, 999);
         result.Result.Should().BeOfType<NotFoundResult>();
     }
-
 
     [Fact]
     public async Task Get_ReturnsList()
@@ -101,8 +160,8 @@ public class TransactionControllerTests
             new() { Id = 1, Amount = 100, PaymentMethod = "Cash", TransactionType = "Expense", TransactionDate = DateTime.UtcNow, CategoryId = 1, Status = "Active" },
             new() { Id = 2, Amount = 200, PaymentMethod = "Credit", TransactionType = "Income", TransactionDate = DateTime.UtcNow, CategoryId = 2, Status = "Inactive" }
         };
-        _service.GetAll().Returns(list);
-        var result = await _controller.Get();
+        _service.GetAll(AccountId, TestUserId).Returns(list);
+        var result = await _controller.Get(AccountId);
         var ok = result.Result as OkObjectResult;
         ok.Value.Should().Be(list);
     }
@@ -110,8 +169,8 @@ public class TransactionControllerTests
     [Fact]
     public async Task Get_WhenEmpty_ReturnsEmptyList()
     {
-        _service.GetAll().Returns(new List<TransactionListItemResponse>());
-        var result = await _controller.Get();
+        _service.GetAll(AccountId, TestUserId).Returns(new List<TransactionListItemResponse>());
+        var result = await _controller.Get(AccountId);
         var ok = result.Result as OkObjectResult;
         ok.Should().NotBeNull();
         var list = ok.Value as IEnumerable<TransactionListItemResponse>;
@@ -119,32 +178,28 @@ public class TransactionControllerTests
         list.Should().BeEmpty();
     }
 
-
     [Fact]
     public async Task Delete_ValidId_ReturnsNoContent()
     {
-        _service.Delete(2).Returns(true);
-        var result = await _controller.Delete(2);
+        _service.Delete(2, AccountId, TestUserId).Returns(true);
+        var result = await _controller.Delete(AccountId, 2);
         result.Should().BeOfType<NoContentResult>();
     }
 
     [Fact]
     public async Task Delete_InvalidId_ReturnsNotFound()
     {
-        _service.Delete(999).Returns(false);
-        var result = await _controller.Delete(999);
+        _service.Delete(999, AccountId, TestUserId).Returns(false);
+        var result = await _controller.Delete(AccountId, 999);
         result.Should().BeOfType<NotFoundResult>();
     }
-
-
-    // ===== Unified Update Tests =====
 
     [Fact]
     public async Task Update_WithAmountOnly_ReturnsNoContent()
     {
         var req = new UpdateTransactionRequest { NewAmount = 150 };
-        _service.Update(2, req, TestUserId).Returns(true);
-        var result = await _controller.Update(2, req);
+        _service.Update(2, AccountId, req, TestUserId).Returns(true);
+        var result = await _controller.Update(AccountId, 2, req);
         result.Should().BeOfType<NoContentResult>();
     }
 
@@ -152,8 +207,8 @@ public class TransactionControllerTests
     public async Task Update_WithCategoryOnly_ReturnsNoContent()
     {
         var req = new UpdateTransactionRequest { NewCategoryId = 7 };
-        _service.Update(2, req, TestUserId).Returns(true);
-        var result = await _controller.Update(2, req);
+        _service.Update(2, AccountId, req, TestUserId).Returns(true);
+        var result = await _controller.Update(AccountId, 2, req);
         result.Should().BeOfType<NoContentResult>();
     }
 
@@ -161,8 +216,8 @@ public class TransactionControllerTests
     public async Task Update_WithDescriptionOnly_ReturnsNoContent()
     {
         var req = new UpdateTransactionRequest { NewDescription = "Updated transaction description", HasDescriptionUpdate = true };
-        _service.Update(2, req, TestUserId).Returns(true);
-        var result = await _controller.Update(2, req);
+        _service.Update(2, AccountId, req, TestUserId).Returns(true);
+        var result = await _controller.Update(AccountId, 2, req);
         result.Should().BeOfType<NoContentResult>();
     }
 
@@ -176,8 +231,8 @@ public class TransactionControllerTests
             NewDescription = "Complete update",
             HasDescriptionUpdate = true
         };
-        _service.Update(2, req, TestUserId).Returns(true);
-        var result = await _controller.Update(2, req);
+        _service.Update(2, AccountId, req, TestUserId).Returns(true);
+        var result = await _controller.Update(AccountId, 2, req);
         result.Should().BeOfType<NoContentResult>();
     }
 
@@ -185,8 +240,8 @@ public class TransactionControllerTests
     public async Task Update_InvalidId_ReturnsNotFound()
     {
         var req = new UpdateTransactionRequest { NewAmount = 150 };
-        _service.Update(999, req, TestUserId).Returns(false);
-        var result = await _controller.Update(999, req);
+        _service.Update(999, AccountId, req, TestUserId).Returns(false);
+        var result = await _controller.Update(AccountId, 999, req);
         result.Should().BeOfType<NotFoundResult>();
     }
 
@@ -194,16 +249,18 @@ public class TransactionControllerTests
     public async Task Update_WithNegativeAmount_ReturnsException()
     {
         var req = new UpdateTransactionRequest { NewAmount = -50 };
-        _service.When(s => s.Update(2, req, TestUserId)).Do(x => { throw new ArgumentException(); });
-        await Assert.ThrowsAsync<ArgumentException>(async () => await _controller.Update(2, req));
+        _service.When(s => s.Update(2, AccountId, req, TestUserId))
+            .Do(x => { throw new ArgumentException(); });
+        await Assert.ThrowsAsync<ArgumentException>(async () => await _controller.Update(AccountId, 2, req));
     }
 
     [Fact]
     public async Task Update_WithInvalidCategoryId_ReturnsException()
     {
         var req = new UpdateTransactionRequest { NewCategoryId = 0 };
-        _service.When(s => s.Update(2, req, TestUserId)).Do(x => { throw new ArgumentException(); });
-        await Assert.ThrowsAsync<ArgumentException>(async () => await _controller.Update(2, req));
+        _service.When(s => s.Update(2, AccountId, req, TestUserId))
+            .Do(x => { throw new ArgumentException(); });
+        await Assert.ThrowsAsync<ArgumentException>(async () => await _controller.Update(AccountId, 2, req));
     }
 
     [Fact]
@@ -216,16 +273,18 @@ public class TransactionControllerTests
             CategoryId = 1, 
             TransactionType = API.Enums.TransactionType.Expense, 
             TransactionDate = DateTime.UtcNow,
-            Description = "Test purchase"
+            Description = "Test purchase",
+            AccountId = AccountId
         };
         long transactionId = 10;
-        _service.CreateTransaction(request, TestUserId).Returns(transactionId);
+        _service.CreateTransaction(request, AccountId, TestUserId).Returns(transactionId);
 
-        var result = await _controller.Create(request);
+        var result = await _controller.Create(AccountId, request);
 
         result.Should().BeOfType<CreatedAtActionResult>();
         var created = result as CreatedAtActionResult;
         created.ActionName.Should().Be(nameof(_controller.GetById));
+        created.RouteValues["accountId"].Should().Be(AccountId);
         created.RouteValues["transactionId"].Should().Be(transactionId);
     }
 
@@ -245,9 +304,9 @@ public class TransactionControllerTests
             UpdatedAt = DateTime.UtcNow,
             Description = "Test transaction"
         };
-        _service.GetById(1).Returns(detail);
+        _service.GetById(1, AccountId, TestUserId).Returns(detail);
 
-        var result = await _controller.GetById(1);
+        var result = await _controller.GetById(AccountId, 1);
         result.Result.Should().BeOfType<OkObjectResult>();
         var ok = result.Result as OkObjectResult;
         var response = ok.Value as TransactionDetailResponse;

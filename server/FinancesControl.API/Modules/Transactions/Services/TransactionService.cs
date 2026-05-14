@@ -31,10 +31,14 @@ public class TransactionService : ITransactionService
 		_bankRepository = bankRepository;
 	}
 
-	public long CreateTransaction(CreateTransactionRequest request, string? userId)
+	public long CreateTransaction(CreateTransactionRequest request, long accountId, string? userId)
 	{
+		// Validate that URL accountId matches request AccountId
+		if (accountId != request.AccountId)
+			throw new ArgumentException("Invalid account. URL account ID does not match request account ID.");
+
 		// Validate foreign key constraints before attempting insert
-		ValidateForeignKeys(request, userId);
+		ValidateForeignKeys(request, accountId, userId);
 
 		Transaction transaction;
 
@@ -62,40 +66,67 @@ public class TransactionService : ITransactionService
 		return _repository.Add(transaction);
 	}
 
-	private void ValidateForeignKeys(CreateTransactionRequest request, string? userId)
+	private void ValidateForeignKeys(CreateTransactionRequest request, long accountId, string? userId)
+    {
+        // Validate Account exists
+        ValidateAccount(accountId, userId);
+
+        // Validate Category exists
+        if (_categoryRepository.GetById(request.CategoryId, userId) == null)
+            throw new ArgumentException($"Transaction category with ID {request.CategoryId} does not exist.", nameof(request.CategoryId));
+
+        // Validate Card exists (if applicable)
+        if (request.PaymentMethod == PaymentMethod.Credit || request.PaymentMethod == PaymentMethod.Debit)
+        {
+            if (request.CardId == null || request.CardId <= 0)
+                throw new ArgumentException("Card ID must be provided for credit/debit card transactions.", nameof(request.CardId));
+
+			var card = _cardRepository.GetById(request.CardId.Value, accountId);
+            if (card == null) {
+                throw new ArgumentException($"Card with ID {request.CardId} does not exist.", nameof(request.CardId));
+			} else {
+				if (card.AccountId != accountId)
+					throw new ArgumentException($"Card with ID {request.CardId} does not exist in this Account.", nameof(request.CardId));
+
+				if ((request.PaymentMethod == PaymentMethod.Credit && card.CardType != CardType.Credit) ||
+					(request.PaymentMethod == PaymentMethod.Debit && card.CardType != CardType.Debit))
+				{
+					throw new ArgumentException($"Card with ID {request.CardId} does not match the specified payment method.", nameof(request.CardId));
+				}
+			}
+        }
+
+        // Validate Bank exists (if applicable)
+        if (request.PaymentMethod == PaymentMethod.Pix || request.PaymentMethod == PaymentMethod.BankSlip || request.PaymentMethod == PaymentMethod.BankTransfer)
+        {
+            if (request.BankId == null || request.BankId <= 0)
+                throw new ArgumentException("Bank ID must be provided for pix/bank slip/bank transfer transactions.", nameof(request.BankId));
+
+            if (_bankRepository.GetById(request.BankId.Value, userId) == null)
+                throw new ArgumentException($"Bank with ID {request.BankId} does not exist.", nameof(request.BankId));
+        }
+    }
+
+    private void ValidateAccount(long accountId, string? userId)
+    {
+        if (userId != null && _accountRepository.GetById(accountId, userId) == null)
+            throw new ArgumentException($"Invalid Account.");
+    }
+
+    public TransactionDetailResponse? GetById(long transactionId, long accountId, string? userId)
 	{
-		// Validate Account exists
-		if (userId != null && _accountRepository.GetById(request.AccountId, userId) == null)
-			throw new ArgumentException($"Account with ID {request.AccountId} does not exist.", nameof(request.AccountId));
-
-		// Validate Category exists
-		if (_categoryRepository.GetById(request.CategoryId, userId) == null)
-			throw new ArgumentException($"Transaction category with ID {request.CategoryId} does not exist.", nameof(request.CategoryId));
-
-		// Validate Card exists (if applicable)
-		if (request.PaymentMethod == PaymentMethod.Credit || request.PaymentMethod == PaymentMethod.Debit)
+		try
 		{
-			if (request.CardId == null || request.CardId <= 0)
-				throw new ArgumentException("Card ID must be provided for credit/debit card transactions.", nameof(request.CardId));
-
-			if (_cardRepository.GetById(request.CardId.Value) == null)
-				throw new ArgumentException($"Card with ID {request.CardId} does not exist.", nameof(request.CardId));
+			ValidateAccount(accountId, userId);
+		}
+		catch (Exception)
+		{
+			return null;
 		}
 
-		// Validate Bank exists (if applicable)
-		if (request.PaymentMethod == PaymentMethod.Pix || request.PaymentMethod == PaymentMethod.BankSlip || request.PaymentMethod == PaymentMethod.BankTransfer)
-		{
-			if (request.BankId == null || request.BankId <= 0)
-				throw new ArgumentException("Bank ID must be provided for pix/bank slip/bank transfer transactions.", nameof(request.BankId));
-
-			if (_bankRepository.GetById(request.BankId.Value, userId) == null)
-				throw new ArgumentException($"Bank with ID {request.BankId} does not exist.", nameof(request.BankId));
-		}
-	}
-
-	public TransactionDetailResponse? GetById(long transactionId)
-	{
-		var t = _repository.GetById(transactionId);
+		ValidateAccount(accountId, userId);
+		
+		var t = _repository.GetById(transactionId, accountId);
 		if (t == null) return null;
 		var detail = new TransactionDetailResponse
 		{
@@ -117,9 +148,18 @@ public class TransactionService : ITransactionService
 		return detail;
 	}
 
-	public List<TransactionListItemResponse> GetAll()
+	public List<TransactionListItemResponse> GetAll(long accountId, string? userId)
 	{
-		return _repository.GetAll()
+		try
+		{
+			ValidateAccount(accountId, userId);
+		}
+		catch (Exception)
+		{
+			return new List<TransactionListItemResponse>();
+		}
+
+		return _repository.GetAll(accountId)
 			.Select(t => new TransactionListItemResponse
 			{
 				Id = t.Id,
@@ -133,17 +173,35 @@ public class TransactionService : ITransactionService
 			.ToList();
 	}
 
-	public bool Delete(long transactionId)
+	public bool Delete(long transactionId, long accountId, string? userId)
 	{
-		var transaction = _repository.GetById(transactionId);
+		try
+		{
+			ValidateAccount(accountId, userId);
+		}
+		catch (Exception)
+		{
+			return false;
+		}
+
+		var transaction = _repository.GetById(transactionId, accountId);
 		if (transaction == null) return false;
 		transaction.Deactivate();
 		return _repository.Update(transaction);
 	}
 
-	public bool Update(long transactionId, UpdateTransactionRequest request, string? userId)
+	public bool Update(long transactionId, long accountId, UpdateTransactionRequest request, string? userId)
 	{
-		var transaction = _repository.GetById(transactionId);
+		try
+		{
+			ValidateAccount(accountId, userId);
+		}
+		catch (Exception)
+		{
+			return false;
+		}
+		
+		var transaction = _repository.GetById(transactionId, accountId);
 		if (transaction == null) return false;
 
 		if (request.NewAmount.HasValue && request.NewAmount != 0)

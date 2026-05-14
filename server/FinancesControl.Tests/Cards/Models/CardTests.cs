@@ -14,13 +14,14 @@ public class CardTests
     public void Constructor_WithValidData_CreatesCard()
     {
         // Act
-        var card = new Card("4111111111111111", DateTime.UtcNow.AddYears(5), CardNetwork.Visa, 1, CardType.Debit, 1);
+        var card = new Card("4111111111111111", DateTime.UtcNow.AddYears(5), CardNetwork.Visa, 1, 1, CardType.Debit, 1);
 
         // Assert
         card.Id.Should().Be(1);
         card.CardNumber.Should().Be("4111111111111111");
         card.CardNetwork.Should().Be(CardNetwork.Visa);
         card.BankId.Should().Be(1);
+        card.AccountId.Should().Be(1);
         card.CardType.Should().Be(CardType.Debit);
         card.IsActive.Should().BeTrue();
         card.CreatedAt.Should().BeBefore(DateTime.UtcNow.AddSeconds(1));
@@ -30,7 +31,7 @@ public class CardTests
     public void Constructor_WithCardName_CreatesCardWithName()
     {
         // Act
-        var card = new Card("4111111111111111", DateTime.UtcNow.AddYears(5), CardNetwork.Visa, 1, CardType.Debit, 1, "My Debit Card");
+        var card = new Card("4111111111111111", DateTime.UtcNow.AddYears(5), CardNetwork.Visa, 1, 1, CardType.Debit, 1, "My Debit Card");
 
         // Assert
         card.CardName.Should().Be("My Debit Card");
@@ -40,7 +41,7 @@ public class CardTests
     public void Constructor_WithoutCardName_CreatesCardWithNullName()
     {
         // Act
-        var card = new Card("4111111111111111", DateTime.UtcNow.AddYears(5), CardNetwork.Visa, 1, CardType.Debit, 1);
+        var card = new Card("4111111111111111", DateTime.UtcNow.AddYears(5), CardNetwork.Visa, 1, 1, CardType.Debit, 1);
 
         // Assert
         card.CardName.Should().BeNull();
@@ -55,7 +56,7 @@ public class CardTests
         // Act & Assert
         foreach (var network in networks)
         {
-            var card = new Card("4111111111111111", DateTime.UtcNow.AddYears(5), network, 1, CardType.Debit, 1);
+            var card = new Card("4111111111111111", DateTime.UtcNow.AddYears(5), network, 1, 1, CardType.Debit, 1);
             card.CardNetwork.Should().Be(network);
         }
     }
@@ -68,7 +69,7 @@ public class CardTests
     public void UpdateCardName_WithValidName_UpdatesName()
     {
         // Arrange
-        var card = new Card("4111111111111111", DateTime.UtcNow.AddYears(5), CardNetwork.Visa, 1, CardType.Debit, 1, "Old Name");
+        var card = new Card("4111111111111111", DateTime.UtcNow.AddYears(5), CardNetwork.Visa, 1, 1, CardType.Debit, 1, "Old Name");
 
         // Act
         card.UpdateCardName("New Name");
@@ -81,7 +82,7 @@ public class CardTests
     public void UpdateCardName_CanUpdateMultipleTimes()
     {
         // Arrange
-        var card = new Card("4111111111111111", DateTime.UtcNow.AddYears(5), CardNetwork.Visa, 1, CardType.Debit, 1);
+        var card = new Card("4111111111111111", DateTime.UtcNow.AddYears(5), CardNetwork.Visa, 1, 1, CardType.Debit, 1);
 
         // Act
         card.UpdateCardName("First Name");
@@ -99,7 +100,7 @@ public class CardTests
     public void SetIsActive_ToFalse_BecomesInactive()
     {
         // Arrange
-        var card = new Card("4111111111111111", DateTime.UtcNow.AddYears(5), CardNetwork.Visa, 1, CardType.Debit, 1);
+        var card = new Card("4111111111111111", DateTime.UtcNow.AddYears(5), CardNetwork.Visa, 1, 1, CardType.Debit, 1);
 
         // Act
         card.SetIsActive(false);
@@ -112,7 +113,7 @@ public class CardTests
     public void SetIsActive_ToTrue_BecomesActive()
     {
         // Arrange
-        var card = new Card("4111111111111111", DateTime.UtcNow.AddYears(5), CardNetwork.Visa, 1, CardType.Debit, 1);
+        var card = new Card("4111111111111111", DateTime.UtcNow.AddYears(5), CardNetwork.Visa, 1, 1, CardType.Debit, 1);
         card.SetIsActive(false);
 
         // Act
@@ -126,7 +127,7 @@ public class CardTests
     public void SetIsActive_UpdatesTimestamp()
     {
         // Arrange
-        var card = new Card("4111111111111111", DateTime.UtcNow.AddYears(5), CardNetwork.Visa, 1, CardType.Debit, 1);
+        var card = new Card("4111111111111111", DateTime.UtcNow.AddYears(5), CardNetwork.Visa, 1, 1, CardType.Debit, 1);
         var originalUpdatedAt = card.UpdatedAt;
 
         // Act
@@ -148,13 +149,14 @@ public class CreditCardTests
     public void Constructor_WithValidData_CreatesCreditCard()
     {
         // Act
-        var creditCard = new CreditCard("5555555555554444", DateTime.UtcNow.AddYears(5), CardNetwork.Mastercard, 1, 10, 20, CardType.Credit, 1);
+        var creditCard = new CreditCard("5555555555554444", DateTime.UtcNow.AddYears(5), CardNetwork.Mastercard, 1, 1, 10, 20, CardType.Credit, 1);
 
         // Assert
         creditCard.Id.Should().Be(1);
         creditCard.CardNumber.Should().Be("5555555555554444");
         creditCard.CardNetwork.Should().Be(CardNetwork.Mastercard);
         creditCard.BankId.Should().Be(1);
+        creditCard.AccountId.Should().Be(1);
         creditCard.CardType.Should().Be(CardType.Credit);
         creditCard.ClosingDay.Should().Be(10);
         creditCard.DueDateDay.Should().Be(20);
@@ -165,7 +167,7 @@ public class CreditCardTests
     public void Constructor_WithCardName_CreatesCreditCardWithName()
     {
         // Act
-        var creditCard = new CreditCard("5555555555554444", DateTime.UtcNow.AddYears(5), CardNetwork.Mastercard, 1, 10, 20, CardType.Credit, 1, "My Credit Card");
+        var creditCard = new CreditCard("5555555555554444", DateTime.UtcNow.AddYears(5), CardNetwork.Mastercard, 1, 1, 10, 20, CardType.Credit, 1, "My Credit Card");
 
         // Assert
         creditCard.CardName.Should().Be("My Credit Card");
@@ -179,7 +181,7 @@ public class CreditCardTests
     public void UpdateClosingDay_WithValidDay_UpdatesClosingDay()
     {
         // Arrange
-        var creditCard = new CreditCard("5555555555554444", DateTime.UtcNow.AddYears(5), CardNetwork.Mastercard, 1, 10, 20);
+        var creditCard = new CreditCard("5555555555554444", DateTime.UtcNow.AddYears(5), CardNetwork.Mastercard, 1, 1, 10, 20);
 
         // Act
         creditCard.UpdateClosingDay(15);
@@ -192,7 +194,7 @@ public class CreditCardTests
     public void UpdateClosingDay_UpdatesTimestamp()
     {
         // Arrange
-        var creditCard = new CreditCard("5555555555554444", DateTime.UtcNow.AddYears(5), CardNetwork.Mastercard, 1, 10, 20);
+        var creditCard = new CreditCard("5555555555554444", DateTime.UtcNow.AddYears(5), CardNetwork.Mastercard, 1, 1, 10, 20);
         var originalUpdatedAt = creditCard.UpdatedAt;
 
         // Act
@@ -207,7 +209,7 @@ public class CreditCardTests
     public void UpdateClosingDay_CanUpdateMultipleTimes()
     {
         // Arrange
-        var creditCard = new CreditCard("5555555555554444", DateTime.UtcNow.AddYears(5), CardNetwork.Mastercard, 1, 10, 20);
+        var creditCard = new CreditCard("5555555555554444", DateTime.UtcNow.AddYears(5), CardNetwork.Mastercard, 1, 1, 10, 20);
 
         // Act
         creditCard.UpdateClosingDay(15);
@@ -225,7 +227,7 @@ public class CreditCardTests
     public void UpdateDueDateDay_WithValidDay_UpdatesDueDateDay()
     {
         // Arrange
-        var creditCard = new CreditCard("5555555555554444", DateTime.UtcNow.AddYears(5), CardNetwork.Mastercard, 1, 10, 20);
+        var creditCard = new CreditCard("5555555555554444", DateTime.UtcNow.AddYears(5), CardNetwork.Mastercard, 1, 1, 10, 20);
 
         // Act
         creditCard.UpdateDueDateDay(25);
@@ -238,7 +240,7 @@ public class CreditCardTests
     public void UpdateDueDateDay_UpdatesTimestamp()
     {
         // Arrange
-        var creditCard = new CreditCard("5555555555554444", DateTime.UtcNow.AddYears(5), CardNetwork.Mastercard, 1, 10, 20);
+        var creditCard = new CreditCard("5555555555554444", DateTime.UtcNow.AddYears(5), CardNetwork.Mastercard, 1, 1, 10, 20);
         var originalUpdatedAt = creditCard.UpdatedAt;
 
         // Act
@@ -253,7 +255,7 @@ public class CreditCardTests
     public void UpdateDueDateDay_CanUpdateMultipleTimes()
     {
         // Arrange
-        var creditCard = new CreditCard("5555555555554444", DateTime.UtcNow.AddYears(5), CardNetwork.Mastercard, 1, 10, 20);
+        var creditCard = new CreditCard("5555555555554444", DateTime.UtcNow.AddYears(5), CardNetwork.Mastercard, 1, 1, 10, 20);
 
         // Act
         creditCard.UpdateDueDateDay(25);
@@ -271,7 +273,7 @@ public class CreditCardTests
     public void CreditCard_InheritsFromCard()
     {
         // Arrange & Act
-        var creditCard = new CreditCard("5555555555554444", DateTime.UtcNow.AddYears(5), CardNetwork.Mastercard, 1, 10, 20);
+        var creditCard = new CreditCard("5555555555554444", DateTime.UtcNow.AddYears(5), CardNetwork.Mastercard, 1, 1, 10, 20);
 
         // Assert
         creditCard.Should().BeAssignableTo<Card>();
@@ -281,7 +283,7 @@ public class CreditCardTests
     public void CreditCard_InheritsSetIsActiveMethod()
     {
         // Arrange
-        var creditCard = new CreditCard("5555555555554444", DateTime.UtcNow.AddYears(5), CardNetwork.Mastercard, 1, 10, 20);
+        var creditCard = new CreditCard("5555555555554444", DateTime.UtcNow.AddYears(5), CardNetwork.Mastercard, 1, 1, 10, 20);
 
         // Act
         creditCard.SetIsActive(false);
@@ -294,7 +296,7 @@ public class CreditCardTests
     public void CreditCard_InheritsUpdateCardNameMethod()
     {
         // Arrange
-        var creditCard = new CreditCard("5555555555554444", DateTime.UtcNow.AddYears(5), CardNetwork.Mastercard, 1, 10, 20);
+        var creditCard = new CreditCard("5555555555554444", DateTime.UtcNow.AddYears(5), CardNetwork.Mastercard, 1, 1, 10, 20);
 
         // Act
         creditCard.UpdateCardName("My Credit Card");

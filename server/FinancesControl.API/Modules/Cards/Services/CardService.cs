@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using FinancesControl.API.Accounts.Services;
 using FinancesControl.API.Banks.Services;
 using FinancesControl.API.Cards.DTOs;
 using FinancesControl.API.Cards.Repository;
@@ -13,12 +14,14 @@ public class CardService : ICardService
     private readonly ICardRepository _repository;
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly IBankService _bankService;
+    private readonly IAccountService _accountService;
 
-    public CardService(ICardRepository repository, IHttpContextAccessor httpContextAccessor, IBankService bankService)
+    public CardService(ICardRepository repository, IHttpContextAccessor httpContextAccessor, IBankService bankService, IAccountService accountService)
     {
         _repository = repository;
         _httpContextAccessor = httpContextAccessor;
         _bankService = bankService;
+        _accountService = accountService;
     }
 
     private string GetCurrentUserId()
@@ -27,29 +30,36 @@ public class CardService : ICardService
         return userId ?? throw new InvalidOperationException("User context not available");
     }
 
-    public long CreateDebitCard(CreateDebitCardRequest request)
+    public long CreateDebitCard(CreateDebitCardRequest request, long accountId, string userId)
     {
-        var userId = GetCurrentUserId();
+        if (_accountService.GetById(accountId, userId) == null)
+            throw new InvalidOperationException("Account not found.");
+        
         if (!_bankService.ValidateBankForUser(request.BankId, userId))
             throw new InvalidOperationException("Bank is not valid.");
         
-        var card = new Card(CardMaskingHelper.MaskCardNumber(request.CardNumber), request.ExpirationDate, request.CardNetwork, request.BankId, CardType.Debit, 0, request.CardName);
+        var card = new Card(CardMaskingHelper.MaskCardNumber(request.CardNumber), request.ExpirationDate, request.CardNetwork, request.BankId, accountId, CardType.Debit, 0, request.CardName);
         return _repository.Add(card);
     }
 
-    public long CreateCreditCard(CreateCreditCardRequest request)
+    public long CreateCreditCard(CreateCreditCardRequest request, long accountId, string userId)
     {
-        var userId = GetCurrentUserId();
+        if (_accountService.GetById(accountId, userId) == null)
+            throw new InvalidOperationException("Account not found.");
+        
         if (!_bankService.ValidateBankForUser(request.BankId, userId))
             throw new InvalidOperationException("Bank is not valid.");
         
-        var card = new CreditCard(CardMaskingHelper.MaskCardNumber(request.CardNumber), request.ExpirationDate, request.CardNetwork, request.BankId, request.ClosingDay, request.DueDateDay, CardType.Credit, 0, request.CardName);
+        var card = new CreditCard(CardMaskingHelper.MaskCardNumber(request.CardNumber), request.ExpirationDate, request.CardNetwork, request.BankId, accountId, request.ClosingDay, request.DueDateDay, CardType.Credit, 0, request.CardName);
         return _repository.Add(card);
     }
 
-    public CardDetailResponse? GetById(long cardId)
+    public CardDetailResponse? GetById(long cardId, long accountId, string userId)
     {
-        var card = _repository.GetById(cardId);
+        if (_accountService.GetById(accountId, userId) == null)
+            return null;
+
+        var card = _repository.GetById(cardId, accountId);
         if (card == null) return null;
 
         return new CardDetailResponse(
@@ -66,9 +76,12 @@ public class CardService : ICardService
         );
     }
 
-    public CreditCardDetailResponse? GetCreditById(long cardId)
+    public CreditCardDetailResponse? GetCreditById(long cardId, long accountId, string userId)
     {
-        var card = _repository.GetById(cardId);
+        if (_accountService.GetById(accountId, userId) == null)
+            return null;
+
+        var card = _repository.GetById(cardId, accountId);
         if (card == null || card is not CreditCard creditCard) return null;
 
         var nextClosing = DateHelper.GetNextOccurrence(creditCard.ClosingDay);
@@ -90,9 +103,12 @@ public class CardService : ICardService
         );
     }
 
-    public List<CardListItemResponse> GetAll()
+    public List<CardListItemResponse> GetAll(long accountId, string userId)
     {
-        return _repository.GetAll()
+        if (_accountService.GetById(accountId, userId) == null)
+            return new List<CardListItemResponse>();
+
+        return _repository.GetAll(accountId)
             .Select(c => new CardListItemResponse(
                 c.Id,
                 c.CardNumber,
@@ -104,39 +120,51 @@ public class CardService : ICardService
             .ToList();
     }
 
-    public bool UpdateCardName(long cardId, string cardName)
+    public bool UpdateCardName(long cardId, long accountId, string userId, string cardName)
     {
-        var card = _repository.GetById(cardId);
+        if (_accountService.GetById(accountId, userId) == null)
+            return false;
+
+        var card = _repository.GetById(cardId, accountId);
         if (card == null) return false;
         
         card.UpdateCardName(cardName);
 
-        return _repository.Update(card);
+        return _repository.Update(card, accountId);
     }
 
-    public bool UpdateCreditCardDates(long cardId, UpdateCreditCardRequest request)
+    public bool UpdateCreditCardDates(long cardId, long accountId, string userId, UpdateCreditCardRequest request)
     {
-        var card = _repository.GetById(cardId);
+        if (_accountService.GetById(accountId, userId) == null)
+            return false;
+
+        var card = _repository.GetById(cardId, accountId);
         if (card == null || card is not CreditCard creditCard) return false;
         creditCard.UpdateClosingDay(request.ClosingDay);
         creditCard.UpdateDueDateDay(request.DueDateDay);
         
-        return _repository.Update(creditCard);
+        return _repository.Update(creditCard, accountId);
     }
 
-    public bool Activate(long cardId)
+    public bool Activate(long cardId, long accountId, string userId)
     {
-        var card = _repository.GetById(cardId);
+        if (_accountService.GetById(accountId, userId) == null)
+            return false;
+
+        var card = _repository.GetById(cardId, accountId);
         if (card == null) return false;
         card.SetIsActive(true);
-        return _repository.Update(card);
+        return _repository.Update(card, accountId);
     }
 
-    public bool Deactivate(long cardId)
+    public bool Deactivate(long cardId, long accountId, string userId)
     {
-        var card = _repository.GetById(cardId);
+        if (_accountService.GetById(accountId, userId) == null)
+            return false;
+
+        var card = _repository.GetById(cardId, accountId);
         if (card == null) return false;
         card.SetIsActive(false);
-        return _repository.Update(card);
+        return _repository.Update(card, accountId);
     }
 }

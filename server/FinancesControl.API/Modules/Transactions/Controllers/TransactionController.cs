@@ -23,42 +23,52 @@ namespace FinancesControl.API.Transactions.Controllers
 			return User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 		}
 
-		[HttpPost]
-		public async Task<IActionResult> Create(CreateTransactionRequest request)
+		[HttpPost("{accountId}")]
+		public async Task<IActionResult> Create(long accountId, CreateTransactionRequest request)
 		{
-			var userId = GetUserId();
-			var id = _service.CreateTransaction(request, userId);
-			return CreatedAtAction(nameof(GetById), new { transactionId = id }, null);
+			try
+			{
+				var userId = GetUserId();
+				var id = _service.CreateTransaction(request, accountId, userId);
+				return CreatedAtAction(nameof(GetById), new { accountId = accountId, transactionId = id }, null);
+			}
+			catch (ArgumentException ex)
+			{
+				return BadRequest(ex.Message);
+			}
 		}
 
-		[HttpGet("{transactionId}")]
-		public async Task<ActionResult<TransactionDetailResponse>> GetById(long transactionId)
+		[HttpGet("{accountId}/{transactionId}")]
+		public async Task<ActionResult<TransactionDetailResponse>> GetById(long accountId, long transactionId)
 		{
-			var resp = _service.GetById(transactionId);
+			var userId = GetUserId();
+			var resp = _service.GetById(transactionId, accountId, userId);
 			if (resp == null) return NotFound();
 			return Ok(resp);
 		}
 
-		[HttpGet]
-		public async Task<ActionResult<List<TransactionListItemResponse>>> Get()
+		[HttpGet("{accountId}")]
+		public async Task<ActionResult<List<TransactionListItemResponse>>> Get(long accountId)
 		{
-			var resp = _service.GetAll();
+			var userId = GetUserId();
+			var resp = _service.GetAll(accountId, userId);
 			return Ok(resp);
 		}
 
-		[HttpDelete("{transactionId}")]
-		public async Task<IActionResult> Delete(long transactionId)
+		[HttpDelete("{accountId}/{transactionId}")]
+		public async Task<IActionResult> Delete(long accountId, long transactionId)
 		{
-			var deleted = _service.Delete(transactionId);
+			var userId = GetUserId();
+			var deleted = _service.Delete(transactionId, accountId, userId);
 			if (!deleted) return NotFound();
 			return NoContent();
 		}
 
-		[HttpPatch("{transactionId}")]
-		public async Task<IActionResult> Update(long transactionId, UpdateTransactionRequest request)
+		[HttpPatch("{accountId}/{transactionId}")]
+		public async Task<IActionResult> Update(long accountId, long transactionId, UpdateTransactionRequest request)
 		{
 			var userId = GetUserId();
-			var updated = _service.Update(transactionId, request, userId);
+			var updated = _service.Update(transactionId, accountId, request, userId);
 			if (!updated) return NotFound();
 			return NoContent();
 		}

@@ -27,11 +27,11 @@ public class TransactionRepository : ITransactionRepository
 		return id;
 	}
 
-	public Transaction? GetById(long transactionId)
+	public Transaction? GetById(long transactionId, long accountId)
 	{
 		using var connection = _connectionFactory.CreateConnection();
 		var query = new GetTransactionByIdQuery();
-		var (sql, parameters) = query.Build(transactionId);
+		var (sql, parameters) = query.Build(transactionId, accountId);
 		
 		var result = connection.QuerySingleOrDefault<dynamic>(sql, parameters);
 		
@@ -41,12 +41,13 @@ public class TransactionRepository : ITransactionRepository
 		return MapToTransaction(result);
 	}
 
-	public List<Transaction> GetAll()
+	public List<Transaction> GetAll(long accountId)
 	{
 		using var connection = _connectionFactory.CreateConnection();
 		var query = new GetAllTransactionsQuery();
+		var (sql, parameters) = query.Build(accountId);
 		
-		var results = connection.Query<dynamic>(query.Sql).ToList();
+		var results = connection.Query<dynamic>(sql, parameters).ToList();
 		var transactions = new List<Transaction>();
 		
 		foreach (var result in results)

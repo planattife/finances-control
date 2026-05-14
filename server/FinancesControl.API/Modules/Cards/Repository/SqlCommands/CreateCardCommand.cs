@@ -8,8 +8,8 @@ public class CreateCardCommand
     public (string Sql, DynamicParameters Params) Build(Card card)
     {
         var sql = @"
-            INSERT INTO ""Cards"" (""CardType"", ""CardNumber"", ""ExpirationDate"", ""IsActive"", ""CardNetwork"", ""BankId"", ""CardName"", ""CreatedAt"")
-            VALUES (@CardType, @CardNumber, @ExpirationDate, @IsActive, @CardNetwork, @BankId, @CardName, @CreatedAt)
+            INSERT INTO ""Cards"" (""CardType"", ""CardNumber"", ""ExpirationDate"", ""IsActive"", ""CardNetwork"", ""BankId"", ""AccountId"", ""CardName"", ""CreatedAt"")
+            VALUES (@CardType, @CardNumber, @ExpirationDate, @IsActive, @CardNetwork, @BankId, @AccountId, @CardName, @CreatedAt)
             RETURNING ""Id"";
         ";
 
@@ -20,6 +20,7 @@ public class CreateCardCommand
         parameters.Add("@IsActive", card.IsActive);
         parameters.Add("@CardNetwork", (int)card.CardNetwork);
         parameters.Add("@BankId", card.BankId);
+        parameters.Add("@AccountId", card.AccountId);
         parameters.Add("@CardName", card.CardName);
         parameters.Add("@CreatedAt", card.CreatedAt);
 
