@@ -115,6 +115,15 @@ public class TransactionService : ITransactionService
 
     public TransactionDetailResponse? GetById(long transactionId, long accountId, string? userId)
 	{
+		try
+		{
+			ValidateAccount(accountId, userId);
+		}
+		catch (Exception)
+		{
+			return null;
+		}
+
 		ValidateAccount(accountId, userId);
 		
 		var t = _repository.GetById(transactionId, accountId);
@@ -141,7 +150,14 @@ public class TransactionService : ITransactionService
 
 	public List<TransactionListItemResponse> GetAll(long accountId, string? userId)
 	{
-		ValidateAccount(accountId, userId);
+		try
+		{
+			ValidateAccount(accountId, userId);
+		}
+		catch (Exception)
+		{
+			return new List<TransactionListItemResponse>();
+		}
 
 		return _repository.GetAll(accountId)
 			.Select(t => new TransactionListItemResponse
@@ -159,7 +175,14 @@ public class TransactionService : ITransactionService
 
 	public bool Delete(long transactionId, long accountId, string? userId)
 	{
-		ValidateAccount(accountId, userId);
+		try
+		{
+			ValidateAccount(accountId, userId);
+		}
+		catch (Exception)
+		{
+			return false;
+		}
 
 		var transaction = _repository.GetById(transactionId, accountId);
 		if (transaction == null) return false;
@@ -169,7 +192,15 @@ public class TransactionService : ITransactionService
 
 	public bool Update(long transactionId, long accountId, UpdateTransactionRequest request, string? userId)
 	{
-		ValidateAccount(accountId, userId);
+		try
+		{
+			ValidateAccount(accountId, userId);
+		}
+		catch (Exception)
+		{
+			return false;
+		}
+		
 		var transaction = _repository.GetById(transactionId, accountId);
 		if (transaction == null) return false;
 

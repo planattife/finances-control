@@ -30,16 +30,30 @@ namespace FinancesControl.API.Cards.Controllers
         public async Task<IActionResult> CreateDebitCard(long accountId, CreateDebitCardRequest request)
         {
             var userId = GetCurrentUserId();
-            long id = _cardService.CreateDebitCard(request, accountId, userId);
-            return CreatedAtAction(nameof(GetById), new { accountId = accountId, cardId = id }, null);
+            try
+            {
+                long id = _cardService.CreateDebitCard(request, accountId, userId);
+                return CreatedAtAction(nameof(GetById), new { accountId = accountId, cardId = id }, null);
+            }
+            catch (InvalidOperationException ex) when (ex.Message.Contains("Account not found"))
+            {
+                return NotFound();
+            }
         }
 
         [HttpPost("{accountId}/credit")]
         public async Task<IActionResult> CreateCreditCard(long accountId, CreateCreditCardRequest request)
         {
             var userId = GetCurrentUserId();
-            long id = _cardService.CreateCreditCard(request, accountId, userId);
-            return CreatedAtAction(nameof(GetCreditById), new { accountId = accountId, cardId = id }, null);
+            try
+            {
+                long id = _cardService.CreateCreditCard(request, accountId, userId);
+                return CreatedAtAction(nameof(GetCreditById), new { accountId = accountId, cardId = id }, null);
+            }
+            catch (InvalidOperationException ex) when (ex.Message.Contains("Account not found"))
+            {
+                return NotFound();
+            }
         }
 
         [HttpGet("{accountId}/{cardId}")]
