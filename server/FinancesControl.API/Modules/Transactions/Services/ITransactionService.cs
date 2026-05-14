@@ -6,9 +6,9 @@ namespace FinancesControl.API.Transactions.Services;
 
 public interface ITransactionService
 {
-	long CreateTransaction(CreateTransactionRequest request, string? userId);
-	TransactionDetailResponse? GetById(long transactionId);
-	List<TransactionListItemResponse> GetAll();
-	bool Delete(long transactionId);
-	bool Update(long transactionId, UpdateTransactionRequest request, string? userId);
+	long CreateTransaction(CreateTransactionRequest request, long accountId, string? userId);
+	TransactionDetailResponse? GetById(long transactionId, long accountId, string? userId);
+	List<TransactionListItemResponse> GetAll(long accountId, string? userId);
+	bool Delete(long transactionId, long accountId, string? userId);
+	bool Update(long transactionId, long accountId, UpdateTransactionRequest request, string? userId);
 }
