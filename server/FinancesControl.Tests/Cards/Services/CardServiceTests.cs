@@ -142,6 +142,20 @@ public class CardServiceTests
         capturedCard.CardName.Should().Be("My Debit Card");
     }
 
+    [Fact]
+    public void CreateDebitCard_WithInactiveBankForUser_ThrowsInvalidOperationException()
+    {
+        // Arrange
+        SetupAuthorizedUser();
+        SetupAccountExists();
+        var request = new CreateDebitCardRequest("4111111111111111", DateTime.UtcNow.AddYears(5), CardNetwork.Visa, 1);
+        _bankService.ValidateBankForUser(1, UserId).Returns(false);
+
+        // Act & Assert
+        var exception = Assert.Throws<InvalidOperationException>(() => _service.CreateDebitCard(request, AccountId, UserId));
+        exception.Message.Should().Be("Bank is not valid.");
+    }
+
     #endregion
 
     #region CreateCreditCard Tests
@@ -225,6 +239,21 @@ public class CardServiceTests
         // Assert
         capturedCard.Should().NotBeNull();
         capturedCard.CardName.Should().Be("My Credit Card");
+    }
+
+    [Fact]
+    public void CreateCreditCard_WithInactiveBankForUser_ThrowsInvalidOperationException()
+    {
+        // Arrange
+        SetupAuthorizedUser();
+        SetupAccountExists();
+        var request = new CreateCreditCardRequest("5555555555554444", DateTime.UtcNow.AddYears(5), CardNetwork.Mastercard, 1, 10, 20);
+        _bankService.ValidateBankForUser(1, UserId).Returns(false);
+
+        // Act & Assert
+        var exception = Assert.Throws<InvalidOperationException>(() => _service.CreateCreditCard(request, AccountId, UserId));
+        exception.Message.Should().Be("Bank is not valid.");
+        _repository.DidNotReceive().Add(Arg.Any<Card>());
     }
 
     #endregion
