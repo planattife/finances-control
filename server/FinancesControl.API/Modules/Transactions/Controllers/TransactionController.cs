@@ -29,7 +29,7 @@ namespace FinancesControl.API.Transactions.Controllers
 			try
 			{
 				var userId = GetUserId();
-				var id = _service.CreateTransaction(request, accountId, userId);
+				var id = await _service.CreateTransaction(request, accountId, userId);
 				return CreatedAtAction(nameof(GetById), new { accountId = accountId, transactionId = id }, null);
 			}
 			catch (ArgumentException ex)
@@ -42,7 +42,7 @@ namespace FinancesControl.API.Transactions.Controllers
 		public async Task<ActionResult<TransactionDetailResponse>> GetById(long accountId, long transactionId)
 		{
 			var userId = GetUserId();
-			var resp = _service.GetById(transactionId, accountId, userId);
+			var resp = await _service.GetById(transactionId, accountId, userId);
 			if (resp == null) return NotFound();
 			return Ok(resp);
 		}
@@ -51,7 +51,7 @@ namespace FinancesControl.API.Transactions.Controllers
 		public async Task<ActionResult<List<TransactionListItemResponse>>> Get(long accountId)
 		{
 			var userId = GetUserId();
-			var resp = _service.GetAll(accountId, userId);
+			var resp = await _service.GetAll(accountId, userId);
 			return Ok(resp);
 		}
 
@@ -59,7 +59,7 @@ namespace FinancesControl.API.Transactions.Controllers
 		public async Task<IActionResult> Delete(long accountId, long transactionId)
 		{
 			var userId = GetUserId();
-			var deleted = _service.Delete(transactionId, accountId, userId);
+			var deleted = await _service.Delete(transactionId, accountId, userId);
 			if (!deleted) return NotFound();
 			return NoContent();
 		}
@@ -68,7 +68,7 @@ namespace FinancesControl.API.Transactions.Controllers
 		public async Task<IActionResult> Update(long accountId, long transactionId, UpdateTransactionRequest request)
 		{
 			var userId = GetUserId();
-			var updated = _service.Update(transactionId, accountId, request, userId);
+			var updated = await _service.Update(transactionId, accountId, request, userId);
 			if (!updated) return NotFound();
 			return NoContent();
 		}

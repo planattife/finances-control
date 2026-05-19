@@ -32,7 +32,7 @@ namespace FinancesControl.API.Cards.Controllers
             var userId = GetCurrentUserId();
             try
             {
-                long id = _cardService.CreateDebitCard(request, accountId, userId);
+                long id = await _cardService.CreateDebitCard(request, accountId, userId);
                 return CreatedAtAction(nameof(GetById), new { accountId = accountId, cardId = id }, null);
             }
             catch (InvalidOperationException ex) when (ex.Message.Contains("Account not found"))
@@ -47,7 +47,7 @@ namespace FinancesControl.API.Cards.Controllers
             var userId = GetCurrentUserId();
             try
             {
-                long id = _cardService.CreateCreditCard(request, accountId, userId);
+                long id = await _cardService.CreateCreditCard(request, accountId, userId);
                 return CreatedAtAction(nameof(GetCreditById), new { accountId = accountId, cardId = id }, null);
             }
             catch (InvalidOperationException ex) when (ex.Message.Contains("Account not found"))
@@ -60,7 +60,7 @@ namespace FinancesControl.API.Cards.Controllers
         public async Task<ActionResult<CardDetailResponse>> GetById(long accountId, long cardId)
         {
             var userId = GetCurrentUserId();
-            var response = _cardService.GetById(cardId, accountId, userId);
+            var response = await _cardService.GetById(cardId, accountId, userId);
             if (response == null)
                 return NotFound();
             return Ok(response);
@@ -70,7 +70,7 @@ namespace FinancesControl.API.Cards.Controllers
         public async Task<ActionResult<CreditCardDetailResponse>> GetCreditById(long accountId, long cardId)
         {
             var userId = GetCurrentUserId();
-            var response = _cardService.GetCreditById(cardId, accountId, userId);
+            var response = await _cardService.GetCreditById(cardId, accountId, userId);
             if (response == null)
                 return NotFound();
             return Ok(response);
@@ -80,7 +80,7 @@ namespace FinancesControl.API.Cards.Controllers
         public async Task<ActionResult<List<CardListItemResponse>>> Get(long accountId)
         {
             var userId = GetCurrentUserId();
-            var response = _cardService.GetAll(accountId, userId);
+            var response = await _cardService.GetAll(accountId, userId);
             return Ok(response);
         }
 
@@ -88,7 +88,7 @@ namespace FinancesControl.API.Cards.Controllers
         public async Task<IActionResult> UpdateCardName(long accountId, long cardId, [FromQuery] string cardName)
         {
             var userId = GetCurrentUserId();
-            var updated = _cardService.UpdateCardName(cardId, accountId, userId, cardName);
+            var updated = await _cardService.UpdateCardName(cardId, accountId, userId, cardName);
             if (!updated)
                 return NotFound();
             return NoContent();
@@ -98,7 +98,7 @@ namespace FinancesControl.API.Cards.Controllers
         public async Task<IActionResult> UpdateCreditCardDates(long accountId, long cardId, UpdateCreditCardRequest request)
         {
             var userId = GetCurrentUserId();
-            var updated = _cardService.UpdateCreditCardDates(cardId, accountId, userId, request);
+            var updated = await _cardService.UpdateCreditCardDates(cardId, accountId, userId, request);
             if (!updated)
                 return NotFound();
             return NoContent();
@@ -108,7 +108,7 @@ namespace FinancesControl.API.Cards.Controllers
         public async Task<IActionResult> Activate(long accountId, long cardId)
         {
             var userId = GetCurrentUserId();
-            var activated = _cardService.Activate(cardId, accountId, userId);
+            var activated = await _cardService.Activate(cardId, accountId, userId);
             if (!activated)
                 return NotFound();
             return NoContent();
@@ -118,7 +118,7 @@ namespace FinancesControl.API.Cards.Controllers
         public async Task<IActionResult> Deactivate(long accountId, long cardId)
         {
             var userId = GetCurrentUserId();
-            var deactivated = _cardService.Deactivate(cardId, accountId, userId);
+            var deactivated = await _cardService.Deactivate(cardId, accountId, userId);
             if (!deactivated)
                 return NotFound();
             return NoContent();

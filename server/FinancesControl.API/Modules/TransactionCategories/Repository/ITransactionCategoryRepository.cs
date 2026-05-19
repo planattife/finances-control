@@ -4,8 +4,8 @@ namespace FinancesControl.API.TransactionCategories.Repository;
 
 public interface ITransactionCategoryRepository
 {
-    long Add(TransactionCategory category);
-    TransactionCategory? GetById(long categoryId, string? userId);
-    List<TransactionCategory> GetAll(string? userId);
-    bool Update(TransactionCategory category);
+    Task<long> Add(TransactionCategory category);
+    Task<TransactionCategory?> GetById(long categoryId, string? userId);
+    Task<List<TransactionCategory>> GetAll(string? userId);
+    Task<bool> Update(TransactionCategory category);
 } 

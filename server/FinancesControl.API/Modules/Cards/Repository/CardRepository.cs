@@ -17,10 +17,10 @@ public class CardRepository : ICardRepository
         _connectionFactory = connectionFactory;
     }
 
-    public long Add(Card card)
+    public async Task<long> Add(Card card)
     {
         using var connection = _connectionFactory.CreateConnection();
-        connection.Open();
+        await connection.OpenAsync();
         using var transaction = connection.BeginTransaction();
         
         try
@@ -28,14 +28,14 @@ public class CardRepository : ICardRepository
             var command = new CreateCardCommand();
             var (sql, parameters) = command.Build(card);
             
-            var id = connection.QuerySingleOrDefault<long>(sql, parameters, transaction);
+            var id = await connection.QuerySingleOrDefaultAsync<long>(sql, parameters, transaction);
             
             // If it's a credit card, also insert credit card details
             if (card is CreditCard creditCard)
             {
                 var creditCommand = new CreateCreditCardDetailsCommand();
                 var (creditSql, creditParams) = creditCommand.Build(creditCard, id);
-                connection.Execute(creditSql, creditParams, transaction);
+                await connection.ExecuteAsync(creditSql, creditParams, transaction);
             }
             
             transaction.Commit();
@@ -48,13 +48,13 @@ public class CardRepository : ICardRepository
         }
     }
 
-    public Card? GetById(long cardId, long accountId)
+    public async Task<Card?> GetById(long cardId, long accountId)
     {
         using var connection = _connectionFactory.CreateConnection();
         var query = new GetCardByIdQuery();
         var (sql, parameters) = query.Build(cardId, accountId);
         
-        var result = connection.QuerySingleOrDefault<dynamic>(sql, parameters);
+        var result = await connection.QuerySingleOrDefaultAsync<dynamic>(sql, parameters);
         
         if (result == null)
             return null;
@@ -64,7 +64,7 @@ public class CardRepository : ICardRepository
         {
             var creditQuery = new GetCreditCardByIdQuery();
             var (creditSql, creditParams) = creditQuery.Build(cardId, accountId);
-            var creditResult = connection.QuerySingleOrDefault<dynamic>(creditSql, creditParams);
+            var creditResult = await connection.QuerySingleOrDefaultAsync<dynamic>(creditSql, creditParams);
             
             if (creditResult != null)
                 return MapToCreditCard(creditResult);
@@ -73,13 +73,13 @@ public class CardRepository : ICardRepository
         return MapToCard(result);
     }
 
-    public List<Card> GetAll(long accountId)
+    public async Task<List<Card>> GetAll(long accountId)
     {
         using var connection = _connectionFactory.CreateConnection();
         var query = new GetAllCardsQuery();
         var (sql, parameters) = query.Build(accountId);
         
-        var results = connection.Query<dynamic>(sql, parameters).ToList();
+        var results = (await connection.QueryAsync<dynamic>(sql, parameters)).ToList();
         var cards = new List<Card>();
         
         foreach (var result in results)
@@ -90,10 +90,10 @@ public class CardRepository : ICardRepository
         return cards;
     }
 
-    public bool Update(Card card, long accountId)
+    public async Task<bool> Update(Card card, long accountId)
     {
         using var connection = _connectionFactory.CreateConnection();
-        connection.Open();
+        await connection.OpenAsync();
 
         using var transaction = connection.BeginTransaction();
         
@@ -102,14 +102,14 @@ public class CardRepository : ICardRepository
             var command = new UpdateCardCommand();
             var (sql, parameters) = command.Build(card, accountId);
             
-            var rowsAffected = connection.Execute(sql, parameters, transaction);
+            var rowsAffected = await connection.ExecuteAsync(sql, parameters, transaction);
             
             // If it's a credit card, also update credit card details
             if (card is CreditCard creditCard)
             {
                 var creditCommand = new UpdateCreditCardDetailsCommand();
                 var (creditSql, creditParams) = creditCommand.Build(creditCard);
-                connection.Execute(creditSql, creditParams, transaction);
+                await connection.ExecuteAsync(creditSql, creditParams, transaction);
             }
             
             transaction.Commit();

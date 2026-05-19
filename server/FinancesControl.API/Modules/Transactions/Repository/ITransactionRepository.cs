@@ -5,8 +5,8 @@ namespace FinancesControl.API.Transactions.Repository;
 
 public interface ITransactionRepository
 {
-	long Add(Transaction transaction);
-	Transaction? GetById(long transactionId, long accountId);
-	List<Transaction> GetAll(long accountId);
-	bool Update(Transaction transaction);
+	Task<long> Add(Transaction transaction);
+	Task<Transaction?> GetById(long transactionId, long accountId);
+	Task<List<Transaction>> GetAll(long accountId);
+	Task<bool> Update(Transaction transaction);
 }

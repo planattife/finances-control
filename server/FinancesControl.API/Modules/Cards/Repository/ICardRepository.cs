@@ -4,8 +4,8 @@ namespace FinancesControl.API.Cards.Repository;
 
 public interface ICardRepository
 {
-    long Add(Card card);
-    Card? GetById(long cardId, long accountId);
-    List<Card> GetAll(long accountId);
-    bool Update(Card card, long accountId);
+    Task<long> Add(Card card);
+    Task<Card?> GetById(long cardId, long accountId);
+    Task<List<Card>> GetAll(long accountId);
+    Task<bool> Update(Card card, long accountId);
 }

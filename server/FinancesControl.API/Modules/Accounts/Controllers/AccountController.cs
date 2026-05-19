@@ -24,7 +24,7 @@ namespace FinancesControl.API.Accounts.Controllers
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userId))
                 return Unauthorized();
-            var id = _accountService.CreateAccount(request, userId);
+            var id = await _accountService.CreateAccount(request, userId);
             return CreatedAtAction(nameof(GetById), new { accountId = id }, null);
         }
 
@@ -34,7 +34,7 @@ namespace FinancesControl.API.Accounts.Controllers
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userId))
                 return Unauthorized();
-            var response = _accountService.GetById(accountId, userId);
+            var response = await _accountService.GetById(accountId, userId);
             if (response == null)
                 return NotFound();
             return Ok(response);
@@ -46,7 +46,7 @@ namespace FinancesControl.API.Accounts.Controllers
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userId))
                 return Unauthorized();
-            var response = _accountService.GetAll(userId);
+            var response = await _accountService.GetAll(userId);
             return Ok(response);
         }
 
@@ -56,7 +56,7 @@ namespace FinancesControl.API.Accounts.Controllers
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userId))
                 return Unauthorized();
-            var updated = _accountService.Update(accountId, request, userId);
+            var updated = await _accountService.Update(accountId, request, userId);
             if (!updated)
                 return NotFound();
             return NoContent();
@@ -68,7 +68,7 @@ namespace FinancesControl.API.Accounts.Controllers
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userId))
                 return Unauthorized();
-            var activated = _accountService.Activate(accountId, userId);
+            var activated = await _accountService.Activate(accountId, userId);
             if (!activated)
                 return NotFound();
             return NoContent();
@@ -80,7 +80,7 @@ namespace FinancesControl.API.Accounts.Controllers
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userId))
                 return Unauthorized();
-            var deactivated = _accountService.Deactivate(accountId, userId);
+            var deactivated = await _accountService.Deactivate(accountId, userId);
             if (!deactivated)
                 return NotFound();
             return NoContent();

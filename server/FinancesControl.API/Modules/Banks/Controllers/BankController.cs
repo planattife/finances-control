@@ -27,7 +27,7 @@ namespace FinancesControl.API.Banks.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateBank(CreateBankRequest request)
         {
-            var id = _bankService.CreateBank(request);
+            var id = await _bankService.CreateBank(request);
             return CreatedAtAction(nameof(GetById), new { bankId = id }, null);
         }
 
@@ -35,7 +35,7 @@ namespace FinancesControl.API.Banks.Controllers
         public async Task<ActionResult<BankDetailResponse>> GetById(long bankId)
         {
             var userId = GetCurrentUserId();
-            var response = _bankService.GetById(bankId, userId);
+            var response = await _bankService.GetById(bankId, userId);
             if (response == null)
                 return NotFound();
             return Ok(response);
@@ -45,7 +45,7 @@ namespace FinancesControl.API.Banks.Controllers
         public async Task<ActionResult<List<BankListItemResponse>>> Get()
         {
             var userId = GetCurrentUserId();
-            var response = _bankService.GetAll(userId);
+            var response = await _bankService.GetAll(userId);
             return Ok(response);
         }
 
@@ -53,7 +53,7 @@ namespace FinancesControl.API.Banks.Controllers
         public async Task<IActionResult> Update(long bankId, UpdateBankRequest request)
         {
             var userId = GetCurrentUserId();
-            var updated = _bankService.Update(bankId, request, userId);
+            var updated = await _bankService.Update(bankId, request, userId);
             if (!updated)
                 return NotFound();
             return NoContent();
@@ -63,7 +63,7 @@ namespace FinancesControl.API.Banks.Controllers
         public async Task<IActionResult> Activate(long bankId)
         {
             var userId = GetCurrentUserId();
-            var activated = _bankService.Activate(bankId, userId);
+            var activated = await _bankService.Activate(bankId, userId);
             if (!activated)
                 return NotFound();
             return NoContent();
@@ -73,7 +73,7 @@ namespace FinancesControl.API.Banks.Controllers
         public async Task<IActionResult> Deactivate(long bankId)
         {
             var userId = GetCurrentUserId();
-            var deactivated = _bankService.Deactivate(bankId, userId);
+            var deactivated = await _bankService.Deactivate(bankId, userId);
             if (!deactivated)
                 return NotFound();
             return NoContent();

@@ -16,23 +16,23 @@ public class AccountRepository : IAccountRepository
         _connectionFactory = connectionFactory;
     }
 
-    public long Add(Account account)
+    public async Task<long> Add(Account account)
     {
         using var connection = _connectionFactory.CreateConnection();
         var command = new CreateAccountCommand();
         var (sql, parameters) = command.Build(account);
         
-        var id = connection.QuerySingleOrDefault<long>(sql, parameters);
+        var id = await connection.QuerySingleOrDefaultAsync<long>(sql, parameters);
         return id;
     }
 
-    public Account? GetById(long accountId, string userId)
+    public async Task<Account?> GetById(long accountId, string userId)
     {
         using var connection = _connectionFactory.CreateConnection();
         var query = new GetAccountByIdQuery();
         var (sql, parameters) = query.Build(accountId, userId);
         
-        var result = connection.QuerySingleOrDefault<dynamic>(sql, parameters);
+        var result = await connection.QuerySingleOrDefaultAsync<dynamic>(sql, parameters);
         
         if (result == null)
             return null;
@@ -40,24 +40,24 @@ public class AccountRepository : IAccountRepository
         return MapToAccount(result);
     }
 
-    public List<Account> GetAll(string userId)
+    public async Task<List<Account>> GetAll(string userId)
     {
         using var connection = _connectionFactory.CreateConnection();
         var query = new GetAllAccountsQuery();
         var (sql, parameters) = query.Build(userId);
         
-        var results = connection.Query<dynamic>(sql, parameters).ToList();
+        var results = (await connection.QueryAsync<dynamic>(sql, parameters)).ToList();
         
         return results.Select(MapToAccount).ToList();
     }
 
-    public bool Update(Account account)
+    public async Task<bool> Update(Account account)
     {
         using var connection = _connectionFactory.CreateConnection();
         var command = new UpdateAccountCommand();
         var (sql, parameters) = command.Build(account);
         
-        var rowsAffected = connection.Execute(sql, parameters);
+        var rowsAffected = await connection.ExecuteAsync(sql, parameters);
         return rowsAffected > 0;
     }
 
