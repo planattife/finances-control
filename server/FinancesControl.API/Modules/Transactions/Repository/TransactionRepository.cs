@@ -17,23 +17,23 @@ public class TransactionRepository : ITransactionRepository
 		_connectionFactory = connectionFactory;
 	}
 
-	public long Add(Transaction transaction)
+	public async Task<long> Add(Transaction transaction)
 	{
 		using var connection = _connectionFactory.CreateConnection();
 		var command = new CreateTransactionCommand();
 		var (sql, parameters) = command.Build(transaction);
 		
-		var id = connection.QuerySingleOrDefault<long>(sql, parameters);
+		var id = await connection.QuerySingleOrDefaultAsync<long>(sql, parameters);
 		return id;
 	}
 
-	public Transaction? GetById(long transactionId, long accountId)
+	public async Task<Transaction?> GetById(long transactionId, long accountId)
 	{
 		using var connection = _connectionFactory.CreateConnection();
 		var query = new GetTransactionByIdQuery();
 		var (sql, parameters) = query.Build(transactionId, accountId);
 		
-		var result = connection.QuerySingleOrDefault<dynamic>(sql, parameters);
+		var result = await connection.QuerySingleOrDefaultAsync<dynamic>(sql, parameters);
 		
 		if (result == null)
 			return null;
@@ -41,13 +41,13 @@ public class TransactionRepository : ITransactionRepository
 		return MapToTransaction(result);
 	}
 
-	public List<Transaction> GetAll(long accountId)
+	public async Task<List<Transaction>> GetAll(long accountId)
 	{
 		using var connection = _connectionFactory.CreateConnection();
 		var query = new GetAllTransactionsQuery();
 		var (sql, parameters) = query.Build(accountId);
 		
-		var results = connection.Query<dynamic>(sql, parameters).ToList();
+		var results = (await connection.QueryAsync<dynamic>(sql, parameters)).ToList();
 		var transactions = new List<Transaction>();
 		
 		foreach (var result in results)
@@ -58,13 +58,13 @@ public class TransactionRepository : ITransactionRepository
 		return transactions;
 	}
 
-	public bool Update(Transaction transaction)
+	public async Task<bool> Update(Transaction transaction)
 	{
 		using var connection = _connectionFactory.CreateConnection();
 		var command = new UpdateTransactionCommand();
 		var (sql, parameters) = command.Build(transaction);
 		
-		var rowsAffected = connection.Execute(sql, parameters);
+		var rowsAffected = await connection.ExecuteAsync(sql, parameters);
 		return rowsAffected > 0;
 	}
 

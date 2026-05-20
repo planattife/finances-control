@@ -17,23 +17,23 @@ public class BankRepository : IBankRepository
         _connectionFactory = connectionFactory;
     }
 
-    public long Add(Bank bank)
+    public async Task<long> Add(Bank bank)
     {
         using var connection = _connectionFactory.CreateConnection();
         var command = new CreateBankCommand();
         var (sql, parameters) = command.Build(bank);
         
-        var id = connection.QuerySingleOrDefault<long>(sql, parameters);
+        var id = await connection.QuerySingleOrDefaultAsync<long>(sql, parameters);
         return id;
     }
 
-    public Bank? GetById(long bankId, string userId)
+    public async Task<Bank?> GetById(long bankId, string userId)
     {
         using var connection = _connectionFactory.CreateConnection();
         var query = new GetBankByIdQuery();
         var (sql, parameters) = query.Build(bankId, userId);
         
-        var result = connection.QuerySingleOrDefault<dynamic>(sql, parameters);
+        var result = await connection.QuerySingleOrDefaultAsync<dynamic>(sql, parameters);
         
         if (result == null)
             return null;
@@ -41,24 +41,24 @@ public class BankRepository : IBankRepository
         return MapToBank(result);
     }
 
-    public List<Bank> GetAll(string userId)
+    public async Task<List<Bank>> GetAll(string userId)
     {
         using var connection = _connectionFactory.CreateConnection();
         var query = new GetAllBanksQuery();
         var (sql, parameters) = query.Build(userId);
         
-        var results = connection.Query<dynamic>(sql, parameters).ToList();
+        var results = (await connection.QueryAsync<dynamic>(sql, parameters)).ToList();
         
         return results.Select(MapToBank).ToList();
     }
 
-    public bool Update(Bank bank)
+    public async Task<bool> Update(Bank bank)
     {
         using var connection = _connectionFactory.CreateConnection();
         var command = new UpdateBankCommand();
         var (sql, parameters) = command.Build(bank);
         
-        var rowsAffected = connection.Execute(sql, parameters);
+        var rowsAffected = await connection.ExecuteAsync(sql, parameters);
         return rowsAffected > 0;
     }
 

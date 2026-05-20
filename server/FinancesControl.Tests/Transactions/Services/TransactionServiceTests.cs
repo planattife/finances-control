@@ -37,14 +37,14 @@ public class TransactionServiceTests
     }
 
     private void SetupAccountExists() =>
-        _accountRepository.GetById(AccountId, TestUserId).Returns(new Account(AccountId, "Test Account", TestUserId));
+        _accountRepository.GetById(AccountId, TestUserId).Returns(Task.FromResult((Account?)new Account(AccountId, "Test Account", TestUserId)));
 
     [Fact]
-    public void CreateTransaction_WithUrlAccountIdMismatchRequestAccountId_Throws()
+    public async Task CreateTransaction_WithUrlAccountIdMismatchRequestAccountId_Throws()
     {
         var request = new CreateTransactionRequest { Amount = 100, PaymentMethod = PaymentMethod.Cash, CategoryId = 1, TransactionType = TransactionType.Expense, TransactionDate = DateTime.UtcNow, AccountId = 2 };
         
-        var ex = Assert.Throws<ArgumentException>(() => _service.CreateTransaction(request, AccountId, TestUserId));
+        var ex = await Assert.ThrowsAsync<ArgumentException>(() => _service.CreateTransaction(request, AccountId, TestUserId));
         ex.Message.Should().Contain("Invalid account");
     }
 
@@ -52,188 +52,188 @@ public class TransactionServiceTests
     // ===== Foreign Key Validation Tests =====
 
     [Fact]
-    public void CreateTransaction_WithNonexistentAccountId_Throws()
+    public async Task CreateTransaction_WithNonexistentAccountId_Throws()
     {
         var request = new CreateTransactionRequest { Amount = 100, PaymentMethod = PaymentMethod.Cash, CategoryId = 1, TransactionType = TransactionType.Expense, TransactionDate = DateTime.UtcNow, AccountId = 999 };
-        _accountRepository.GetById(999, TestUserId).Returns((Account?)null);
+        _accountRepository.GetById(999, TestUserId).Returns(Task.FromResult((Account?)null));
         
-        var ex = Assert.Throws<ArgumentException>(() => _service.CreateTransaction(request, 999, TestUserId));
+        var ex = await Assert.ThrowsAsync<ArgumentException>(() => _service.CreateTransaction(request, 999, TestUserId));
         ex.Message.Should().Contain("Invalid Account.");
     }
 
     [Fact]
-    public void CreateTransaction_WithNonexistentCategoryId_Throws()
+    public async Task CreateTransaction_WithNonexistentCategoryId_Throws()
     {
         var request = new CreateTransactionRequest { Amount = 100, PaymentMethod = PaymentMethod.Cash, CategoryId = 999, TransactionType = TransactionType.Expense, TransactionDate = DateTime.UtcNow, AccountId = AccountId };
-        _accountRepository.GetById(AccountId, TestUserId).Returns(new Account(AccountId, "Test Account", "user123"));
-        _categoryRepository.GetById(999, TestUserId).Returns((TransactionCategory?)null);
+        _accountRepository.GetById(AccountId, TestUserId).Returns(Task.FromResult((Account?)new Account(AccountId, "Test Account", "user123")));
+        _categoryRepository.GetById(999, TestUserId).Returns(Task.FromResult((TransactionCategory?)null));
         
-        var ex = Assert.Throws<ArgumentException>(() => _service.CreateTransaction(request, AccountId, TestUserId));
+        var ex = await Assert.ThrowsAsync<ArgumentException>(() => _service.CreateTransaction(request, AccountId, TestUserId));
         ex.Message.Should().Contain("Transaction category with ID 999 does not exist");
         ex.ParamName.Should().Be(nameof(request.CategoryId));
     }
 
     [Fact]
-    public void CreateTransaction_WithCardPaymentAndNonexistentCardId_Throws()
+    public async Task CreateTransaction_WithCardPaymentAndNonexistentCardId_Throws()
     {
         var request = new CreateTransactionRequest { Amount = 100, PaymentMethod = PaymentMethod.Credit, CategoryId = 1, TransactionType = TransactionType.Expense, TransactionDate = DateTime.UtcNow, AccountId = AccountId, CardId = 999 };
-        _accountRepository.GetById(AccountId, TestUserId).Returns(new Account(AccountId, "Test Account", "user123"));
-        _categoryRepository.GetById(1, TestUserId).Returns(new TransactionCategory("Test Category", 1, TestUserId));
-        _cardRepository.GetById(999, AccountId).Returns((Card?)null);
+        _accountRepository.GetById(AccountId, TestUserId).Returns(Task.FromResult((Account?)new Account(AccountId, "Test Account", "user123")));
+        _categoryRepository.GetById(1, TestUserId).Returns(Task.FromResult((TransactionCategory?)new TransactionCategory("Test Category", 1, TestUserId)));
+        _cardRepository.GetById(999, AccountId).Returns(Task.FromResult((Card?)null));
         
-        var ex = Assert.Throws<ArgumentException>(() => _service.CreateTransaction(request, AccountId, TestUserId));
+        var ex = await Assert.ThrowsAsync<ArgumentException>(() => _service.CreateTransaction(request, AccountId, TestUserId));
         ex.Message.Should().Contain("Card with ID 999 does not exist");
         ex.ParamName.Should().Be(nameof(request.CardId));
     }
 
     [Fact]
-    public void CreateTransaction_WithDebitPaymentAndNonexistentCardId_Throws()
+    public async Task CreateTransaction_WithDebitPaymentAndNonexistentCardId_Throws()
     {
         var request = new CreateTransactionRequest { Amount = 100, PaymentMethod = PaymentMethod.Debit, CategoryId = 1, TransactionType = TransactionType.Expense, TransactionDate = DateTime.UtcNow, AccountId = AccountId, CardId = 999 };
-        _accountRepository.GetById(AccountId, TestUserId).Returns(new Account(AccountId, "Test Account", "user123"));
-        _categoryRepository.GetById(1, TestUserId).Returns(new TransactionCategory("Test Category", 1, TestUserId));
-        _cardRepository.GetById(999, AccountId).Returns((Card?)null);
+        _accountRepository.GetById(AccountId, TestUserId).Returns(Task.FromResult((Account?)new Account(AccountId, "Test Account", "user123")));
+        _categoryRepository.GetById(1, TestUserId).Returns(Task.FromResult((TransactionCategory?)new TransactionCategory("Test Category", 1, TestUserId)));
+        _cardRepository.GetById(999, AccountId).Returns(Task.FromResult((Card?)null));
         
-        var ex = Assert.Throws<ArgumentException>(() => _service.CreateTransaction(request, AccountId, TestUserId));
+        var ex = await Assert.ThrowsAsync<ArgumentException>(() => _service.CreateTransaction(request, AccountId, TestUserId));
         ex.Message.Should().Contain("Card with ID 999 does not exist");
         ex.ParamName.Should().Be(nameof(request.CardId));
     }
 
     [Fact]
-    public void CreateTransaction_WithPixPaymentAndNonexistentBankId_Throws()
+    public async Task CreateTransaction_WithPixPaymentAndNonexistentBankId_Throws()
     {
         var request = new CreateTransactionRequest { Amount = 100, PaymentMethod = PaymentMethod.Pix, CategoryId = 1, TransactionType = TransactionType.Expense, TransactionDate = DateTime.UtcNow, AccountId = AccountId, BankId = 999 };
-        _accountRepository.GetById(AccountId, TestUserId).Returns(new Account(AccountId, "Test Account", "user123"));
-        _categoryRepository.GetById(1, TestUserId).Returns(new TransactionCategory("Test Category", 1, TestUserId));
-        _bankRepository.GetById(999, TestUserId).Returns((Bank?)null);
+        _accountRepository.GetById(AccountId, TestUserId).Returns(Task.FromResult((Account?)new Account(AccountId, "Test Account", "user123")));
+        _categoryRepository.GetById(1, TestUserId).Returns(Task.FromResult((TransactionCategory?)new TransactionCategory("Test Category", 1, TestUserId)));
+        _bankRepository.GetById(999, TestUserId).Returns(Task.FromResult((Bank?)null));
         
-        var ex = Assert.Throws<ArgumentException>(() => _service.CreateTransaction(request, AccountId, TestUserId));
+        var ex = await Assert.ThrowsAsync<ArgumentException>(() => _service.CreateTransaction(request, AccountId, TestUserId));
         ex.Message.Should().Contain("Bank with ID 999 does not exist");
         ex.ParamName.Should().Be(nameof(request.BankId));
     }
 
     [Fact]
-    public void CreateTransaction_WithBankSlipPaymentAndNonexistentBankId_Throws()
+    public async Task CreateTransaction_WithBankSlipPaymentAndNonexistentBankId_Throws()
     {
         var request = new CreateTransactionRequest { Amount = 100, PaymentMethod = PaymentMethod.BankSlip, CategoryId = 1, TransactionType = TransactionType.Expense, TransactionDate = DateTime.UtcNow, AccountId = AccountId, BankId = 999 };
-        _accountRepository.GetById(AccountId, TestUserId).Returns(new Account(AccountId, "Test Account", "user123"));
-        _categoryRepository.GetById(1, TestUserId).Returns(new TransactionCategory("Test Category", 1, TestUserId));
-        _bankRepository.GetById(999, TestUserId).Returns((Bank?)null);
+        _accountRepository.GetById(AccountId, TestUserId).Returns(Task.FromResult((Account?)new Account(AccountId, "Test Account", "user123")));
+        _categoryRepository.GetById(1, TestUserId).Returns(Task.FromResult((TransactionCategory?)new TransactionCategory("Test Category", 1, TestUserId)));
+        _bankRepository.GetById(999, TestUserId).Returns(Task.FromResult((Bank?)null));
         
-        var ex = Assert.Throws<ArgumentException>(() => _service.CreateTransaction(request, AccountId, TestUserId));
+        var ex = await Assert.ThrowsAsync<ArgumentException>(() => _service.CreateTransaction(request, AccountId, TestUserId));
         ex.Message.Should().Contain("Bank with ID 999 does not exist");
         ex.ParamName.Should().Be(nameof(request.BankId));
     }
 
     [Fact]
-    public void CreateTransaction_WithBankTransferPaymentAndNonexistentBankId_Throws()
+    public async Task CreateTransaction_WithBankTransferPaymentAndNonexistentBankId_Throws()
     {
         var request = new CreateTransactionRequest { Amount = 100, PaymentMethod = PaymentMethod.BankTransfer, CategoryId = 1, TransactionType = TransactionType.Expense, TransactionDate = DateTime.UtcNow, AccountId = AccountId, BankId = 999 };
-        _accountRepository.GetById(AccountId, TestUserId).Returns(new Account(AccountId, "Test Account", "user123"));
-        _categoryRepository.GetById(1, TestUserId).Returns(new TransactionCategory("Test Category", 1, TestUserId));
-        _bankRepository.GetById(999, TestUserId).Returns((Bank?)null);
+        _accountRepository.GetById(AccountId, TestUserId).Returns(Task.FromResult((Account?)new Account(AccountId, "Test Account", "user123")));
+        _categoryRepository.GetById(1, TestUserId).Returns(Task.FromResult((TransactionCategory?)new TransactionCategory("Test Category", 1, TestUserId)));
+        _bankRepository.GetById(999, TestUserId).Returns(Task.FromResult((Bank?)null));
         
-        var ex = Assert.Throws<ArgumentException>(() => _service.CreateTransaction(request, AccountId, TestUserId));
+        var ex = await Assert.ThrowsAsync<ArgumentException>(() => _service.CreateTransaction(request, AccountId, TestUserId));
         ex.Message.Should().Contain("Bank with ID 999 does not exist");
         ex.ParamName.Should().Be(nameof(request.BankId));
     }
 
     [Fact]
-    public void CreateTransaction_WithValidRequest_ReturnsNewId()
+    public async Task CreateTransaction_WithValidRequest_ReturnsNewId()
     {
         var request = new CreateTransactionRequest { Amount = 100, PaymentMethod = PaymentMethod.Cash, CategoryId = 1, TransactionType = TransactionType.Expense, TransactionDate = DateTime.UtcNow, AccountId = AccountId };
         
-        _accountRepository.GetById(AccountId, TestUserId).Returns(new Account(AccountId, "Test Account", "user123"));
-        _categoryRepository.GetById(1, TestUserId).Returns(new TransactionCategory("Test Category", 1, TestUserId));
-        _repository.Add(Arg.Any<Transaction>()).Returns(1);
+        _accountRepository.GetById(AccountId, TestUserId).Returns(Task.FromResult((Account?)new Account(AccountId, "Test Account", "user123")));
+        _categoryRepository.GetById(1, TestUserId).Returns(Task.FromResult((TransactionCategory?)new TransactionCategory("Test Category", 1, TestUserId)));
+        _repository.Add(Arg.Any<Transaction>()).Returns(Task.FromResult(1L));
         
-        var result = _service.CreateTransaction(request, AccountId, TestUserId);
+        var result = await _service.CreateTransaction(request, AccountId, TestUserId);
         result.Should().Be(1);
         _repository.Received(1).Add(Arg.Any<Transaction>());
     }
 
     [Fact]
-    public void CreateTransaction_WithNegativeAmount_Throws()
+    public async Task CreateTransaction_WithNegativeAmount_Throws()
     {
         var request = new CreateTransactionRequest { Amount = -10, PaymentMethod = PaymentMethod.Cash, CategoryId = 1, TransactionType = TransactionType.Expense, TransactionDate = DateTime.UtcNow, AccountId = AccountId };
         
-        _accountRepository.GetById(AccountId, TestUserId).Returns(new Account(AccountId, "Test Account", "user123"));
-        _categoryRepository.GetById(1, TestUserId).Returns(new TransactionCategory("Test Category", 1, TestUserId));
+        _accountRepository.GetById(AccountId, TestUserId).Returns(Task.FromResult((Account?)new Account(AccountId, "Test Account", "user123")));
+        _categoryRepository.GetById(1, TestUserId).Returns(Task.FromResult((TransactionCategory?)new TransactionCategory("Test Category", 1, TestUserId)));
         
-        Assert.Throws<ArgumentException>(() => _service.CreateTransaction(request, AccountId, TestUserId));
+        await Assert.ThrowsAsync<ArgumentException>(() => _service.CreateTransaction(request, AccountId, TestUserId));
     }
 
     [Fact]
-    public void CreateTransaction_WithZeroCategoryId_Throws()
+    public async Task CreateTransaction_WithZeroCategoryId_Throws()
     {
         var request = new CreateTransactionRequest { Amount = 10, PaymentMethod = PaymentMethod.Cash, CategoryId = 0, TransactionType = TransactionType.Expense, TransactionDate = DateTime.UtcNow, AccountId = AccountId };
         
-        _accountRepository.GetById(AccountId, TestUserId).Returns(new Account(AccountId, "Test Account", "user123"));
+        _accountRepository.GetById(AccountId, TestUserId).Returns(Task.FromResult((Account?)new Account(AccountId, "Test Account", "user123")));
         
-        Assert.Throws<ArgumentException>(() => _service.CreateTransaction(request, AccountId, TestUserId));
+        await Assert.ThrowsAsync<ArgumentException>(() => _service.CreateTransaction(request, AccountId, TestUserId));
     }
 
     [Fact]
-    public void CreateTransaction_WithUnsupportedPaymentMethod_Throws()
+    public async Task CreateTransaction_WithUnsupportedPaymentMethod_Throws()
     {
         var request = new CreateTransactionRequest { Amount = 10, PaymentMethod = (PaymentMethod)999, CategoryId = 1, TransactionType = TransactionType.Expense, TransactionDate = DateTime.UtcNow, AccountId = AccountId };
         
-        _accountRepository.GetById(AccountId, TestUserId).Returns(new Account(AccountId, "Test Account", "user123"));
-        _categoryRepository.GetById(1, TestUserId).Returns(new TransactionCategory("Test Category", 1, TestUserId));
+        _accountRepository.GetById(AccountId, TestUserId).Returns(Task.FromResult((Account?)new Account(AccountId, "Test Account", "user123")));
+        _categoryRepository.GetById(1, TestUserId).Returns(Task.FromResult((TransactionCategory?)new TransactionCategory("Test Category", 1, TestUserId)));
         
-        Assert.Throws<ArgumentException>(() => _service.CreateTransaction(request, AccountId, TestUserId));
+        await Assert.ThrowsAsync<ArgumentException>(() => _service.CreateTransaction(request, AccountId, TestUserId));
     }
 
     [Fact]
-    public void CreateTransaction_WithCardPaymentWithoutCardId_Throws()
+    public async Task CreateTransaction_WithCardPaymentWithoutCardId_Throws()
     {
         var request = new CreateTransactionRequest { Amount = 10, PaymentMethod = PaymentMethod.Credit, CategoryId = 1, TransactionType = TransactionType.Expense, TransactionDate = DateTime.UtcNow, CardId = null, AccountId = AccountId };
         
-        _accountRepository.GetById(AccountId, TestUserId).Returns(new Account(AccountId, "Test Account", "user123"));
-        _categoryRepository.GetById(1, TestUserId).Returns(new TransactionCategory("Test Category", 1, TestUserId));
+        _accountRepository.GetById(AccountId, TestUserId).Returns(Task.FromResult((Account?)new Account(AccountId, "Test Account", "user123")));
+        _categoryRepository.GetById(1, TestUserId).Returns(Task.FromResult((TransactionCategory?)new TransactionCategory("Test Category", 1, TestUserId)));
         
-        Assert.Throws<ArgumentException>(() => _service.CreateTransaction(request, AccountId, TestUserId));
+        await Assert.ThrowsAsync<ArgumentException>(() => _service.CreateTransaction(request, AccountId, TestUserId));
     }
 
     [Fact]
-    public void CreateTransaction_WithGeneralPaymentWithoutBankId_Throws()
+    public async Task CreateTransaction_WithGeneralPaymentWithoutBankId_Throws()
     {
         var request = new CreateTransactionRequest { Amount = 10, PaymentMethod = PaymentMethod.Pix, CategoryId = 1, TransactionType = TransactionType.Expense, TransactionDate = DateTime.UtcNow, BankId = null, AccountId = AccountId };
         
-        _accountRepository.GetById(AccountId, TestUserId).Returns(new Account(AccountId, "Test Account", "user123"));
-        _categoryRepository.GetById(1, TestUserId).Returns(new TransactionCategory("Test Category", 1, TestUserId));
+        _accountRepository.GetById(AccountId, TestUserId).Returns(Task.FromResult((Account?)new Account(AccountId, "Test Account", "user123")));
+        _categoryRepository.GetById(1, TestUserId).Returns(Task.FromResult((TransactionCategory?)new TransactionCategory("Test Category", 1, TestUserId)));
         
-        Assert.Throws<ArgumentException>(() => _service.CreateTransaction(request, AccountId, TestUserId));
+        await Assert.ThrowsAsync<ArgumentException>(() => _service.CreateTransaction(request, AccountId, TestUserId));
     }
 
 
     [Fact]
-    public void GetById_NotFound_ReturnsNull()
+    public async Task GetById_NotFound_ReturnsNull()
     {
         SetupAccountExists();
-        _repository.GetById(999, AccountId).Returns((Transaction?)null);
-        var result = _service.GetById(999, AccountId, TestUserId);
+        _repository.GetById(999, AccountId).Returns(Task.FromResult((Transaction?)null));
+        var result = await _service.GetById(999, AccountId, TestUserId);
         result.Should().BeNull();
     }
 
     [Fact]
-    public void GetById_DeletedTransaction_ReturnsInactiveStatus()
+    public async Task GetById_DeletedTransaction_ReturnsInactiveStatus()
     {
         var t = new Transaction(100, PaymentMethod.Cash, TransactionType.Expense, DateTime.UtcNow, 1, AccountId, 5);
         t.Deactivate();
         SetupAccountExists();
-        _repository.GetById(5, AccountId).Returns(t);
-        var result = _service.GetById(5, AccountId, TestUserId);
+        _repository.GetById(5, AccountId).Returns(Task.FromResult((Transaction?)t));
+        var result = await _service.GetById(5, AccountId, TestUserId);
         result.Status.Should().Be("Inactive");
     }
 
     [Fact]
-    public void GetById_Exists_ReturnsDetail()
+    public async Task GetById_Exists_ReturnsDetail()
     {
         SetupAccountExists();
         var model = new Transaction(100, PaymentMethod.Cash, TransactionType.Expense, DateTime.UtcNow, 1, AccountId, 5);
-        _repository.GetById(5, AccountId).Returns(model);
-        var result = _service.GetById(5, AccountId, TestUserId);
+        _repository.GetById(5, AccountId).Returns(Task.FromResult((Transaction?)model));
+        var result = await _service.GetById(5, AccountId, TestUserId);
         result.Should().NotBeNull();
         result.Id.Should().Be(5);
         result.Amount.Should().Be(100);
@@ -241,7 +241,7 @@ public class TransactionServiceTests
     }
 
     [Fact]
-    public void GetAll_WithMultipleTransactions_ReturnsAllForAccount()
+    public async Task GetAll_WithMultipleTransactions_ReturnsAllForAccount()
     {
         var transactions = new List<Transaction>
         {
@@ -249,94 +249,94 @@ public class TransactionServiceTests
             new Transaction(200, PaymentMethod.Cash, TransactionType.Expense, DateTime.UtcNow, 1, AccountId, 2),
         };
         SetupAccountExists();
-        _repository.GetAll(AccountId).Returns(transactions);
+        _repository.GetAll(AccountId).Returns(Task.FromResult(transactions));
         
-        var result = _service.GetAll(AccountId, TestUserId);
+        var result = await _service.GetAll(AccountId, TestUserId);
         result.Should().HaveCount(2);
         result[0].Amount.Should().Be(100);
         result[1].Amount.Should().Be(200);
     }
 
     [Fact]
-    public void GetAll_WithNoTransactions_ReturnsEmptyList()
+    public async Task GetAll_WithNoTransactions_ReturnsEmptyList()
     {
         SetupAccountExists();
-        _repository.GetAll(AccountId).Returns(new List<Transaction>());
+        _repository.GetAll(AccountId).Returns(Task.FromResult(new List<Transaction>()));
         
-        var result = _service.GetAll(AccountId, TestUserId);
+        var result = await _service.GetAll(AccountId, TestUserId);
         result.Should().BeEmpty();
     }
 
     [Fact]
-    public void Delete_ExistingTransaction_ReturnsTrue()
+    public async Task Delete_ExistingTransaction_ReturnsTrue()
     {
         var t = new Transaction(100, PaymentMethod.Cash, TransactionType.Expense, DateTime.UtcNow, 1, AccountId, 5);
         SetupAccountExists();
-        _repository.GetById(5, AccountId).Returns(t);
-        _repository.Update(t).Returns(true);
-        var result = _service.Delete(5, AccountId, TestUserId);
+        _repository.GetById(5, AccountId).Returns(Task.FromResult((Transaction?)t));
+        _repository.Update(t).Returns(Task.FromResult(true));
+        var result = await _service.Delete(5, AccountId, TestUserId);
         result.Should().BeTrue();
     }
 
     [Fact]
-    public void Delete_NonexistentTransaction_ReturnsFalse()
+    public async Task Delete_NonexistentTransaction_ReturnsFalse()
     {
         SetupAccountExists();
-        _repository.GetById(999, AccountId).Returns((Transaction?)null);
-        var result = _service.Delete(999, AccountId, TestUserId);
+        _repository.GetById(999, AccountId).Returns(Task.FromResult((Transaction?)null));
+        var result = await _service.Delete(999, AccountId, TestUserId);
         result.Should().BeFalse();
     }
 
     [Fact]
-    public void Update_WithAmountOnly_UpdatesAmount()
+    public async Task Update_WithAmountOnly_UpdatesAmount()
     {
         SetupAccountExists();
         var t = new Transaction(100, PaymentMethod.Cash, TransactionType.Expense, DateTime.UtcNow, 1, AccountId, 5);
-        _repository.GetById(5, AccountId).Returns(t);
-        _repository.Update(t).Returns(true);
+        _repository.GetById(5, AccountId).Returns(Task.FromResult((Transaction?)t));
+        _repository.Update(t).Returns(Task.FromResult(true));
         var req = new UpdateTransactionRequest { NewAmount = 250 };
-        var result = _service.Update(5, AccountId, req, TestUserId);
+        var result = await _service.Update(5, AccountId, req, TestUserId);
         result.Should().BeTrue();
         t.Amount.Should().Be(250);
     }
 
     [Fact]
-    public void Update_WithCategoryOnly_UpdatesCategory()
+    public async Task Update_WithCategoryOnly_UpdatesCategory()
     {
         SetupAccountExists();
         var t = new Transaction(100, PaymentMethod.Cash, TransactionType.Expense, DateTime.UtcNow, 1, AccountId, 5);
-        _repository.GetById(5, AccountId).Returns(t);
-        _categoryRepository.GetById(3, TestUserId).Returns(new TransactionCategory("Updated Category", 3, TestUserId));
-        _repository.Update(t).Returns(true);
+        _repository.GetById(5, AccountId).Returns(Task.FromResult((Transaction?)t));
+        _categoryRepository.GetById(3, TestUserId).Returns(Task.FromResult((TransactionCategory?)new TransactionCategory("Updated Category", 3, TestUserId)));
+        _repository.Update(t).Returns(Task.FromResult(true));
         var req = new UpdateTransactionRequest { NewCategoryId = 3 };
-        var result = _service.Update(5, AccountId, req, TestUserId);
+        var result = await _service.Update(5, AccountId, req, TestUserId);
         result.Should().BeTrue();
         t.CategoryId.Should().Be(3);
     }
 
     [Fact]
-    public void Update_WithDescriptionOnly_UpdatesDescription()
+    public async Task Update_WithDescriptionOnly_UpdatesDescription()
     {
         SetupAccountExists();
         var t = new Transaction(100, PaymentMethod.Cash, TransactionType.Expense, DateTime.UtcNow, 1, AccountId, 5);
-        _repository.GetById(5, AccountId).Returns(t);
-        _repository.Update(t).Returns(true);
+        _repository.GetById(5, AccountId).Returns(Task.FromResult((Transaction?)t));
+        _repository.Update(t).Returns(Task.FromResult(true));
         var req = new UpdateTransactionRequest { NewDescription = "Test expense", HasDescriptionUpdate = true };
-        var result = _service.Update(5, AccountId, req, TestUserId);
+        var result = await _service.Update(5, AccountId, req, TestUserId);
         result.Should().BeTrue();
         t.Description.Should().Be("Test expense");
     }
 
     [Fact]
-    public void Update_WithAllFields_UpdatesAll()
+    public async Task Update_WithAllFields_UpdatesAll()
     {
         SetupAccountExists();
         var t = new Transaction(100, PaymentMethod.Cash, TransactionType.Expense, DateTime.UtcNow, 1, AccountId, 5);
-        _repository.GetById(5, AccountId).Returns(t);
-        _categoryRepository.GetById(2, TestUserId).Returns(new TransactionCategory("Updated Category", 2, TestUserId));
-        _repository.Update(t).Returns(true);
+        _repository.GetById(5, AccountId).Returns(Task.FromResult((Transaction?)t));
+        _categoryRepository.GetById(2, TestUserId).Returns(Task.FromResult((TransactionCategory?)new TransactionCategory("Updated Category", 2, TestUserId)));
+        _repository.Update(t).Returns(Task.FromResult(true));
         var req = new UpdateTransactionRequest { NewAmount = 300, NewCategoryId = 2, NewDescription = "Updated transaction", HasDescriptionUpdate = true };
-        var result = _service.Update(5, AccountId, req, TestUserId);
+        var result = await _service.Update(5, AccountId, req, TestUserId);
         result.Should().BeTrue();
         t.Amount.Should().Be(300);
         t.CategoryId.Should().Be(2);
@@ -344,40 +344,40 @@ public class TransactionServiceTests
     }
 
     [Fact]
-    public void Update_NonexistentTransaction_ReturnsFalse()
+    public async Task Update_NonexistentTransaction_ReturnsFalse()
     {
         SetupAccountExists();
-        _repository.GetById(999, AccountId).Returns((Transaction?)null);
+        _repository.GetById(999, AccountId).Returns(Task.FromResult((Transaction?)null));
         var req = new UpdateTransactionRequest { NewAmount = 200 };
-        var result = _service.Update(999, AccountId, req, TestUserId);
+        var result = await _service.Update(999, AccountId, req, TestUserId);
         result.Should().BeFalse();
     }
 
     [Fact]
-    public void Update_WithNegativeAmount_Throws()
+    public async Task Update_WithNegativeAmount_Throws()
     {
         SetupAccountExists();
         var t = new Transaction(100, PaymentMethod.Cash, TransactionType.Expense, DateTime.UtcNow, 1, AccountId, 5);
-        _repository.GetById(5, AccountId).Returns(t);
+        _repository.GetById(5, AccountId).Returns(Task.FromResult((Transaction?)t));
         var req = new UpdateTransactionRequest { NewAmount = -50 };
-        Assert.Throws<ArgumentException>(() => _service.Update(5, AccountId, req, TestUserId));
+        await Assert.ThrowsAsync<ArgumentException>(() => _service.Update(5, AccountId, req, TestUserId));
     }
 
     [Fact]
-    public void Update_WithNullDescription_ClearsDescription()
+    public async Task Update_WithNullDescription_ClearsDescription()
     {
         SetupAccountExists();
         var t = new Transaction(100, PaymentMethod.Cash, TransactionType.Expense, DateTime.UtcNow, 1, AccountId, 5, "Original description");
-        _repository.GetById(5, AccountId).Returns(t);
-        _repository.Update(t).Returns(true);
+        _repository.GetById(5, AccountId).Returns(Task.FromResult((Transaction?)t));
+        _repository.Update(t).Returns(Task.FromResult(true));
         var req = new UpdateTransactionRequest { NewDescription = null, HasDescriptionUpdate = true };
-        var result = _service.Update(5, AccountId, req, TestUserId);
+        var result = await _service.Update(5, AccountId, req, TestUserId);
         result.Should().BeTrue();
         t.Description.Should().BeNull();
     }
 
     [Fact]
-    public void CreateTransaction_WithDescription_StoresDescription()
+    public async Task CreateTransaction_WithDescription_StoresDescription()
     {
         var request = new CreateTransactionRequest 
         { 
@@ -390,22 +390,22 @@ public class TransactionServiceTests
             Description = "Test purchase"
         };
         
-        _accountRepository.GetById(AccountId, TestUserId).Returns(new Account(AccountId, "Test Account", "user123"));
-        _categoryRepository.GetById(1, TestUserId).Returns(new TransactionCategory("Test Category", 1, TestUserId));
-        _repository.Add(Arg.Any<Transaction>()).Returns(1);
+        _accountRepository.GetById(AccountId, TestUserId).Returns(Task.FromResult((Account?)new Account(AccountId, "Test Account", "user123")));
+        _categoryRepository.GetById(1, TestUserId).Returns(Task.FromResult((TransactionCategory?)new TransactionCategory("Test Category", 1, TestUserId)));
+        _repository.Add(Arg.Any<Transaction>()).Returns(Task.FromResult(1L));
         
-        var result = _service.CreateTransaction(request, AccountId, TestUserId);
+        var result = await _service.CreateTransaction(request, AccountId, TestUserId);
         result.Should().Be(1);
         _repository.Received(1).Add(Arg.Is<Transaction>(t => t.Description == "Test purchase"));
     }
 
     [Fact]
-    public void GetById_ReturnsDescriptionInDetail()
+    public async Task GetById_ReturnsDescriptionInDetail()
     {
         SetupAccountExists();
         var t = new Transaction(100, PaymentMethod.Cash, TransactionType.Expense, DateTime.UtcNow, 1, AccountId, 5, "Test description");
-        _repository.GetById(5, AccountId).Returns(t);
-        var result = _service.GetById(5, AccountId, TestUserId);
+        _repository.GetById(5, AccountId).Returns(Task.FromResult((Transaction?)t));
+        var result = await _service.GetById(5, AccountId, TestUserId);
         result.Should().NotBeNull();
         result.Description.Should().Be("Test description");
     }

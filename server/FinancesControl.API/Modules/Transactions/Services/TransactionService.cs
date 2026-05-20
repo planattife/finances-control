@@ -31,14 +31,14 @@ public class TransactionService : ITransactionService
 		_bankRepository = bankRepository;
 	}
 
-	public long CreateTransaction(CreateTransactionRequest request, long accountId, string? userId)
+	public async Task<long> CreateTransaction(CreateTransactionRequest request, long accountId, string? userId)
 	{
 		// Validate that URL accountId matches request AccountId
 		if (accountId != request.AccountId)
 			throw new ArgumentException("Invalid account. URL account ID does not match request account ID.");
 
 		// Validate foreign key constraints before attempting insert
-		ValidateForeignKeys(request, accountId, userId);
+		await ValidateForeignKeys(request, accountId, userId);
 
 		Transaction transaction;
 
@@ -63,16 +63,16 @@ public class TransactionService : ITransactionService
 			default:
 				throw new ArgumentException("Unsupported payment method");
 		}
-		return _repository.Add(transaction);
+		return await _repository.Add(transaction);
 	}
 
-	private void ValidateForeignKeys(CreateTransactionRequest request, long accountId, string? userId)
+	private async Task ValidateForeignKeys(CreateTransactionRequest request, long accountId, string? userId)
     {
         // Validate Account exists
-        ValidateAccount(accountId, userId);
+        await ValidateAccount(accountId, userId);
 
         // Validate Category exists
-        if (_categoryRepository.GetById(request.CategoryId, userId) == null)
+        if (await _categoryRepository.GetById(request.CategoryId, userId) == null)
             throw new ArgumentException($"Transaction category with ID {request.CategoryId} does not exist.", nameof(request.CategoryId));
 
         // Validate Card exists (if applicable)
@@ -81,7 +81,7 @@ public class TransactionService : ITransactionService
             if (request.CardId == null || request.CardId <= 0)
                 throw new ArgumentException("Card ID must be provided for credit/debit card transactions.", nameof(request.CardId));
 
-			var card = _cardRepository.GetById(request.CardId.Value, accountId);
+			var card = await _cardRepository.GetById(request.CardId.Value, accountId);
             if (card == null) {
                 throw new ArgumentException($"Card with ID {request.CardId} does not exist.", nameof(request.CardId));
 			} else {
@@ -102,31 +102,29 @@ public class TransactionService : ITransactionService
             if (request.BankId == null || request.BankId <= 0)
                 throw new ArgumentException("Bank ID must be provided for pix/bank slip/bank transfer transactions.", nameof(request.BankId));
 
-            if (_bankRepository.GetById(request.BankId.Value, userId) == null)
+            if (await _bankRepository.GetById(request.BankId.Value, userId) == null)
                 throw new ArgumentException($"Bank with ID {request.BankId} does not exist.", nameof(request.BankId));
         }
     }
 
-    private void ValidateAccount(long accountId, string? userId)
+    private async Task ValidateAccount(long accountId, string? userId)
     {
-        if (userId != null && _accountRepository.GetById(accountId, userId) == null)
+        if (userId != null && await _accountRepository.GetById(accountId, userId) == null)
             throw new ArgumentException($"Invalid Account.");
     }
 
-    public TransactionDetailResponse? GetById(long transactionId, long accountId, string? userId)
+    public async Task<TransactionDetailResponse?> GetById(long transactionId, long accountId, string? userId)
 	{
 		try
 		{
-			ValidateAccount(accountId, userId);
+			await ValidateAccount(accountId, userId);
 		}
 		catch (Exception)
 		{
 			return null;
 		}
 
-		ValidateAccount(accountId, userId);
-		
-		var t = _repository.GetById(transactionId, accountId);
+		var t = await _repository.GetById(transactionId, accountId);
 		if (t == null) return null;
 		var detail = new TransactionDetailResponse
 		{
@@ -148,18 +146,19 @@ public class TransactionService : ITransactionService
 		return detail;
 	}
 
-	public List<TransactionListItemResponse> GetAll(long accountId, string? userId)
+	public async Task<List<TransactionListItemResponse>> GetAll(long accountId, string? userId)
 	{
 		try
 		{
-			ValidateAccount(accountId, userId);
+			await ValidateAccount(accountId, userId);
 		}
 		catch (Exception)
 		{
 			return new List<TransactionListItemResponse>();
 		}
 
-		return _repository.GetAll(accountId)
+		var transactions = await _repository.GetAll(accountId);
+		return transactions
 			.Select(t => new TransactionListItemResponse
 			{
 				Id = t.Id,
@@ -173,35 +172,35 @@ public class TransactionService : ITransactionService
 			.ToList();
 	}
 
-	public bool Delete(long transactionId, long accountId, string? userId)
+	public async Task<bool> Delete(long transactionId, long accountId, string? userId)
 	{
 		try
 		{
-			ValidateAccount(accountId, userId);
+			await ValidateAccount(accountId, userId);
 		}
 		catch (Exception)
 		{
 			return false;
 		}
 
-		var transaction = _repository.GetById(transactionId, accountId);
+		var transaction = await _repository.GetById(transactionId, accountId);
 		if (transaction == null) return false;
 		transaction.Deactivate();
-		return _repository.Update(transaction);
+		return await _repository.Update(transaction);
 	}
 
-	public bool Update(long transactionId, long accountId, UpdateTransactionRequest request, string? userId)
+	public async Task<bool> Update(long transactionId, long accountId, UpdateTransactionRequest request, string? userId)
 	{
 		try
 		{
-			ValidateAccount(accountId, userId);
+			await ValidateAccount(accountId, userId);
 		}
 		catch (Exception)
 		{
 			return false;
 		}
 		
-		var transaction = _repository.GetById(transactionId, accountId);
+		var transaction = await _repository.GetById(transactionId, accountId);
 		if (transaction == null) return false;
 
 		if (request.NewAmount.HasValue && request.NewAmount != 0)
@@ -211,7 +210,7 @@ public class TransactionService : ITransactionService
 
 		if (request.NewCategoryId.HasValue && request.NewCategoryId > 0)
 		{
-			if (_categoryRepository.GetById(request.NewCategoryId.Value, userId) == null)
+			if (await _categoryRepository.GetById(request.NewCategoryId.Value, userId) == null)
 				throw new ArgumentException($"Transaction category with ID {request.NewCategoryId.Value} does not exist.", nameof(request.NewCategoryId));
 			transaction.ChangeCategory(request.NewCategoryId.Value);
 		}
@@ -221,6 +220,6 @@ public class TransactionService : ITransactionService
 			transaction.ChangeDescription(request.NewDescription);
 		}
 
-		return _repository.Update(transaction);
+		return await _repository.Update(transaction);
 	}
 }

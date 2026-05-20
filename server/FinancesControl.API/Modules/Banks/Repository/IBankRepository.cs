@@ -4,8 +4,8 @@ namespace FinancesControl.API.Banks.Repository;
 
 public interface IBankRepository
 {
-    long Add(Bank bank);
-    Bank? GetById(long bankId, string userId);
-    List<Bank> GetAll(string userId);
-    bool Update(Bank bank);
+    Task<long> Add(Bank bank);
+    Task<Bank?> GetById(long bankId, string userId);
+    Task<List<Bank>> GetAll(string userId);
+    Task<bool> Update(Bank bank);
 }

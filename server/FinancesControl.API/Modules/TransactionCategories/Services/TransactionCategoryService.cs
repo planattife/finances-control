@@ -13,15 +13,15 @@ public class TransactionCategoryService : ITransactionCategoryService
         _repository = repository;
     }
 
-    public long CreateCategory(CreateTransactionCategoryRequest request, string? userId)
+    public async Task<long> CreateCategory(CreateTransactionCategoryRequest request, string? userId)
     {
         var category = new TransactionCategory(request.Name, 0, userId);
-        return _repository.Add(category);
+        return await _repository.Add(category);
     }
 
-    public TransactionCategoryDetailResponse? GetById(long categoryId, string? userId)
+    public async Task<TransactionCategoryDetailResponse?> GetById(long categoryId, string? userId)
     {
-        var cat = _repository.GetById(categoryId, userId);
+        var cat = await _repository.GetById(categoryId, userId);
         if (cat == null) return null;
         return new TransactionCategoryDetailResponse(
             cat.Id,
@@ -32,46 +32,47 @@ public class TransactionCategoryService : ITransactionCategoryService
         );
     }
 
-    public List<TransactionCategoryListItemResponse> GetAll(string? userId)
+    public async Task<List<TransactionCategoryListItemResponse>> GetAll(string? userId)
     {
-        return _repository.GetAll(userId)
+        var categories = await _repository.GetAll(userId);
+        return categories
             .Select(c => new TransactionCategoryListItemResponse(c.Id, c.Name))
             .ToList();
     }
 
-    public bool Rename(long categoryId, RenameTransactionCategoryRequest request, string? userId)
+    public async Task<bool> Rename(long categoryId, RenameTransactionCategoryRequest request, string? userId)
     {
-        var cat = _repository.GetById(categoryId, userId);
+        var cat = await _repository.GetById(categoryId, userId);
         if (cat == null) return false;
         
         // Prevent renaming default categories
         if (cat.IsDefault) return false;
         
         cat.Rename(request.Name);
-        return _repository.Update(cat);
+        return await _repository.Update(cat);
     }
 
-    public bool Activate(long categoryId, string? userId)
+    public async Task<bool> Activate(long categoryId, string? userId)
     {
-        var cat = _repository.GetById(categoryId, userId);
+        var cat = await _repository.GetById(categoryId, userId);
         if (cat == null) return false;
         
         // Prevent activating default categories (they're already managed)
         if (cat.IsDefault) return false;
         
         cat.Activate();
-        return _repository.Update(cat);
+        return await _repository.Update(cat);
     }
 
-    public bool Deactivate(long categoryId, string? userId)
+    public async Task<bool> Deactivate(long categoryId, string? userId)
     {
-        var cat = _repository.GetById(categoryId, userId);
+        var cat = await _repository.GetById(categoryId, userId);
         if (cat == null) return false;
         
         // Prevent deactivating default categories (they're always available)
         if (cat.IsDefault) return false;
         
         cat.Deactivate();
-        return _repository.Update(cat);
+        return await _repository.Update(cat);
     }
 }

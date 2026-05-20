@@ -16,23 +16,23 @@ public class TransactionCategoryRepository : ITransactionCategoryRepository
         _connectionFactory = connectionFactory;
     }
 
-    public long Add(TransactionCategory category)
+    public async Task<long> Add(TransactionCategory category)
     {
         using var connection = _connectionFactory.CreateConnection();
         var command = new CreateTransactionCategoryCommand();
         var (sql, parameters) = command.Build(category);
         
-        var id = connection.QuerySingleOrDefault<long>(sql, parameters);
+        var id = await connection.QuerySingleOrDefaultAsync<long>(sql, parameters);
         return id;
     }
 
-    public TransactionCategory? GetById(long categoryId, string? userId)
+    public async Task<TransactionCategory?> GetById(long categoryId, string? userId)
     {
         using var connection = _connectionFactory.CreateConnection();
         var query = new GetTransactionCategoryByIdQuery();
         var (sql, parameters) = query.Build(categoryId, userId);
         
-        var result = connection.QuerySingleOrDefault<dynamic>(sql, parameters);
+        var result = await connection.QuerySingleOrDefaultAsync<dynamic>(sql, parameters);
         
         if (result == null)
             return null;
@@ -40,24 +40,24 @@ public class TransactionCategoryRepository : ITransactionCategoryRepository
         return MapToTransactionCategory(result);
     }
 
-    public List<TransactionCategory> GetAll(string? userId)
+    public async Task<List<TransactionCategory>> GetAll(string? userId)
     {
         using var connection = _connectionFactory.CreateConnection();
         var query = new GetAllTransactionCategoriesQuery();
         var (sql, parameters) = query.Build(userId);
         
-        var results = connection.Query<dynamic>(sql, parameters).ToList();
+        var results = (await connection.QueryAsync<dynamic>(sql, parameters)).ToList();
         
         return results.Select(MapToTransactionCategory).ToList();
     }
 
-    public bool Update(TransactionCategory category)
+    public async Task<bool> Update(TransactionCategory category)
     {
         using var connection = _connectionFactory.CreateConnection();
         var command = new UpdateTransactionCategoryCommand();
         var (sql, parameters) = command.Build(category);
         
-        var rowsAffected = connection.Execute(sql, parameters);
+        var rowsAffected = await connection.ExecuteAsync(sql, parameters);
         return rowsAffected > 0;
     }
 

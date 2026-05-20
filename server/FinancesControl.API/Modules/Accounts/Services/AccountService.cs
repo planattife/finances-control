@@ -14,15 +14,15 @@ public class AccountService : IAccountService
         _repository = repository;
     }
 
-    public long CreateAccount(CreateAccountRequest request, string userId)
+    public async Task<long> CreateAccount(CreateAccountRequest request, string userId)
     {
         var account = new Account(0, request.Name, userId);
-        return _repository.Add(account);
+        return await _repository.Add(account);
     }
 
-    public AccountDetailResponse? GetById(long accountId, string userId)
+    public async Task<AccountDetailResponse?> GetById(long accountId, string userId)
     {
-        var account = _repository.GetById(accountId, userId);
+        var account = await _repository.GetById(accountId, userId);
         if (account == null) return null;
         return new AccountDetailResponse(
             account.Id,
@@ -33,34 +33,35 @@ public class AccountService : IAccountService
         );
     }
 
-    public List<AccountListItemResponse> GetAll(string userId)
+    public async Task<List<AccountListItemResponse>> GetAll(string userId)
     {
-        return _repository.GetAll(userId)
+        var accounts = await _repository.GetAll(userId);
+        return accounts
             .Select(a => new AccountListItemResponse(a.Id, a.Name))
             .ToList();
     }
 
-    public bool Update(long accountId, UpdateAccountRequest request, string userId)
+    public async Task<bool> Update(long accountId, UpdateAccountRequest request, string userId)
     {
-        var account = _repository.GetById(accountId, userId);
+        var account = await _repository.GetById(accountId, userId);
         if (account == null) return false;
         account.Rename(request.Name);
-        return _repository.Update(account);
+        return await _repository.Update(account);
     }
 
-    public bool Activate(long accountId, string userId)
+    public async Task<bool> Activate(long accountId, string userId)
     {
-        var account = _repository.GetById(accountId, userId);
+        var account = await _repository.GetById(accountId, userId);
         if (account == null) return false;
         account.Activate();
-        return _repository.Update(account);
+        return await _repository.Update(account);
     }
 
-    public bool Deactivate(long accountId, string userId)
+    public async Task<bool> Deactivate(long accountId, string userId)
     {
-        var account = _repository.GetById(accountId, userId);
+        var account = await _repository.GetById(accountId, userId);
         if (account == null) return false;
         account.Deactivate();
-        return _repository.Update(account);
+        return await _repository.Update(account);
     }
 }

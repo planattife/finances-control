@@ -1,4 +1,5 @@
 using System.Data;
+using System.Data.Common;
 using Npgsql;
 
 namespace FinancesControl.API.Data;
@@ -12,6 +13,6 @@ public class AppDbConnectionFactory
         _configuration = configuration;
     }
 
-    public IDbConnection CreateConnection()
+    public DbConnection CreateConnection()
         => new NpgsqlConnection(_configuration.GetConnectionString("DefaultConnection"));
 }

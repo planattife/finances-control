@@ -23,15 +23,15 @@ public class AccountServiceTests
     #region CreateAccount Tests
 
     [Fact]
-    public void CreateAccount_WithValidRequest_ReturnsNewAccountId()
+    public async Task CreateAccount_WithValidRequest_ReturnsNewAccountId()
     {
         // Arrange
         var request = new CreateAccountRequest("Test Account");
         var userId = "user-123";
-        _repository.Add(Arg.Any<Account>()).Returns(1);
+        _repository.Add(Arg.Any<Account>()).Returns(Task.FromResult(1L));
 
         // Act
-        var result = _service.CreateAccount(request, userId);
+        var result = await _service.CreateAccount(request, userId);
 
         // Assert
         result.Should().Be(1);
@@ -39,7 +39,7 @@ public class AccountServiceTests
     }
 
     [Fact]
-    public void CreateAccount_NewAccountIsActive()
+    public async Task CreateAccount_NewAccountIsActive()
     {
         // Arrange
         var request = new CreateAccountRequest("Test Account");
@@ -49,11 +49,11 @@ public class AccountServiceTests
             .Returns(x =>
             {
                 capturedAccount = x.Arg<Account>();
-                return 1;
+                return Task.FromResult(1L);
             });
 
         // Act
-        _service.CreateAccount(request, userId);
+        await _service.CreateAccount(request, userId);
 
         // Assert
         capturedAccount.Should().NotBeNull();
@@ -65,16 +65,16 @@ public class AccountServiceTests
     #region GetById Tests
 
     [Fact]
-    public void GetById_WithValidId_ReturnsAccountDetail()
+    public async Task GetById_WithValidId_ReturnsAccountDetail()
     {
         // Arrange
         var accountId = 1;
         var userId = "user-123";
         var account = new Account(accountId, "Test Account", userId);
-        _repository.GetById(accountId, userId).Returns(account);
+        _repository.GetById(accountId, userId).Returns(Task.FromResult((Account?)account));
 
         // Act
-        var result = _service.GetById(accountId, userId);
+        var result = await _service.GetById(accountId, userId);
 
         // Assert
         result.Should().NotBeNull();
@@ -84,49 +84,49 @@ public class AccountServiceTests
     }
 
     [Fact]
-    public void GetById_WithInvalidId_ReturnsNull()
+    public async Task GetById_WithInvalidId_ReturnsNull()
     {
         // Arrange
         var accountId = 999;
         var userId = "user-123";
-        _repository.GetById(accountId, userId).Returns((Account?)null);
+        _repository.GetById(accountId, userId).Returns(Task.FromResult((Account?)null));
 
         // Act
-        var result = _service.GetById(accountId, userId);
+        var result = await _service.GetById(accountId, userId);
 
         // Assert
         result.Should().BeNull();
     }
 
     [Fact]
-    public void GetById_WithDifferentUser_ReturnsNull()
+    public async Task GetById_WithDifferentUser_ReturnsNull()
     {
         // Arrange - Account belongs to different user
         var accountId = 1;
         var userId = "user-123";
         var otherUserId = "user-456";
         var account = new Account(accountId, "Test Account", otherUserId);
-        _repository.GetById(accountId, userId).Returns((Account?)null);
+        _repository.GetById(accountId, userId).Returns(Task.FromResult((Account?)null));
 
         // Act
-        var result = _service.GetById(accountId, userId);
+        var result = await _service.GetById(accountId, userId);
 
         // Assert
         result.Should().BeNull();
     }
 
     [Fact]
-    public void GetById_InactiveAccount_ReturnsInactiveStatus()
+    public async Task GetById_InactiveAccount_ReturnsInactiveStatus()
     {
         // Arrange
         var accountId = 1;
         var userId = "user-123";
         var account = new Account(accountId, "Test Account", userId);
         account.Deactivate();
-        _repository.GetById(accountId, userId).Returns(account);
+        _repository.GetById(accountId, userId).Returns(Task.FromResult((Account?)account));
 
         // Act
-        var result = _service.GetById(accountId, userId);
+        var result = await _service.GetById(accountId, userId);
 
         // Assert
         result.Should().NotBeNull();
@@ -138,7 +138,7 @@ public class AccountServiceTests
     #region GetAll Tests
 
     [Fact]
-    public void GetAll_WithMultipleAccounts_ReturnsAllAccounts()
+    public async Task GetAll_WithMultipleAccounts_ReturnsAllAccounts()
     {
         // Arrange
         var userId = "user-123";
@@ -148,24 +148,24 @@ public class AccountServiceTests
             new(2, "Account 2", userId),
             new(3, "Account 3", userId)
         };
-        _repository.GetAll(userId).Returns(accounts);
+        _repository.GetAll(userId).Returns(Task.FromResult(accounts));
 
         // Act
-        var result = _service.GetAll(userId);
+        var result = await _service.GetAll(userId);
 
         // Assert
         result.Should().HaveCount(3);
     }
 
     [Fact]
-    public void GetAll_WithNoAccounts_ReturnsEmptyList()
+    public async Task GetAll_WithNoAccounts_ReturnsEmptyList()
     {
         // Arrange
         var userId = "user-123";
-        _repository.GetAll(userId).Returns(new List<Account>());
+        _repository.GetAll(userId).Returns(Task.FromResult(new List<Account>()));
 
         // Act
-        var result = _service.GetAll(userId);
+        var result = await _service.GetAll(userId);
 
         // Assert
         result.Should().BeEmpty();
@@ -176,18 +176,18 @@ public class AccountServiceTests
     #region Update Tests
 
     [Fact]
-    public void Update_WithValidIdAndName_ReturnsTrue()
+    public async Task Update_WithValidIdAndName_ReturnsTrue()
     {
         // Arrange
         var accountId = 1;
         var userId = "user-123";
         var account = new Account(accountId, "Old Name", userId);
         var request = new UpdateAccountRequest("New Name");
-        _repository.GetById(accountId, userId).Returns(account);
-        _repository.Update(Arg.Any<Account>()).Returns(true);
+        _repository.GetById(accountId, userId).Returns(Task.FromResult((Account?)account));
+        _repository.Update(Arg.Any<Account>()).Returns(Task.FromResult(true));
 
         // Act
-        var result = _service.Update(accountId, request, userId);
+        var result = await _service.Update(accountId, request, userId);
 
         // Assert
         result.Should().BeTrue();
@@ -196,16 +196,16 @@ public class AccountServiceTests
     }
 
     [Fact]
-    public void Update_WithInvalidId_ReturnsFalse()
+    public async Task Update_WithInvalidId_ReturnsFalse()
     {
         // Arrange
         var accountId = 999;
         var userId = "user-123";
         var request = new UpdateAccountRequest("New Name");
-        _repository.GetById(accountId, userId).Returns((Account?)null);
+        _repository.GetById(accountId, userId).Returns(Task.FromResult((Account?)null));
 
         // Act
-        var result = _service.Update(accountId, request, userId);
+        var result = await _service.Update(accountId, request, userId);
 
         // Assert
         result.Should().BeFalse();
@@ -213,17 +213,17 @@ public class AccountServiceTests
     }
 
     [Fact]
-    public void Update_WithDifferentUser_ReturnsFalse()
+    public async Task Update_WithDifferentUser_ReturnsFalse()
     {
         // Arrange - Account belongs to different user
         var accountId = 1;
         var userId = "user-123";
         var otherUserId = "user-456";
         var request = new UpdateAccountRequest("New Name");
-        _repository.GetById(accountId, userId).Returns((Account?)null);
+        _repository.GetById(accountId, userId).Returns(Task.FromResult((Account?)null));
 
         // Act
-        var result = _service.Update(accountId, request, userId);
+        var result = await _service.Update(accountId, request, userId);
 
         // Assert
         result.Should().BeFalse();
@@ -231,7 +231,7 @@ public class AccountServiceTests
     }
 
     [Fact]
-    public void Update_UpdatesAccountTimestamp()
+    public async Task Update_UpdatesAccountTimestamp()
     {
         // Arrange
         var accountId = 1;
@@ -239,11 +239,11 @@ public class AccountServiceTests
         var account = new Account(accountId, "Old Name", userId);
         DateTime originalUpdatedAt = account.UpdatedAt ?? DateTime.MinValue;
         var request = new UpdateAccountRequest("New Name");
-        _repository.GetById(accountId, userId).Returns(account);
-        _repository.Update(Arg.Any<Account>()).Returns(true);
+        _repository.GetById(accountId, userId).Returns(Task.FromResult((Account?)account));
+        _repository.Update(Arg.Any<Account>()).Returns(Task.FromResult(true));
 
         // Act
-        _service.Update(accountId, request, userId);
+        await _service.Update(accountId, request, userId);
 
         // Assert
         account.UpdatedAt.Should().NotBe(originalUpdatedAt);
@@ -255,18 +255,18 @@ public class AccountServiceTests
     #region Activate Tests
 
     [Fact]
-    public void Activate_WithValidId_ReturnsTrue()
+    public async Task Activate_WithValidId_ReturnsTrue()
     {
         // Arrange
         var accountId = 1;
         var userId = "user-123";
         var account = new Account(accountId, "Test Account", userId);
         account.Deactivate();
-        _repository.GetById(accountId, userId).Returns(account);
-        _repository.Update(Arg.Any<Account>()).Returns(true);
+        _repository.GetById(accountId, userId).Returns(Task.FromResult((Account?)account));
+        _repository.Update(Arg.Any<Account>()).Returns(Task.FromResult(true));
 
         // Act
-        var result = _service.Activate(accountId, userId);
+        var result = await _service.Activate(accountId, userId);
 
         // Assert
         result.Should().BeTrue();
@@ -275,15 +275,15 @@ public class AccountServiceTests
     }
 
     [Fact]
-    public void Activate_WithInvalidId_ReturnsFalse()
+    public async Task Activate_WithInvalidId_ReturnsFalse()
     {
         // Arrange
         var accountId = 999;
         var userId = "user-123";
-        _repository.GetById(accountId, userId).Returns((Account?)null);
+        _repository.GetById(accountId, userId).Returns(Task.FromResult((Account?)null));
 
         // Act
-        var result = _service.Activate(accountId, userId);
+        var result = await _service.Activate(accountId, userId);
 
         // Assert
         result.Should().BeFalse();
@@ -291,15 +291,15 @@ public class AccountServiceTests
     }
 
     [Fact]
-    public void Activate_WithDifferentUser_ReturnsFalse()
+    public async Task Activate_WithDifferentUser_ReturnsFalse()
     {
         // Arrange - Account belongs to different user
         var accountId = 1;
         var userId = "user-123";
-        _repository.GetById(accountId, userId).Returns((Account?)null);
+        _repository.GetById(accountId, userId).Returns(Task.FromResult((Account?)null));
 
         // Act
-        var result = _service.Activate(accountId, userId);
+        var result = await _service.Activate(accountId, userId);
 
         // Assert
         result.Should().BeFalse();
@@ -311,17 +311,17 @@ public class AccountServiceTests
     #region Deactivate Tests
 
     [Fact]
-    public void Deactivate_WithValidId_ReturnsTrue()
+    public async Task Deactivate_WithValidId_ReturnsTrue()
     {
         // Arrange
         var accountId = 1;
         var userId = "user-123";
         var account = new Account(accountId, "Test Account", userId);
-        _repository.GetById(accountId, userId).Returns(account);
-        _repository.Update(Arg.Any<Account>()).Returns(true);
+        _repository.GetById(accountId, userId).Returns(Task.FromResult((Account?)account));
+        _repository.Update(Arg.Any<Account>()).Returns(Task.FromResult(true));
 
         // Act
-        var result = _service.Deactivate(accountId, userId);
+        var result = await _service.Deactivate(accountId, userId);
 
         // Assert
         result.Should().BeTrue();
@@ -330,15 +330,15 @@ public class AccountServiceTests
     }
 
     [Fact]
-    public void Deactivate_WithInvalidId_ReturnsFalse()
+    public async Task Deactivate_WithInvalidId_ReturnsFalse()
     {
         // Arrange
         var accountId = 999;
         var userId = "user-123";
-        _repository.GetById(accountId, userId).Returns((Account?)null);
+        _repository.GetById(accountId, userId).Returns(Task.FromResult((Account?)null));
 
         // Act
-        var result = _service.Deactivate(accountId, userId);
+        var result = await _service.Deactivate(accountId, userId);
 
         // Assert
         result.Should().BeFalse();
@@ -346,15 +346,15 @@ public class AccountServiceTests
     }
 
     [Fact]
-    public void Deactivate_WithDifferentUser_ReturnsFalse()
+    public async Task Deactivate_WithDifferentUser_ReturnsFalse()
     {
         // Arrange - Account belongs to different user
         var accountId = 1;
         var userId = "user-123";
-        _repository.GetById(accountId, userId).Returns((Account?)null);
+        _repository.GetById(accountId, userId).Returns(Task.FromResult((Account?)null));
 
         // Act
-        var result = _service.Deactivate(accountId, userId);
+        var result = await _service.Deactivate(accountId, userId);
 
         // Assert
         result.Should().BeFalse();

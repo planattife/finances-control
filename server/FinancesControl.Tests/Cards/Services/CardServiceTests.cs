@@ -57,23 +57,23 @@ public class CardServiceTests
             DateTime.UtcNow,
             null
         );
-        _accountService.GetById(AccountId, UserId).Returns(accountResponse);
+        _accountService.GetById(AccountId, UserId).Returns(Task.FromResult((AccountDetailResponse?)accountResponse));
     }
 
     #region CreateDebitCard Tests
 
     [Fact]
-    public void CreateDebitCard_WithValidRequest_ReturnsNewCardId()
+    public async Task CreateDebitCard_WithValidRequest_ReturnsNewCardId()
     {
         // Arrange
         SetupAuthorizedUser();
         SetupAccountExists();
         var request = new CreateDebitCardRequest("4111111111111111", DateTime.UtcNow.AddYears(5), CardNetwork.Visa, 1);
-        _bankService.ValidateBankForUser(1, UserId).Returns(true);
-        _repository.Add(Arg.Any<Card>()).Returns(1);
+        _bankService.ValidateBankForUser(1, UserId).Returns(Task.FromResult(true));
+        _repository.Add(Arg.Any<Card>()).Returns(Task.FromResult(1L));
 
         // Act
-        var result = _service.CreateDebitCard(request, AccountId, UserId);
+        var result = await _service.CreateDebitCard(request, AccountId, UserId);
 
         // Assert
         result.Should().Be(1);
@@ -82,35 +82,35 @@ public class CardServiceTests
     }
 
     [Fact]
-    public void CreateDebitCard_AccountNotFound_ThrowsInvalidOperationException()
+    public async Task CreateDebitCard_AccountNotFound_ThrowsInvalidOperationException()
     {
         // Arrange
         SetupAuthorizedUser();
-        _accountService.GetById(AccountId, UserId).Returns((AccountDetailResponse?)null);
+        _accountService.GetById(AccountId, UserId).Returns(Task.FromResult((AccountDetailResponse?)null));
         var request = new CreateDebitCardRequest("4111111111111111", DateTime.UtcNow.AddYears(5), CardNetwork.Visa, 1);
 
         // Act & Assert
-        Assert.Throws<InvalidOperationException>(() => _service.CreateDebitCard(request, AccountId, UserId));
+        await Assert.ThrowsAsync<InvalidOperationException>(() => _service.CreateDebitCard(request, AccountId, UserId));
     }
 
     [Fact]
-    public void CreateDebitCard_NewCardIsActive()
+    public async Task CreateDebitCard_NewCardIsActive()
     {
         // Arrange
         SetupAuthorizedUser();
         SetupAccountExists();
         var request = new CreateDebitCardRequest("4111111111111111", DateTime.UtcNow.AddYears(5), CardNetwork.Visa, 1);
-        _bankService.ValidateBankForUser(1, UserId).Returns(true);
+        _bankService.ValidateBankForUser(1, UserId).Returns(Task.FromResult(true));
         Card? capturedCard = null;
         _repository.Add(Arg.Any<Card>())
             .Returns(x =>
             {
                 capturedCard = x.Arg<Card>();
-                return 1;
+                return Task.FromResult(1L);
             });
 
         // Act
-        _service.CreateDebitCard(request, AccountId, UserId);
+        await _service.CreateDebitCard(request, AccountId, UserId);
 
         // Assert
         capturedCard.Should().NotBeNull();
@@ -119,23 +119,23 @@ public class CardServiceTests
     }
 
     [Fact]
-    public void CreateDebitCard_WithCardName()
+    public async Task CreateDebitCard_WithCardName()
     {
         // Arrange
         SetupAuthorizedUser();
         SetupAccountExists();
         var request = new CreateDebitCardRequest("4111111111111111", DateTime.UtcNow.AddYears(5), CardNetwork.Visa, 1, "My Debit Card");
-        _bankService.ValidateBankForUser(1, UserId).Returns(true);
+        _bankService.ValidateBankForUser(1, UserId).Returns(Task.FromResult(true));
         Card? capturedCard = null;
         _repository.Add(Arg.Any<Card>())
             .Returns(x =>
             {
                 capturedCard = x.Arg<Card>();
-                return 1;
+                return Task.FromResult(1L);
             });
 
         // Act
-        _service.CreateDebitCard(request, AccountId, UserId);
+        await _service.CreateDebitCard(request, AccountId, UserId);
 
         // Assert
         capturedCard.Should().NotBeNull();
@@ -143,16 +143,16 @@ public class CardServiceTests
     }
 
     [Fact]
-    public void CreateDebitCard_WithInactiveBankForUser_ThrowsInvalidOperationException()
+    public async Task CreateDebitCard_WithInactiveBankForUser_ThrowsInvalidOperationException()
     {
         // Arrange
         SetupAuthorizedUser();
         SetupAccountExists();
         var request = new CreateDebitCardRequest("4111111111111111", DateTime.UtcNow.AddYears(5), CardNetwork.Visa, 1);
-        _bankService.ValidateBankForUser(1, UserId).Returns(false);
+        _bankService.ValidateBankForUser(1, UserId).Returns(Task.FromResult(false));
 
         // Act & Assert
-        var exception = Assert.Throws<InvalidOperationException>(() => _service.CreateDebitCard(request, AccountId, UserId));
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(() => _service.CreateDebitCard(request, AccountId, UserId));
         exception.Message.Should().Be("Bank is not valid.");
     }
 
@@ -161,17 +161,17 @@ public class CardServiceTests
     #region CreateCreditCard Tests
 
     [Fact]
-    public void CreateCreditCard_WithValidRequest_ReturnsNewCardId()
+    public async Task CreateCreditCard_WithValidRequest_ReturnsNewCardId()
     {
         // Arrange
         SetupAuthorizedUser();
         SetupAccountExists();
         var request = new CreateCreditCardRequest("5555555555554444", DateTime.UtcNow.AddYears(5), CardNetwork.Mastercard, 1, 10, 20);
-        _bankService.ValidateBankForUser(1, UserId).Returns(true);
-        _repository.Add(Arg.Any<Card>()).Returns(1);
+        _bankService.ValidateBankForUser(1, UserId).Returns(Task.FromResult(true));
+        _repository.Add(Arg.Any<Card>()).Returns(Task.FromResult(1L));
 
         // Act
-        var result = _service.CreateCreditCard(request, AccountId, UserId);
+        var result = await _service.CreateCreditCard(request, AccountId, UserId);
 
         // Assert
         result.Should().Be(1);
@@ -180,35 +180,35 @@ public class CardServiceTests
     }
 
     [Fact]
-    public void CreateCreditCard_AccountNotFound_ThrowsInvalidOperationException()
+    public async Task CreateCreditCard_AccountNotFound_ThrowsInvalidOperationException()
     {
         // Arrange
         SetupAuthorizedUser();
-        _accountService.GetById(AccountId, UserId).Returns((AccountDetailResponse?)null);
+        _accountService.GetById(AccountId, UserId).Returns(Task.FromResult((AccountDetailResponse?)null));
         var request = new CreateCreditCardRequest("5555555555554444", DateTime.UtcNow.AddYears(5), CardNetwork.Mastercard, 1, 10, 20);
 
         // Act & Assert
-        Assert.Throws<InvalidOperationException>(() => _service.CreateCreditCard(request, AccountId, UserId));
+        await Assert.ThrowsAsync<InvalidOperationException>(() => _service.CreateCreditCard(request, AccountId, UserId));
     }
 
     [Fact]
-    public void CreateCreditCard_CreatesCreditCardType()
+    public async Task CreateCreditCard_CreatesCreditCardType()
     {
         // Arrange
         SetupAuthorizedUser();
         SetupAccountExists();
         var request = new CreateCreditCardRequest("5555555555554444", DateTime.UtcNow.AddYears(5), CardNetwork.Mastercard, 1, 10, 20);
-        _bankService.ValidateBankForUser(1, UserId).Returns(true);
+        _bankService.ValidateBankForUser(1, UserId).Returns(Task.FromResult(true));
         Card? capturedCard = null;
         _repository.Add(Arg.Any<Card>())
             .Returns(x =>
             {
                 capturedCard = x.Arg<Card>();
-                return 1;
+                return Task.FromResult(1L);
             });
 
         // Act
-        _service.CreateCreditCard(request, AccountId, UserId);
+        await _service.CreateCreditCard(request, AccountId, UserId);
 
         // Assert
         capturedCard.Should().BeOfType<CreditCard>();
@@ -218,23 +218,23 @@ public class CardServiceTests
     }
 
     [Fact]
-    public void CreateCreditCard_WithCardName()
+    public async Task CreateCreditCard_WithCardName()
     {
         // Arrange
         SetupAuthorizedUser();
         SetupAccountExists();
         var request = new CreateCreditCardRequest("5555555555554444", DateTime.UtcNow.AddYears(5), CardNetwork.Mastercard, 1, 10, 20, "My Credit Card");
-        _bankService.ValidateBankForUser(1, UserId).Returns(true);
+        _bankService.ValidateBankForUser(1, UserId).Returns(Task.FromResult(true));
         Card? capturedCard = null;
         _repository.Add(Arg.Any<Card>())
             .Returns(x =>
             {
                 capturedCard = x.Arg<Card>();
-                return 1;
+                return Task.FromResult(1L);
             });
 
         // Act
-        _service.CreateCreditCard(request, AccountId, UserId);
+        await _service.CreateCreditCard(request, AccountId, UserId);
 
         // Assert
         capturedCard.Should().NotBeNull();
@@ -242,16 +242,16 @@ public class CardServiceTests
     }
 
     [Fact]
-    public void CreateCreditCard_WithInactiveBankForUser_ThrowsInvalidOperationException()
+    public async Task CreateCreditCard_WithInactiveBankForUser_ThrowsInvalidOperationException()
     {
         // Arrange
         SetupAuthorizedUser();
         SetupAccountExists();
         var request = new CreateCreditCardRequest("5555555555554444", DateTime.UtcNow.AddYears(5), CardNetwork.Mastercard, 1, 10, 20);
-        _bankService.ValidateBankForUser(1, UserId).Returns(false);
+        _bankService.ValidateBankForUser(1, UserId).Returns(Task.FromResult(false));
 
         // Act & Assert
-        var exception = Assert.Throws<InvalidOperationException>(() => _service.CreateCreditCard(request, AccountId, UserId));
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(() => _service.CreateCreditCard(request, AccountId, UserId));
         exception.Message.Should().Be("Bank is not valid.");
         _repository.DidNotReceive().Add(Arg.Any<Card>());
     }
@@ -261,16 +261,16 @@ public class CardServiceTests
     #region GetById Tests
 
     [Fact]
-    public void GetById_WithValidId_ReturnsCardDetail()
+    public async Task GetById_WithValidId_ReturnsCardDetail()
     {
         // Arrange
         SetupAccountExists();
         var cardId = 1;
         var card = new Card("****1111", DateTime.UtcNow.AddYears(5), CardNetwork.Visa, 1, AccountId, CardType.Debit, cardId, "My Card");
-        _repository.GetById(cardId, AccountId).Returns(card);
+        _repository.GetById(cardId, AccountId).Returns(Task.FromResult((Card?)card));
 
         // Act
-        var result = _service.GetById(cardId, AccountId, UserId);
+        var result = await _service.GetById(cardId, AccountId, UserId);
 
         // Assert
         result.Should().NotBeNull();
@@ -281,46 +281,46 @@ public class CardServiceTests
     }
 
     [Fact]
-    public void GetById_AccountNotFound_ReturnsNull()
+    public async Task GetById_AccountNotFound_ReturnsNull()
     {
         // Arrange
-        _accountService.GetById(AccountId, UserId).Returns((AccountDetailResponse?)null);
+        _accountService.GetById(AccountId, UserId).Returns(Task.FromResult((AccountDetailResponse?)null));
         var cardId = 1;
 
         // Act
-        var result = _service.GetById(cardId, AccountId, UserId);
+        var result = await _service.GetById(cardId, AccountId, UserId);
 
         // Assert
         result.Should().BeNull();
     }
 
     [Fact]
-    public void GetById_WithInvalidCardId_ReturnsNull()
+    public async Task GetById_WithInvalidCardId_ReturnsNull()
     {
         // Arrange
         SetupAccountExists();
         var cardId = 999;
-        _repository.GetById(cardId, AccountId).Returns((Card?)null);
+        _repository.GetById(cardId, AccountId).Returns(Task.FromResult((Card?)null));
 
         // Act
-        var result = _service.GetById(cardId, AccountId, UserId);
+        var result = await _service.GetById(cardId, AccountId, UserId);
 
         // Assert
         result.Should().BeNull();
     }
 
     [Fact]
-    public void GetById_InactiveCard_ReturnsInactiveStatus()
+    public async Task GetById_InactiveCard_ReturnsInactiveStatus()
     {
         // Arrange
         SetupAccountExists();
         var cardId = 1;
         var card = new Card("****1111", DateTime.UtcNow.AddYears(5), CardNetwork.Visa, 1, AccountId, CardType.Debit, cardId);
         card.SetIsActive(false);
-        _repository.GetById(cardId, AccountId).Returns(card);
+        _repository.GetById(cardId, AccountId).Returns(Task.FromResult((Card?)card));
 
         // Act
-        var result = _service.GetById(cardId, AccountId, UserId);
+        var result = await _service.GetById(cardId, AccountId, UserId);
 
         // Assert
         result.Should().NotBeNull();
@@ -332,16 +332,16 @@ public class CardServiceTests
     #region GetCreditById Tests
 
     [Fact]
-    public void GetCreditById_WithValidId_ReturnsCreditCardDetail()
+    public async Task GetCreditById_WithValidId_ReturnsCreditCardDetail()
     {
         // Arrange
         SetupAccountExists();
         var cardId = 1;
         var creditCard = new CreditCard("****4444", DateTime.UtcNow.AddYears(5), CardNetwork.Mastercard, 1, AccountId, 10, 20, CardType.Credit, cardId, "My Credit");
-        _repository.GetById(cardId, AccountId).Returns(creditCard);
+        _repository.GetById(cardId, AccountId).Returns(Task.FromResult((Card?)creditCard));
 
         // Act
-        var result = _service.GetCreditById(cardId, AccountId, UserId);
+        var result = await _service.GetCreditById(cardId, AccountId, UserId);
 
         // Assert
         result.Should().NotBeNull();
@@ -353,62 +353,62 @@ public class CardServiceTests
     }
 
     [Fact]
-    public void GetCreditById_AccountNotFound_ReturnsNull()
+    public async Task GetCreditById_AccountNotFound_ReturnsNull()
     {
         // Arrange
-        _accountService.GetById(AccountId, UserId).Returns((AccountDetailResponse?)null);
+        _accountService.GetById(AccountId, UserId).Returns(Task.FromResult((AccountDetailResponse?)null));
         var cardId = 1;
 
         // Act
-        var result = _service.GetCreditById(cardId, AccountId, UserId);
+        var result = await _service.GetCreditById(cardId, AccountId, UserId);
 
         // Assert
         result.Should().BeNull();
     }
 
     [Fact]
-    public void GetCreditById_WithInvalidId_ReturnsNull()
+    public async Task GetCreditById_WithInvalidId_ReturnsNull()
     {
         // Arrange
         SetupAccountExists();
         var cardId = 999;
-        _repository.GetById(cardId, AccountId).Returns((Card?)null);
+        _repository.GetById(cardId, AccountId).Returns(Task.FromResult((Card?)null));
 
         // Act
-        var result = _service.GetCreditById(cardId, AccountId, UserId);
+        var result = await _service.GetCreditById(cardId, AccountId, UserId);
 
         // Assert
         result.Should().BeNull();
     }
 
     [Fact]
-    public void GetCreditById_WithDebitCard_ReturnsNull()
+    public async Task GetCreditById_WithDebitCard_ReturnsNull()
     {
         // Arrange
         SetupAccountExists();
         var cardId = 1;
         var debitCard = new Card("****1111", DateTime.UtcNow.AddYears(5), CardNetwork.Visa, 1, AccountId, CardType.Debit, cardId);
-        _repository.GetById(cardId, AccountId).Returns(debitCard);
+        _repository.GetById(cardId, AccountId).Returns(Task.FromResult((Card?)debitCard));
 
         // Act
-        var result = _service.GetCreditById(cardId, AccountId, UserId);
+        var result = await _service.GetCreditById(cardId, AccountId, UserId);
 
         // Assert
         result.Should().BeNull();
     }
 
     [Fact]
-    public void GetCreditById_ComputesNextClosingDay()
+    public async Task GetCreditById_ComputesNextClosingDay()
     {
         // Arrange
         SetupAccountExists();
         var cardId = 1;
         var closingDay = 15;
         var creditCard = new CreditCard("****4444", DateTime.UtcNow.AddYears(5), CardNetwork.Mastercard, 1, AccountId, closingDay, 20, CardType.Credit, cardId);
-        _repository.GetById(cardId, AccountId).Returns(creditCard);
+        _repository.GetById(cardId, AccountId).Returns(Task.FromResult((Card?)creditCard));
 
         // Act
-        var result = _service.GetCreditById(cardId, AccountId, UserId);
+        var result = await _service.GetCreditById(cardId, AccountId, UserId);
 
         // Assert
         result.Should().NotBeNull();
@@ -417,17 +417,17 @@ public class CardServiceTests
     }
 
     [Fact]
-    public void GetCreditById_ComputesNextDueDay()
+    public async Task GetCreditById_ComputesNextDueDay()
     {
         // Arrange
         SetupAccountExists();
         var cardId = 1;
         var dueDay = 25;
         var creditCard = new CreditCard("****4444", DateTime.UtcNow.AddYears(5), CardNetwork.Mastercard, 1, AccountId, 10, dueDay, CardType.Credit, cardId);
-        _repository.GetById(cardId, AccountId).Returns(creditCard);
+        _repository.GetById(cardId, AccountId).Returns(Task.FromResult((Card?)creditCard));
 
         // Act
-        var result = _service.GetCreditById(cardId, AccountId, UserId);
+        var result = await _service.GetCreditById(cardId, AccountId, UserId);
 
         // Assert
         result.Should().NotBeNull();
@@ -440,7 +440,7 @@ public class CardServiceTests
     #region GetAll Tests
 
     [Fact]
-    public void GetAll_WithMultipleCards_ReturnsAllCards()
+    public async Task GetAll_WithMultipleCards_ReturnsAllCards()
     {
         // Arrange
         SetupAccountExists();
@@ -449,37 +449,37 @@ public class CardServiceTests
             new("****1111", DateTime.UtcNow.AddYears(5), CardNetwork.Visa, 1, AccountId, CardType.Debit, 1),
             new("****4444", DateTime.UtcNow.AddYears(5), CardNetwork.Mastercard, 1, AccountId, CardType.Debit, 2)
         };
-        _repository.GetAll(AccountId).Returns(cards);
+        _repository.GetAll(AccountId).Returns(Task.FromResult(cards));
 
         // Act
-        var result = _service.GetAll(AccountId, UserId);
+        var result = await _service.GetAll(AccountId, UserId);
 
         // Assert
         result.Should().HaveCount(2);
     }
 
     [Fact]
-    public void GetAll_AccountNotFound_ReturnsEmptyList()
+    public async Task GetAll_AccountNotFound_ReturnsEmptyList()
     {
         // Arrange
-        _accountService.GetById(AccountId, UserId).Returns((AccountDetailResponse?)null);
+        _accountService.GetById(AccountId, UserId).Returns(Task.FromResult((AccountDetailResponse?)null));
 
         // Act
-        var result = _service.GetAll(AccountId, UserId);
+        var result = await _service.GetAll(AccountId, UserId);
 
         // Assert
         result.Should().BeEmpty();
     }
 
     [Fact]
-    public void GetAll_WithNoCards_ReturnsEmptyList()
+    public async Task GetAll_WithNoCards_ReturnsEmptyList()
     {
         // Arrange
         SetupAccountExists();
-        _repository.GetAll(AccountId).Returns(new List<Card>());
+        _repository.GetAll(AccountId).Returns(Task.FromResult(new List<Card>()));
 
         // Act
-        var result = _service.GetAll(AccountId, UserId);
+        var result = await _service.GetAll(AccountId, UserId);
 
         // Assert
         result.Should().BeEmpty();
@@ -490,18 +490,18 @@ public class CardServiceTests
     #region UpdateCardName Tests
 
     [Fact]
-    public void UpdateCardName_WithValidIdAndName_ReturnsTrue()
+    public async Task UpdateCardName_WithValidIdAndName_ReturnsTrue()
     {
         // Arrange
         SetupAccountExists();
         var cardId = 1;
         var card = new Card("****1111", DateTime.UtcNow.AddYears(5), CardNetwork.Visa, 1, AccountId, CardType.Debit, cardId, "Old Name");
         var newName = "New Name";
-        _repository.GetById(cardId, AccountId).Returns(card);
-        _repository.Update(Arg.Any<Card>(), AccountId).Returns(true);
+        _repository.GetById(cardId, AccountId).Returns(Task.FromResult((Card?)card));
+        _repository.Update(Arg.Any<Card>(), AccountId).Returns(Task.FromResult(true));
 
         // Act
-        var result = _service.UpdateCardName(cardId, AccountId, UserId, newName);
+        var result = await _service.UpdateCardName(cardId, AccountId, UserId, newName);
 
         // Assert
         result.Should().BeTrue();
@@ -510,31 +510,31 @@ public class CardServiceTests
     }
 
     [Fact]
-    public void UpdateCardName_AccountNotFound_ReturnsFalse()
+    public async Task UpdateCardName_AccountNotFound_ReturnsFalse()
     {
         // Arrange
-        _accountService.GetById(AccountId, UserId).Returns((AccountDetailResponse?)null);
+        _accountService.GetById(AccountId, UserId).Returns(Task.FromResult((AccountDetailResponse?)null));
         var cardId = 1;
         var newName = "New Name";
 
         // Act
-        var result = _service.UpdateCardName(cardId, AccountId, UserId, newName);
+        var result = await _service.UpdateCardName(cardId, AccountId, UserId, newName);
 
         // Assert
         result.Should().BeFalse();
     }
 
     [Fact]
-    public void UpdateCardName_WithInvalidId_ReturnsFalse()
+    public async Task UpdateCardName_WithInvalidId_ReturnsFalse()
     {
         // Arrange
         SetupAccountExists();
         var cardId = 999;
         var newName = "New Name";
-        _repository.GetById(cardId, AccountId).Returns((Card?)null);
+        _repository.GetById(cardId, AccountId).Returns(Task.FromResult((Card?)null));
 
         // Act
-        var result = _service.UpdateCardName(cardId, AccountId, UserId, newName);
+        var result = await _service.UpdateCardName(cardId, AccountId, UserId, newName);
 
         // Assert
         result.Should().BeFalse();
@@ -546,18 +546,18 @@ public class CardServiceTests
     #region UpdateCreditCardDates Tests
 
     [Fact]
-    public void UpdateCreditCardDates_WithValidId_ReturnsTrue()
+    public async Task UpdateCreditCardDates_WithValidId_ReturnsTrue()
     {
         // Arrange
         SetupAccountExists();
         var cardId = 1;
         var creditCard = new CreditCard("****4444", DateTime.UtcNow.AddYears(5), CardNetwork.Mastercard, 1, AccountId, 10, 20, CardType.Credit, cardId);
         var request = new UpdateCreditCardRequest(15, 25);
-        _repository.GetById(cardId, AccountId).Returns(creditCard);
-        _repository.Update(Arg.Any<Card>(), AccountId).Returns(true);
+        _repository.GetById(cardId, AccountId).Returns(Task.FromResult((Card?)creditCard));
+        _repository.Update(Arg.Any<Card>(), AccountId).Returns(Task.FromResult(true));
 
         // Act
-        var result = _service.UpdateCreditCardDates(cardId, AccountId, UserId, request);
+        var result = await _service.UpdateCreditCardDates(cardId, AccountId, UserId, request);
 
         // Assert
         result.Should().BeTrue();
@@ -567,31 +567,31 @@ public class CardServiceTests
     }
 
     [Fact]
-    public void UpdateCreditCardDates_AccountNotFound_ReturnsFalse()
+    public async Task UpdateCreditCardDates_AccountNotFound_ReturnsFalse()
     {
         // Arrange
-        _accountService.GetById(AccountId, UserId).Returns((AccountDetailResponse?)null);
+        _accountService.GetById(AccountId, UserId).Returns(Task.FromResult((AccountDetailResponse?)null));
         var cardId = 1;
         var request = new UpdateCreditCardRequest(15, 25);
 
         // Act
-        var result = _service.UpdateCreditCardDates(cardId, AccountId, UserId, request);
+        var result = await _service.UpdateCreditCardDates(cardId, AccountId, UserId, request);
 
         // Assert
         result.Should().BeFalse();
     }
 
     [Fact]
-    public void UpdateCreditCardDates_WithInvalidId_ReturnsFalse()
+    public async Task UpdateCreditCardDates_WithInvalidId_ReturnsFalse()
     {
         // Arrange
         SetupAccountExists();
         var cardId = 999;
         var request = new UpdateCreditCardRequest(15, 25);
-        _repository.GetById(cardId, AccountId).Returns((Card?)null);
+        _repository.GetById(cardId, AccountId).Returns(Task.FromResult((Card?)null));
 
         // Act
-        var result = _service.UpdateCreditCardDates(cardId, AccountId, UserId, request);
+        var result = await _service.UpdateCreditCardDates(cardId, AccountId, UserId, request);
 
         // Assert
         result.Should().BeFalse();
@@ -599,17 +599,17 @@ public class CardServiceTests
     }
 
     [Fact]
-    public void UpdateCreditCardDates_WithDebitCard_ReturnsFalse()
+    public async Task UpdateCreditCardDates_WithDebitCard_ReturnsFalse()
     {
         // Arrange
         SetupAccountExists();
         var cardId = 1;
         var debitCard = new Card("****1111", DateTime.UtcNow.AddYears(5), CardNetwork.Visa, 1, AccountId, CardType.Debit, cardId);
         var request = new UpdateCreditCardRequest(15, 25);
-        _repository.GetById(cardId, AccountId).Returns(debitCard);
+        _repository.GetById(cardId, AccountId).Returns(Task.FromResult((Card?)debitCard));
 
         // Act
-        var result = _service.UpdateCreditCardDates(cardId, AccountId, UserId, request);
+        var result = await _service.UpdateCreditCardDates(cardId, AccountId, UserId, request);
 
         // Assert
         result.Should().BeFalse();
@@ -617,7 +617,7 @@ public class CardServiceTests
     }
 
     [Fact]
-    public void UpdateCreditCardDates_UpdatesTimestamp()
+    public async Task UpdateCreditCardDates_UpdatesTimestamp()
     {
         // Arrange
         SetupAccountExists();
@@ -625,11 +625,11 @@ public class CardServiceTests
         var creditCard = new CreditCard("****4444", DateTime.UtcNow.AddYears(5), CardNetwork.Mastercard, 1, AccountId, 10, 20, CardType.Credit, cardId);
         var originalUpdatedAt = creditCard.UpdatedAt;
         var request = new UpdateCreditCardRequest(15, 25);
-        _repository.GetById(cardId, AccountId).Returns(creditCard);
-        _repository.Update(Arg.Any<Card>(), AccountId).Returns(true);
+        _repository.GetById(cardId, AccountId).Returns(Task.FromResult((Card?)creditCard));
+        _repository.Update(Arg.Any<Card>(), AccountId).Returns(Task.FromResult(true));
 
         // Act
-        _service.UpdateCreditCardDates(cardId, AccountId, UserId, request);
+        await _service.UpdateCreditCardDates(cardId, AccountId, UserId, request);
 
         // Assert
         creditCard.UpdatedAt.Should().NotBe(originalUpdatedAt ?? DateTime.MinValue);
@@ -640,18 +640,18 @@ public class CardServiceTests
     #region Activate Tests
 
     [Fact]
-    public void Activate_WithValidId_ReturnsTrue()
+    public async Task Activate_WithValidId_ReturnsTrue()
     {
         // Arrange
         SetupAccountExists();
         var cardId = 1;
         var card = new Card("****1111", DateTime.UtcNow.AddYears(5), CardNetwork.Visa, 1, AccountId, CardType.Debit, cardId);
         card.SetIsActive(false);
-        _repository.GetById(cardId, AccountId).Returns(card);
-        _repository.Update(Arg.Any<Card>(), AccountId).Returns(true);
+        _repository.GetById(cardId, AccountId).Returns(Task.FromResult((Card?)card));
+        _repository.Update(Arg.Any<Card>(), AccountId).Returns(Task.FromResult(true));
 
         // Act
-        var result = _service.Activate(cardId, AccountId, UserId);
+        var result = await _service.Activate(cardId, AccountId, UserId);
 
         // Assert
         result.Should().BeTrue();
@@ -660,29 +660,29 @@ public class CardServiceTests
     }
 
     [Fact]
-    public void Activate_AccountNotFound_ReturnsFalse()
+    public async Task Activate_AccountNotFound_ReturnsFalse()
     {
         // Arrange
-        _accountService.GetById(AccountId, UserId).Returns((AccountDetailResponse?)null);
+        _accountService.GetById(AccountId, UserId).Returns(Task.FromResult((AccountDetailResponse?)null));
         var cardId = 1;
 
         // Act
-        var result = _service.Activate(cardId, AccountId, UserId);
+        var result = await _service.Activate(cardId, AccountId, UserId);
 
         // Assert
         result.Should().BeFalse();
     }
 
     [Fact]
-    public void Activate_WithInvalidId_ReturnsFalse()
+    public async Task Activate_WithInvalidId_ReturnsFalse()
     {
         // Arrange
         SetupAccountExists();
         var cardId = 999;
-        _repository.GetById(cardId, AccountId).Returns((Card?)null);
+        _repository.GetById(cardId, AccountId).Returns(Task.FromResult((Card?)null));
 
         // Act
-        var result = _service.Activate(cardId, AccountId, UserId);
+        var result = await _service.Activate(cardId, AccountId, UserId);
 
         // Assert
         result.Should().BeFalse();
@@ -690,7 +690,7 @@ public class CardServiceTests
     }
 
     [Fact]
-    public void Activate_UpdatesTimestamp()
+    public async Task Activate_UpdatesTimestamp()
     {
         // Arrange
         SetupAccountExists();
@@ -698,11 +698,11 @@ public class CardServiceTests
         var card = new Card("****1111", DateTime.UtcNow.AddYears(5), CardNetwork.Visa, 1, AccountId, CardType.Debit, cardId);
         card.SetIsActive(false);
         var originalUpdatedAt = card.UpdatedAt;
-        _repository.GetById(cardId, AccountId).Returns(card);
-        _repository.Update(Arg.Any<Card>(), AccountId).Returns(true);
+        _repository.GetById(cardId, AccountId).Returns(Task.FromResult((Card?)card));
+        _repository.Update(Arg.Any<Card>(), AccountId).Returns(Task.FromResult(true));
 
         // Act
-        _service.Activate(cardId, AccountId, UserId);
+        await _service.Activate(cardId, AccountId, UserId);
 
         // Assert
         card.UpdatedAt.Should().NotBe(originalUpdatedAt ?? DateTime.MinValue);
@@ -713,17 +713,17 @@ public class CardServiceTests
     #region Deactivate Tests
 
     [Fact]
-    public void Deactivate_WithValidId_ReturnsTrue()
+    public async Task Deactivate_WithValidId_ReturnsTrue()
     {
         // Arrange
         SetupAccountExists();
         var cardId = 1;
         var card = new Card("****1111", DateTime.UtcNow.AddYears(5), CardNetwork.Visa, 1, AccountId, CardType.Debit, cardId);
-        _repository.GetById(cardId, AccountId).Returns(card);
-        _repository.Update(Arg.Any<Card>(), AccountId).Returns(true);
+        _repository.GetById(cardId, AccountId).Returns(Task.FromResult((Card?)card));
+        _repository.Update(Arg.Any<Card>(), AccountId).Returns(Task.FromResult(true));
 
         // Act
-        var result = _service.Deactivate(cardId, AccountId, UserId);
+        var result = await _service.Deactivate(cardId, AccountId, UserId);
 
         // Assert
         result.Should().BeTrue();
@@ -732,29 +732,29 @@ public class CardServiceTests
     }
 
     [Fact]
-    public void Deactivate_AccountNotFound_ReturnsFalse()
+    public async Task Deactivate_AccountNotFound_ReturnsFalse()
     {
         // Arrange
-        _accountService.GetById(AccountId, UserId).Returns((AccountDetailResponse?)null);
+        _accountService.GetById(AccountId, UserId).Returns(Task.FromResult((AccountDetailResponse?)null));
         var cardId = 1;
 
         // Act
-        var result = _service.Deactivate(cardId, AccountId, UserId);
+        var result = await _service.Deactivate(cardId, AccountId, UserId);
 
         // Assert
         result.Should().BeFalse();
     }
 
     [Fact]
-    public void Deactivate_WithInvalidId_ReturnsFalse()
+    public async Task Deactivate_WithInvalidId_ReturnsFalse()
     {
         // Arrange
         SetupAccountExists();
         var cardId = 999;
-        _repository.GetById(cardId, AccountId).Returns((Card?)null);
+        _repository.GetById(cardId, AccountId).Returns(Task.FromResult((Card?)null));
 
         // Act
-        var result = _service.Deactivate(cardId, AccountId, UserId);
+        var result = await _service.Deactivate(cardId, AccountId, UserId);
 
         // Assert
         result.Should().BeFalse();
@@ -762,18 +762,18 @@ public class CardServiceTests
     }
 
     [Fact]
-    public void Deactivate_UpdatesTimestamp()
+    public async Task Deactivate_UpdatesTimestamp()
     {
         // Arrange
         SetupAccountExists();
         var cardId = 1;
         var card = new Card("****1111", DateTime.UtcNow.AddYears(5), CardNetwork.Visa, 1, AccountId, CardType.Debit, cardId);
         var originalUpdatedAt = card.UpdatedAt;
-        _repository.GetById(cardId, AccountId).Returns(card);
-        _repository.Update(Arg.Any<Card>(), AccountId).Returns(true);
+        _repository.GetById(cardId, AccountId).Returns(Task.FromResult((Card?)card));
+        _repository.Update(Arg.Any<Card>(), AccountId).Returns(Task.FromResult(true));
 
         // Act
-        _service.Deactivate(cardId, AccountId, UserId);
+        await _service.Deactivate(cardId, AccountId, UserId);
 
         // Assert
         card.UpdatedAt.Should().NotBe(originalUpdatedAt ?? DateTime.MinValue);
