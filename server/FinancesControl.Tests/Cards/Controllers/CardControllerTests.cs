@@ -63,17 +63,15 @@ public class CardControllerTests
     }
 
     [Fact]
-    public async Task CreateDebitCard_AccountNotFound_Returns404NotFound()
+    public async Task CreateDebitCard_AccountNotFound_ThrowsInvalidOperationException()
     {
         // Arrange
         var request = new CreateDebitCardRequest("4111111111111111", DateTime.UtcNow.AddYears(5), CardNetwork.Visa, 1);
         _cardService.When(x => x.CreateDebitCard(request, AccountId, UserId)).Do(x => throw new InvalidOperationException("Account not found"));
 
-        // Act
-        var result = await _controller.CreateDebitCard(AccountId, request);
-
-        // Assert
-        result.Should().BeOfType<NotFoundResult>();
+        // Act & Assert
+        var ex = await Assert.ThrowsAsync<InvalidOperationException>(() => _controller.CreateDebitCard(AccountId, request));
+        Assert.Equal("Account not found", ex.Message);
     }
 
     #endregion
@@ -116,17 +114,15 @@ public class CardControllerTests
     }
 
     [Fact]
-    public async Task CreateCreditCard_AccountNotFound_Returns404NotFound()
+    public async Task CreateCreditCard_AccountNotFound_ThrowsInvalidOperationException()
     {
         // Arrange
         var request = new CreateCreditCardRequest("5555555555554444", DateTime.UtcNow.AddYears(5), CardNetwork.Mastercard, 1, 10, 20);
         _cardService.When(x => x.CreateCreditCard(request, AccountId, UserId)).Do(x => throw new InvalidOperationException("Account not found"));
 
-        // Act
-        var result = await _controller.CreateCreditCard(AccountId, request);
-
-        // Assert
-        result.Should().BeOfType<NotFoundResult>();
+        // Act & Assert
+        var ex = await Assert.ThrowsAsync<InvalidOperationException>(() => _controller.CreateCreditCard(AccountId, request));
+        Assert.Equal("Account not found", ex.Message);
     }
 
     #endregion
