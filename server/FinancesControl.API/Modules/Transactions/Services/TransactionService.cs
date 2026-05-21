@@ -88,6 +88,9 @@ public class TransactionService : ITransactionService
 				if (card.AccountId != accountId)
 					throw new ArgumentException($"Card with ID {request.CardId} does not exist in this Account.", nameof(request.CardId));
 
+				if (!card.IsActive)
+					throw new ArgumentException($"Card with ID {request.CardId} is not active and cannot be used for transactions.", nameof(request.CardId));
+
 				if ((request.PaymentMethod == PaymentMethod.Credit && card.CardType != CardType.Credit) ||
 					(request.PaymentMethod == PaymentMethod.Debit && card.CardType != CardType.Debit))
 				{
