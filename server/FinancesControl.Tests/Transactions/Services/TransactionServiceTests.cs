@@ -206,6 +206,70 @@ public class TransactionServiceTests
         await Assert.ThrowsAsync<ArgumentException>(() => _service.CreateTransaction(request, AccountId, TestUserId));
     }
 
+    [Fact]
+    public async Task CreateTransaction_WithCreditPaymentAndInactiveCard_Throws()
+    {
+        var request = new CreateTransactionRequest { Amount = 100, PaymentMethod = PaymentMethod.Credit, CategoryId = 1, TransactionType = TransactionType.Expense, TransactionDate = DateTime.UtcNow, AccountId = AccountId, CardId = 1 };
+        var inactiveCard = new Card("1234567890123456", DateTime.Now.AddYears(2), CardNetwork.Visa, 1, AccountId, CardType.Credit, 1, "My Credit Card");
+        inactiveCard.SetIsActive(false);
+        
+        _accountRepository.GetById(AccountId, TestUserId).Returns(Task.FromResult((Account?)new Account(AccountId, "Test Account", "user123")));
+        _categoryRepository.GetById(1, TestUserId).Returns(Task.FromResult((TransactionCategory?)new TransactionCategory("Test Category", 1, TestUserId)));
+        _cardRepository.GetById(1, AccountId).Returns(Task.FromResult((Card?)inactiveCard));
+        
+        var ex = await Assert.ThrowsAsync<ArgumentException>(() => _service.CreateTransaction(request, AccountId, TestUserId));
+        ex.Message.Should().Contain("is not active and cannot be used for transactions");
+        ex.ParamName.Should().Be(nameof(request.CardId));
+    }
+
+    [Fact]
+    public async Task CreateTransaction_WithDebitPaymentAndInactiveCard_Throws()
+    {
+        var request = new CreateTransactionRequest { Amount = 100, PaymentMethod = PaymentMethod.Debit, CategoryId = 1, TransactionType = TransactionType.Expense, TransactionDate = DateTime.UtcNow, AccountId = AccountId, CardId = 2 };
+        var inactiveCard = new Card("9876543210987654", DateTime.Now.AddYears(2), CardNetwork.Mastercard, 1, AccountId, CardType.Debit, 2, "My Debit Card");
+        inactiveCard.SetIsActive(false);
+        
+        _accountRepository.GetById(AccountId, TestUserId).Returns(Task.FromResult((Account?)new Account(AccountId, "Test Account", "user123")));
+        _categoryRepository.GetById(1, TestUserId).Returns(Task.FromResult((TransactionCategory?)new TransactionCategory("Test Category", 1, TestUserId)));
+        _cardRepository.GetById(2, AccountId).Returns(Task.FromResult((Card?)inactiveCard));
+        
+        var ex = await Assert.ThrowsAsync<ArgumentException>(() => _service.CreateTransaction(request, AccountId, TestUserId));
+        ex.Message.Should().Contain("is not active and cannot be used for transactions");
+        ex.ParamName.Should().Be(nameof(request.CardId));
+    }
+
+    [Fact]
+    public async Task CreateTransaction_WithCreditPaymentAndActiveCard_Succeeds()
+    {
+        var request = new CreateTransactionRequest { Amount = 100, PaymentMethod = PaymentMethod.Credit, CategoryId = 1, TransactionType = TransactionType.Expense, TransactionDate = DateTime.UtcNow, AccountId = AccountId, CardId = 1 };
+        var activeCard = new Card("1234567890123456", DateTime.Now.AddYears(2), CardNetwork.Visa, 1, AccountId, CardType.Credit, 1, "My Credit Card");
+        
+        _accountRepository.GetById(AccountId, TestUserId).Returns(Task.FromResult((Account?)new Account(AccountId, "Test Account", "user123")));
+        _categoryRepository.GetById(1, TestUserId).Returns(Task.FromResult((TransactionCategory?)new TransactionCategory("Test Category", 1, TestUserId)));
+        _cardRepository.GetById(1, AccountId).Returns(Task.FromResult((Card?)activeCard));
+        _repository.Add(Arg.Any<CardTransaction>()).Returns(Task.FromResult(1L));
+        
+        var result = await _service.CreateTransaction(request, AccountId, TestUserId);
+        result.Should().Be(1);
+        _repository.Received(1).Add(Arg.Any<CardTransaction>());
+    }
+
+    [Fact]
+    public async Task CreateTransaction_WithDebitPaymentAndActiveCard_Succeeds()
+    {
+        var request = new CreateTransactionRequest { Amount = 100, PaymentMethod = PaymentMethod.Debit, CategoryId = 1, TransactionType = TransactionType.Expense, TransactionDate = DateTime.UtcNow, AccountId = AccountId, CardId = 2 };
+        var activeCard = new Card("9876543210987654", DateTime.Now.AddYears(2), CardNetwork.Mastercard, 1, AccountId, CardType.Debit, 2, "My Debit Card");
+        
+        _accountRepository.GetById(AccountId, TestUserId).Returns(Task.FromResult((Account?)new Account(AccountId, "Test Account", "user123")));
+        _categoryRepository.GetById(1, TestUserId).Returns(Task.FromResult((TransactionCategory?)new TransactionCategory("Test Category", 1, TestUserId)));
+        _cardRepository.GetById(2, AccountId).Returns(Task.FromResult((Card?)activeCard));
+        _repository.Add(Arg.Any<CardTransaction>()).Returns(Task.FromResult(1L));
+        
+        var result = await _service.CreateTransaction(request, AccountId, TestUserId);
+        result.Should().Be(1);
+        _repository.Received(1).Add(Arg.Any<CardTransaction>());
+    }
+
 
     [Fact]
     public async Task GetById_NotFound_ReturnsNull()
