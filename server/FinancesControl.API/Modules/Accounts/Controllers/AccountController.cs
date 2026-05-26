@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using FinancesControl.API.Accounts.DTOs;
 using FinancesControl.API.Accounts.Services;
+using FinancesControl.API.Common;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -29,19 +30,17 @@ namespace FinancesControl.API.Accounts.Controllers
         }
 
         [HttpGet("{accountId}")]
-        public async Task<ActionResult<AccountDetailResponse>> GetById(long accountId)
+        public async Task<ActionResult<SingleResponse<AccountDetailResponse>>> GetById(long accountId)
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userId))
                 return Unauthorized();
             var response = await _accountService.GetById(accountId, userId);
-            if (response == null)
-                return NotFound();
-            return Ok(response);
+            return StatusCode(response.HttpStatusCode, response);
         }
 
         [HttpGet]
-        public async Task<ActionResult<List<AccountListItemResponse>>> Get()
+        public async Task<ActionResult<PaginatedResponse<AccountListItemResponse>>> Get()
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userId))
