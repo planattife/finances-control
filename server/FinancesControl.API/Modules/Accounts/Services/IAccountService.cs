@@ -12,4 +12,5 @@ public interface IAccountService
     Task<bool> Update(long accountId, UpdateAccountRequest request, string userId);
     Task<bool> Activate(long accountId, string userId);
     Task<bool> Deactivate(long accountId, string userId);
+    Task<bool> ExistsAsync(long accountId, string userId);
 }

@@ -57,7 +57,7 @@ public class AccountService : IAccountService
             .ToList();
         
         response.Data = data;
-        response.SetPagination(1, 1, false, false);
+        response.SetPagination(data.Count, 1, 1, false, false);
 
         return response;
     }
@@ -84,5 +84,10 @@ public class AccountService : IAccountService
         if (account == null) return false;
         account.Deactivate();
         return await _repository.Update(account);
+    }
+
+    public async Task<bool> ExistsAsync(long accountId, string userId)
+    {
+        return await _repository.ExistsAsync(accountId, userId);
     }
 }

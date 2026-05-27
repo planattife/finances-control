@@ -61,6 +61,15 @@ public class AccountRepository : IAccountRepository
         return rowsAffected > 0;
     }
 
+    public async Task<bool> ExistsAsync(long accountId, string userId)
+    {
+        using var connection = _connectionFactory.CreateConnection();
+        var query = new AccountExistsQuery();
+        var (sql, parameters) = query.Build(accountId, userId);
+        
+        return await connection.QuerySingleAsync<bool>(sql, parameters);
+    }
+
     private static Account MapToAccount(dynamic row)
     {
         return Account.FromDatabase(
