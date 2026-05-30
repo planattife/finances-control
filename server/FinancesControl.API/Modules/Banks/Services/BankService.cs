@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using FinancesControl.API.Banks.DTOs;
 using FinancesControl.API.Banks.Repository;
+using FinancesControl.API.Common;
 using FinancesControl.API.Banks;
 
 namespace FinancesControl.API.Banks.Services;
@@ -28,11 +29,19 @@ public class BankService : IBankService
         return await _repository.Add(bank);
     }
 
-    public async Task<BankDetailResponse?> GetById(long bankId, string userId)
+    public async Task<SingleResponse<BankDetailResponse>> GetById(long bankId, string userId)
     {
+        var response = new SingleResponse<BankDetailResponse>();
+
         var bank = await _repository.GetById(bankId, userId);
-        if (bank == null) return null;
-        return new BankDetailResponse(
+        if (bank == null)
+        {
+            response.AddError("Bank not found.");
+            response.SetHttpStatusCode(404);
+            return response;
+        }
+
+        response.Data = new BankDetailResponse(
             bank.Id,
             bank.Name,
             bank.AccountType,
@@ -40,14 +49,23 @@ public class BankService : IBankService
             bank.CreatedAt,
             bank.UpdatedAt
         );
+        response.SetHttpStatusCode(200);
+        return response;
     }
 
-    public async Task<List<BankListItemResponse>> GetAll(string userId)
+    public async Task<PaginatedResponse<BankListItemResponse>> GetAll(string userId)
     {
+        var response = new PaginatedResponse<BankListItemResponse>();
+
         var banks = await _repository.GetAll(userId);
-        return banks
+        var data = banks
             .Select(b => new BankListItemResponse(b.Id, b.Name, b.AccountType))
             .ToList();
+        
+        response.Data = data;
+        response.SetPagination(data.Count, 1, 1, false, false);
+        response.SetHttpStatusCode(200);
+        return response;
     }
 
     public async Task<bool> Update(long bankId, UpdateBankRequest request, string userId)

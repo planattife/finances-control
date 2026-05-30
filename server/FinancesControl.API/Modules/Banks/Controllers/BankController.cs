@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using FinancesControl.API.Banks.DTOs;
 using FinancesControl.API.Banks.Services;
+using FinancesControl.API.Common;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -32,17 +33,15 @@ namespace FinancesControl.API.Banks.Controllers
         }
 
         [HttpGet("{bankId}")]
-        public async Task<ActionResult<BankDetailResponse>> GetById(long bankId)
+        public async Task<ActionResult<SingleResponse<BankDetailResponse>>> GetById(long bankId)
         {
             var userId = GetCurrentUserId();
             var response = await _bankService.GetById(bankId, userId);
-            if (response == null)
-                return NotFound();
-            return Ok(response);
+            return StatusCode(response.HttpStatusCode, response);
         }
 
         [HttpGet]
-        public async Task<ActionResult<List<BankListItemResponse>>> Get()
+        public async Task<ActionResult<PaginatedResponse<BankListItemResponse>>> Get()
         {
             var userId = GetCurrentUserId();
             var response = await _bankService.GetAll(userId);
