@@ -6,6 +6,7 @@ using FinancesControl.API.Models;
 using FinancesControl.API.TransactionCategories.Repository;
 using FinancesControl.API.Transactions.Repository;
 using FinancesControl.API.Transactions.DTOs;
+using FinancesControl.API.Common;
 
 namespace FinancesControl.API.Transactions.Services;
 
@@ -116,19 +117,29 @@ public class TransactionService : ITransactionService
             throw new ArgumentException($"Invalid Account.");
     }
 
-    public async Task<TransactionDetailResponse?> GetById(long transactionId, long accountId, string? userId)
+public async Task<SingleResponse<TransactionDetailResponse>> GetById(long transactionId, long accountId, string? userId)
 	{
+		var response = new SingleResponse<TransactionDetailResponse>();
+
 		try
 		{
 			await ValidateAccount(accountId, userId);
 		}
-		catch (Exception)
+		catch (Exception ex)
 		{
-			return null;
+			response.AddError(ex.Message);
+			response.SetHttpStatusCode(404);
+			return response;
 		}
 
 		var t = await _repository.GetById(transactionId, accountId);
-		if (t == null) return null;
+		if (t == null)
+		{
+			response.AddError("Transaction not found.");
+			response.SetHttpStatusCode(404);
+			return response;
+		}
+
 		var detail = new TransactionDetailResponse
 		{
 			Id = t.Id,
@@ -146,22 +157,29 @@ public class TransactionService : ITransactionService
 			detail.CardId = ct.CardId;
 		if (t is GeneralTransaction gt)
 			detail.BankId = gt.BankId;
-		return detail;
+
+		response.Data = detail;
+		response.SetHttpStatusCode(200);
+		return response;
 	}
 
-	public async Task<List<TransactionListItemResponse>> GetAll(long accountId, string? userId)
+	public async Task<PaginatedResponse<TransactionListItemResponse>> GetAll(long accountId, string? userId)
 	{
+		var response = new PaginatedResponse<TransactionListItemResponse>();
+
 		try
 		{
 			await ValidateAccount(accountId, userId);
 		}
-		catch (Exception)
+		catch (Exception ex)
 		{
-			return new List<TransactionListItemResponse>();
+			response.AddError(ex.Message);
+			response.SetHttpStatusCode(404);
+			return response;
 		}
 
 		var transactions = await _repository.GetAll(accountId);
-		return transactions
+		var data = transactions
 			.Select(t => new TransactionListItemResponse
 			{
 				Id = t.Id,
@@ -173,6 +191,11 @@ public class TransactionService : ITransactionService
 				Status = t.IsActive ? "Active" : "Inactive"
 			})
 			.ToList();
+
+		response.Data = data;
+		response.SetPagination(data.Count, 1, 1, false, false);
+		response.SetHttpStatusCode(200);
+		return response;
 	}
 
 	public async Task<bool> Delete(long transactionId, long accountId, string? userId)
