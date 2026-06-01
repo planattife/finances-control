@@ -205,4 +205,9 @@ public class CardService : ICardService
         card.SetIsActive(false);
         return await _repository.Update(card, accountId);
     }
+
+    public async Task<bool> ExistsAsync(long cardId, long accountId)
+    {
+        return await _repository.ExistsAsync(cardId, accountId);
+    }
 }

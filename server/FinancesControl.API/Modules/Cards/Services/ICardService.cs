@@ -14,4 +14,5 @@ public interface ICardService
     Task<bool> UpdateCreditCardDates(long cardId, long accountId, string userId, UpdateCreditCardRequest request);
     Task<bool> Activate(long cardId, long accountId, string userId);
     Task<bool> Deactivate(long cardId, long accountId, string userId);
+    Task<bool> ExistsAsync(long cardId, long accountId);
 }

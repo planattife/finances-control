@@ -12,4 +12,5 @@ public interface IBankService
     Task<bool> Activate(long bankId, string userId);
     Task<bool> Deactivate(long bankId, string userId);
     Task<bool> ValidateBankForUser(long bankId, string userId);
+    Task<bool> ExistsAsync(long bankId, string userId);
 }

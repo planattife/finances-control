@@ -8,4 +8,5 @@ public interface ITransactionCategoryRepository
     Task<TransactionCategory?> GetById(long categoryId, string? userId);
     Task<List<TransactionCategory>> GetAll(string? userId);
     Task<bool> Update(TransactionCategory category);
+    Task<bool> ExistsAsync(long categoryId);
 } 

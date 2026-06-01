@@ -12,4 +12,5 @@ public interface ITransactionService
 	Task<PaginatedResponse<TransactionListItemResponse>> GetAll(long accountId, string? userId);
 	Task<bool> Delete(long transactionId, long accountId, string? userId);
 	Task<bool> Update(long transactionId, long accountId, UpdateTransactionRequest request, string? userId);
+	Task<bool> ExistsAsync(long transactionId, long accountId);
 }

@@ -68,6 +68,15 @@ public class TransactionRepository : ITransactionRepository
 		return rowsAffected > 0;
 	}
 
+	public async Task<bool> ExistsAsync(long transactionId, long accountId)
+	{
+		using var connection = _connectionFactory.CreateConnection();
+		var query = new TransactionExistsQuery();
+		var (sql, parameters) = query.Build(transactionId, accountId);
+		
+		return await connection.QuerySingleOrDefaultAsync<bool>(sql, parameters);
+	}
+
 	private static Transaction MapToTransaction(dynamic row)
 	{
 		var id = (long)row.Id;

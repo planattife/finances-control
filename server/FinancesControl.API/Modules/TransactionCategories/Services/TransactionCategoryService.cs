@@ -93,4 +93,9 @@ public class TransactionCategoryService : ITransactionCategoryService
         cat.Deactivate();
         return await _repository.Update(cat);
     }
+
+    public async Task<bool> ExistsAsync(long categoryId)
+    {
+        return await _repository.ExistsAsync(categoryId);
+    }
 }

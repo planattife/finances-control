@@ -11,4 +11,5 @@ public interface ITransactionCategoryService
     Task<bool> Rename(long categoryId, RenameTransactionCategoryRequest request, string? userId);
     Task<bool> Activate(long categoryId, string? userId);
     Task<bool> Deactivate(long categoryId, string? userId);
+    Task<bool> ExistsAsync(long categoryId);
 }

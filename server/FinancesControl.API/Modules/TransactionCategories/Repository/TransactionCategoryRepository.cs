@@ -61,6 +61,15 @@ public class TransactionCategoryRepository : ITransactionCategoryRepository
         return rowsAffected > 0;
     }
 
+    public async Task<bool> ExistsAsync(long categoryId)
+    {
+        using var connection = _connectionFactory.CreateConnection();
+        var query = new TransactionCategoryExistsQuery();
+        var (sql, parameters) = query.Build(categoryId);
+        
+        return await connection.QuerySingleOrDefaultAsync<bool>(sql, parameters);
+    }
+
     private static TransactionCategory MapToTransactionCategory(dynamic row)
     {
         return TransactionCategory.FromDatabase(

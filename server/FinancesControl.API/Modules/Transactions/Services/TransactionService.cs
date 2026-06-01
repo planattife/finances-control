@@ -1,35 +1,36 @@
 using FinancesControl.API.Accounts.Repository;
-using FinancesControl.API.Banks.Repository;
-using FinancesControl.API.Cards.Repository;
+using FinancesControl.API.Banks.Services;
+using FinancesControl.API.Cards.Services;
 using FinancesControl.API.Enums;
 using FinancesControl.API.Models;
-using FinancesControl.API.TransactionCategories.Repository;
+using FinancesControl.API.TransactionCategories.Services;
 using FinancesControl.API.Transactions.Repository;
 using FinancesControl.API.Transactions.DTOs;
 using FinancesControl.API.Common;
+using FinancesControl.API.Accounts.Services;
 
 namespace FinancesControl.API.Transactions.Services;
 
 public class TransactionService : ITransactionService
 {
 	private readonly ITransactionRepository _repository;
-	private readonly IAccountRepository _accountRepository;
-	private readonly ITransactionCategoryRepository _categoryRepository;
-	private readonly ICardRepository _cardRepository;
-	private readonly IBankRepository _bankRepository;
+	private readonly IAccountService _accountService;
+	private readonly ITransactionCategoryService _categoryService;
+	private readonly ICardService _cardService;
+	private readonly IBankService _bankService;
 
 	public TransactionService(
 		ITransactionRepository repository,
-		IAccountRepository accountRepository,
-		ITransactionCategoryRepository categoryRepository,
-		ICardRepository cardRepository,
-		IBankRepository bankRepository)
+		IAccountService accountService,
+		ITransactionCategoryService categoryService,
+		ICardService cardService,
+		IBankService bankService)
 	{
 		_repository = repository;
-		_accountRepository = accountRepository;
-		_categoryRepository = categoryRepository;
-		_cardRepository = cardRepository;
-		_bankRepository = bankRepository;
+		_accountService = accountService;
+		_categoryService = categoryService;
+		_cardService = cardService;
+		_bankService = bankService;
 	}
 
 	public async Task<long> CreateTransaction(CreateTransactionRequest request, long accountId, string? userId)
@@ -73,7 +74,7 @@ public class TransactionService : ITransactionService
         await ValidateAccount(accountId, userId);
 
         // Validate Category exists
-        if (await _categoryRepository.GetById(request.CategoryId, userId) == null)
+        if (!await _categoryService.ExistsAsync(request.CategoryId))
             throw new ArgumentException($"Transaction category with ID {request.CategoryId} does not exist.", nameof(request.CategoryId));
 
         // Validate Card exists (if applicable)
@@ -82,22 +83,18 @@ public class TransactionService : ITransactionService
             if (request.CardId == null || request.CardId <= 0)
                 throw new ArgumentException("Card ID must be provided for credit/debit card transactions.", nameof(request.CardId));
 
-			var card = await _cardRepository.GetById(request.CardId.Value, accountId);
-            if (card == null) {
+			var cardResponse = await _cardService.GetById(request.CardId.Value, accountId, userId);
+            if (cardResponse.Data == null)
                 throw new ArgumentException($"Card with ID {request.CardId} does not exist.", nameof(request.CardId));
-			} else {
-				if (card.AccountId != accountId)
-					throw new ArgumentException($"Card with ID {request.CardId} does not exist in this Account.", nameof(request.CardId));
 
-				if (!card.IsActive)
-					throw new ArgumentException($"Card with ID {request.CardId} is not active and cannot be used for transactions.", nameof(request.CardId));
+            if (cardResponse.Data.Status == "Inactive")
+                throw new ArgumentException($"Card with ID {request.CardId} is not active and cannot be used for transactions.", nameof(request.CardId));
 
-				if ((request.PaymentMethod == PaymentMethod.Credit && card.CardType != CardType.Credit) ||
-					(request.PaymentMethod == PaymentMethod.Debit && card.CardType != CardType.Debit))
-				{
-					throw new ArgumentException($"Card with ID {request.CardId} does not match the specified payment method.", nameof(request.CardId));
-				}
-			}
+            if ((request.PaymentMethod == PaymentMethod.Credit && cardResponse.Data.CardType != CardType.Credit) ||
+                (request.PaymentMethod == PaymentMethod.Debit && cardResponse.Data.CardType != CardType.Debit))
+            {
+                throw new ArgumentException($"Card with ID {request.CardId} does not match the specified payment method.", nameof(request.CardId));
+            }
         }
 
         // Validate Bank exists (if applicable)
@@ -106,18 +103,18 @@ public class TransactionService : ITransactionService
             if (request.BankId == null || request.BankId <= 0)
                 throw new ArgumentException("Bank ID must be provided for pix/bank slip/bank transfer transactions.", nameof(request.BankId));
 
-            if (await _bankRepository.GetById(request.BankId.Value, userId) == null)
+            if (!await _bankService.ExistsAsync(request.BankId.Value, userId))
                 throw new ArgumentException($"Bank with ID {request.BankId} does not exist.", nameof(request.BankId));
         }
     }
 
     private async Task ValidateAccount(long accountId, string? userId)
     {
-        if (userId != null && await _accountRepository.GetById(accountId, userId) == null)
+        if (userId != null && !await _accountService.ExistsAsync(accountId, userId))
             throw new ArgumentException($"Invalid Account.");
     }
 
-public async Task<SingleResponse<TransactionDetailResponse>> GetById(long transactionId, long accountId, string? userId)
+	public async Task<SingleResponse<TransactionDetailResponse>> GetById(long transactionId, long accountId, string? userId)
 	{
 		var response = new SingleResponse<TransactionDetailResponse>();
 
@@ -236,7 +233,7 @@ public async Task<SingleResponse<TransactionDetailResponse>> GetById(long transa
 
 		if (request.NewCategoryId.HasValue && request.NewCategoryId > 0)
 		{
-			if (await _categoryRepository.GetById(request.NewCategoryId.Value, userId) == null)
+			if (!await _categoryService.ExistsAsync(request.NewCategoryId.Value))
 				throw new ArgumentException($"Transaction category with ID {request.NewCategoryId.Value} does not exist.", nameof(request.NewCategoryId));
 			transaction.ChangeCategory(request.NewCategoryId.Value);
 		}
@@ -247,5 +244,10 @@ public async Task<SingleResponse<TransactionDetailResponse>> GetById(long transa
 		}
 
 		return await _repository.Update(transaction);
+	}
+
+	public async Task<bool> ExistsAsync(long transactionId, long accountId)
+	{
+		return await _repository.ExistsAsync(transactionId, accountId);
 	}
 }

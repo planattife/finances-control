@@ -101,4 +101,9 @@ public class BankService : IBankService
         var bank = await _repository.GetById(bankId, userId);
         return bank != null && bank.IsActive;
     }
+
+    public async Task<bool> ExistsAsync(long bankId, string userId)
+    {
+        return await _repository.ExistsAsync(bankId, userId);
+    }
 }

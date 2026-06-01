@@ -122,6 +122,15 @@ public class CardRepository : ICardRepository
         }
     }
 
+    public async Task<bool> ExistsAsync(long cardId, long accountId)
+    {
+        using var connection = _connectionFactory.CreateConnection();
+        var query = new CardExistsQuery();
+        var (sql, parameters) = query.Build(cardId, accountId);
+        
+        return await connection.QuerySingleOrDefaultAsync<bool>(sql, parameters);
+    }
+
     private static Card MapToCard(dynamic row)
     {
         return Card.FromDatabase(
