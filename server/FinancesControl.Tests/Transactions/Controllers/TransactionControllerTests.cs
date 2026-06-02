@@ -7,6 +7,7 @@ using FluentAssertions;
 using FinancesControl.API.Transactions.Controllers;
 using FinancesControl.API.Transactions.Services;
 using FinancesControl.API.Transactions.DTOs;
+using FinancesControl.API.Common;
 using System.Collections.Generic;
 
 namespace FinancesControl.Tests.Transactions.Controllers;
@@ -136,20 +137,28 @@ public class TransactionControllerTests
             CreatedAt = DateTime.UtcNow, 
             UpdatedAt = DateTime.UtcNow 
         };
-        _service.GetById(1, AccountId, TestUserId).Returns(detail);
+        var response = new SingleResponse<TransactionDetailResponse> { Data = detail };
+        response.SetHttpStatusCode(200);
+        _service.GetById(1, AccountId, TestUserId).Returns(Task.FromResult(response));
 
         var result = await _controller.GetById(AccountId, 1);
-        result.Result.Should().BeOfType<OkObjectResult>();
-        var ok = result.Result as OkObjectResult;
-        ok.Value.Should().Be(detail);
+        result.Result.Should().BeOfType<ObjectResult>();
+        var ok = result.Result as ObjectResult;
+        ok.StatusCode.Should().Be(200);
+        ok.Value.Should().Be(response);
     }
 
     [Fact]
     public async Task GetById_InvalidId_ReturnsNotFound()
     {
-        _service.GetById(999, AccountId, TestUserId).Returns((TransactionDetailResponse?)null);
+        var response = new SingleResponse<TransactionDetailResponse>();
+        response.SetHttpStatusCode(404);
+        _service.GetById(999, AccountId, TestUserId).Returns(Task.FromResult(response));
         var result = await _controller.GetById(AccountId, 999);
-        result.Result.Should().BeOfType<NotFoundResult>();
+        result.Result.Should().BeOfType<ObjectResult>();
+        var notFound = result.Result as ObjectResult;
+        notFound.StatusCode.Should().Be(404);
+        notFound.Value.Should().Be(response);
     }
 
     [Fact]
@@ -160,22 +169,29 @@ public class TransactionControllerTests
             new() { Id = 1, Amount = 100, PaymentMethod = "Cash", TransactionType = "Expense", TransactionDate = DateTime.UtcNow, CategoryId = 1, Status = "Active" },
             new() { Id = 2, Amount = 200, PaymentMethod = "Credit", TransactionType = "Income", TransactionDate = DateTime.UtcNow, CategoryId = 2, Status = "Inactive" }
         };
-        _service.GetAll(AccountId, TestUserId).Returns(list);
+        var response = new PaginatedResponse<TransactionListItemResponse> { Data = list };
+        response.SetHttpStatusCode(200);
+        _service.GetAll(AccountId, TestUserId).Returns(Task.FromResult(response));
         var result = await _controller.Get(AccountId);
         var ok = result.Result as OkObjectResult;
-        ok.Value.Should().Be(list);
+        var returnedResponse = ok.Value as PaginatedResponse<TransactionListItemResponse>;
+        returnedResponse.Data.Should().HaveCount(2);
+        returnedResponse.Data[0].Id.Should().Be(1);
+        returnedResponse.Data[1].Id.Should().Be(2);
     }
 
     [Fact]
     public async Task Get_WhenEmpty_ReturnsEmptyList()
     {
-        _service.GetAll(AccountId, TestUserId).Returns(new List<TransactionListItemResponse>());
+        var response = new PaginatedResponse<TransactionListItemResponse> { Data = new List<TransactionListItemResponse>() };
+        response.SetHttpStatusCode(200);
+        _service.GetAll(AccountId, TestUserId).Returns(Task.FromResult(response));
         var result = await _controller.Get(AccountId);
         var ok = result.Result as OkObjectResult;
         ok.Should().NotBeNull();
-        var list = ok.Value as IEnumerable<TransactionListItemResponse>;
-        list.Should().NotBeNull();
-        list.Should().BeEmpty();
+        var returnedResponse = ok.Value as PaginatedResponse<TransactionListItemResponse>;
+        returnedResponse.Should().NotBeNull();
+        returnedResponse.Data.Should().BeEmpty();
     }
 
     [Fact]
@@ -304,12 +320,14 @@ public class TransactionControllerTests
             UpdatedAt = DateTime.UtcNow,
             Description = "Test transaction"
         };
-        _service.GetById(1, AccountId, TestUserId).Returns(detail);
+        var serviceResponse = new SingleResponse<TransactionDetailResponse> { Data = detail };
+        serviceResponse.SetHttpStatusCode(200);
+        _service.GetById(1, AccountId, TestUserId).Returns(Task.FromResult(serviceResponse));
 
         var result = await _controller.GetById(AccountId, 1);
-        result.Result.Should().BeOfType<OkObjectResult>();
-        var ok = result.Result as OkObjectResult;
-        var response = ok.Value as TransactionDetailResponse;
-        response.Description.Should().Be("Test transaction");
+        result.Result.Should().BeOfType<ObjectResult>();
+        var ok = result.Result as ObjectResult;
+        var response = ok.Value as SingleResponse<TransactionDetailResponse>;
+        response.Data.Description.Should().Be("Test transaction");
     }
 }

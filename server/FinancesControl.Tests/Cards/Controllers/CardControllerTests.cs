@@ -6,6 +6,7 @@ using FluentAssertions;
 using FinancesControl.API.Cards.Controllers;
 using FinancesControl.API.Cards.Services;
 using FinancesControl.API.Cards.DTOs;
+using FinancesControl.API.Common;
 using FinancesControl.API.Enums;
 using System.Security.Claims;
 
@@ -134,7 +135,7 @@ public class CardControllerTests
     {
         // Arrange
         var cardId = 1;
-        var response = new CardDetailResponse(
+        var detail = new CardDetailResponse(
             cardId,
             "****1111",
             CardType.Debit,
@@ -146,16 +147,18 @@ public class CardControllerTests
             DateTime.UtcNow,
             null
         );
-        _cardService.GetById(cardId, AccountId, UserId).Returns(response);
+        var response = new SingleResponse<CardDetailResponse> { Data = detail };
+        response.SetHttpStatusCode(200);
+        _cardService.GetById(cardId, AccountId, UserId).Returns(Task.FromResult(response));
 
         // Act
         var result = await _controller.GetById(AccountId, cardId);
 
         // Assert
-        result.Result.Should().BeOfType<OkObjectResult>();
-        var okResult = result.Result as OkObjectResult;
-        okResult.StatusCode.Should().Be(200);
-        okResult.Value.Should().Be(response);
+        result.Result.Should().BeOfType<ObjectResult>();
+        var objectResult = result.Result as ObjectResult;
+        objectResult.StatusCode.Should().Be(200);
+        objectResult.Value.Should().Be(response);
         _cardService.Received(1).GetById(cardId, AccountId, UserId);
     }
 
@@ -164,13 +167,19 @@ public class CardControllerTests
     {
         // Arrange
         var cardId = 999;
-        _cardService.GetById(cardId, AccountId, UserId).Returns((CardDetailResponse?)null);
+        var response = new SingleResponse<CardDetailResponse>();
+        response.AddError("Card not found.");
+        response.SetHttpStatusCode(404);
+        _cardService.GetById(cardId, AccountId, UserId).Returns(Task.FromResult(response));
 
         // Act
         var result = await _controller.GetById(AccountId, cardId);
 
         // Assert
-        result.Result.Should().BeOfType<NotFoundResult>();
+        result.Result.Should().BeOfType<ObjectResult>();
+        var objectResult = result.Result as ObjectResult;
+        objectResult.StatusCode.Should().Be(404);
+        objectResult.Value.Should().Be(response);
         _cardService.Received(1).GetById(cardId, AccountId, UserId);
     }
 
@@ -185,7 +194,7 @@ public class CardControllerTests
         var cardId = 1;
         var nextClosing = DateTime.UtcNow.AddDays(5);
         var nextDue = DateTime.UtcNow.AddDays(15);
-        var response = new CreditCardDetailResponse(
+        var detail = new CreditCardDetailResponse(
             cardId,
             "****4444",
             CardType.Credit,
@@ -199,16 +208,18 @@ public class CardControllerTests
             DateTime.UtcNow,
             null
         );
-        _cardService.GetCreditById(cardId, AccountId, UserId).Returns(response);
+        var response = new SingleResponse<CreditCardDetailResponse> { Data = detail };
+        response.SetHttpStatusCode(200);
+        _cardService.GetCreditById(cardId, AccountId, UserId).Returns(Task.FromResult(response));
 
         // Act
         var result = await _controller.GetCreditById(AccountId, cardId);
 
         // Assert
-        result.Result.Should().BeOfType<OkObjectResult>();
-        var okResult = result.Result as OkObjectResult;
-        okResult.StatusCode.Should().Be(200);
-        okResult.Value.Should().Be(response);
+        result.Result.Should().BeOfType<ObjectResult>();
+        var objectResult = result.Result as ObjectResult;
+        objectResult.StatusCode.Should().Be(200);
+        objectResult.Value.Should().Be(response);
         _cardService.Received(1).GetCreditById(cardId, AccountId, UserId);
     }
 
@@ -217,13 +228,19 @@ public class CardControllerTests
     {
         // Arrange
         var cardId = 999;
-        _cardService.GetCreditById(cardId, AccountId, UserId).Returns((CreditCardDetailResponse?)null);
+        var response = new SingleResponse<CreditCardDetailResponse>();
+        response.AddError("Credit card not found.");
+        response.SetHttpStatusCode(404);
+        _cardService.GetCreditById(cardId, AccountId, UserId).Returns(Task.FromResult(response));
 
         // Act
         var result = await _controller.GetCreditById(AccountId, cardId);
 
         // Assert
-        result.Result.Should().BeOfType<NotFoundResult>();
+        result.Result.Should().BeOfType<ObjectResult>();
+        var objectResult = result.Result as ObjectResult;
+        objectResult.StatusCode.Should().Be(404);
+        objectResult.Value.Should().Be(response);
         _cardService.Received(1).GetCreditById(cardId, AccountId, UserId);
     }
 
@@ -240,7 +257,10 @@ public class CardControllerTests
             new(1, "****1111", CardType.Debit, CardNetwork.Visa, 1, "Debit"),
             new(2, "****4444", CardType.Credit, CardNetwork.Mastercard, 1, "Credit")
         };
-        _cardService.GetAll(AccountId, UserId).Returns(cards);
+        var response = new PaginatedResponse<CardListItemResponse> { Data = cards };
+        response.SetPagination(cards.Count, 1, 1, false, false);
+        response.SetHttpStatusCode(200);
+        _cardService.GetAll(AccountId, UserId).Returns(Task.FromResult(response));
 
         // Act
         var result = await _controller.Get(AccountId);
@@ -249,12 +269,12 @@ public class CardControllerTests
         result.Result.Should().BeOfType<OkObjectResult>();
         var okResult = result.Result as OkObjectResult;
         okResult.StatusCode.Should().Be(200);
-        var returnedList = okResult.Value as List<CardListItemResponse>;
-        returnedList.Should().HaveCount(2);
-        returnedList[0].Id.Should().Be(1);
-        returnedList[0].CardType.Should().Be(CardType.Debit);
-        returnedList[1].Id.Should().Be(2);
-        returnedList[1].CardType.Should().Be(CardType.Credit);
+        var returnedResponse = okResult.Value as PaginatedResponse<CardListItemResponse>;
+        returnedResponse.Data.Should().HaveCount(2);
+        returnedResponse.Data[0].Id.Should().Be(1);
+        returnedResponse.Data[0].CardType.Should().Be(CardType.Debit);
+        returnedResponse.Data[1].Id.Should().Be(2);
+        returnedResponse.Data[1].CardType.Should().Be(CardType.Credit);
         _cardService.Received(1).GetAll(AccountId, UserId);
     }
 
@@ -263,7 +283,10 @@ public class CardControllerTests
     {
         // Arrange
         var emptyList = new List<CardListItemResponse>();
-        _cardService.GetAll(AccountId, UserId).Returns(emptyList);
+        var response = new PaginatedResponse<CardListItemResponse> { Data = emptyList };
+        response.SetPagination(0, 1, 1, false, false);
+        response.SetHttpStatusCode(200);
+        _cardService.GetAll(AccountId, UserId).Returns(Task.FromResult(response));
 
         // Act
         var result = await _controller.Get(AccountId);
@@ -272,8 +295,8 @@ public class CardControllerTests
         result.Result.Should().BeOfType<OkObjectResult>();
         var okResult = result.Result as OkObjectResult;
         okResult.StatusCode.Should().Be(200);
-        var returnedList = okResult.Value as List<CardListItemResponse>;
-        returnedList.Should().BeEmpty();
+        var returnedResponse = okResult.Value as PaginatedResponse<CardListItemResponse>;
+        returnedResponse.Data.Should().BeEmpty();
     }
 
     #endregion

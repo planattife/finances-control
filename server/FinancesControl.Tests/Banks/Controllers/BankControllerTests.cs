@@ -8,6 +8,7 @@ using FinancesControl.API.Banks.Controllers;
 using FinancesControl.API.Banks.Services;
 using FinancesControl.API.Banks.DTOs;
 using FinancesControl.API.Enums;
+using FinancesControl.API.Common;
 using System.Security.Claims;
 
 namespace FinancesControl.Tests.Banks.Controllers;
@@ -32,7 +33,7 @@ public class BankControllerTests
         // Arrange
         var request = new CreateBankRequest("Test Bank", BankAccountType.Check);
         long bankId = 1;
-        _bankService.CreateBank(request).Returns(bankId);
+        _bankService.CreateBank(request).Returns(Task.FromResult(bankId));
 
         // Act
         var result = await _controller.CreateBank(request);
@@ -40,8 +41,8 @@ public class BankControllerTests
         // Assert
         result.Should().BeOfType<CreatedAtActionResult>();
         var createdResult = result as CreatedAtActionResult;
-        createdResult.ActionName.Should().Be(nameof(_controller.GetById));
-        createdResult.RouteValues["bankId"].Should().Be(bankId);
+        createdResult!.ActionName.Should().Be(nameof(_controller.GetById));
+        createdResult.RouteValues!["bankId"].Should().Be(bankId);
         _bankService.Received(1).CreateBank(request);
     }
 
@@ -51,7 +52,7 @@ public class BankControllerTests
         // Arrange
         var request = new CreateBankRequest("Savings Bank", BankAccountType.Savings);
         var bankId = 1;
-        _bankService.CreateBank(request).Returns(bankId);
+        _bankService.CreateBank(request).Returns(Task.FromResult((long)bankId));
 
         // Act
         var result = await _controller.CreateBank(request);
@@ -71,24 +72,28 @@ public class BankControllerTests
         // Arrange
         var bankId = 1;
         var userId = "test-user-id";
-        var response = new BankDetailResponse(
-            bankId,
-            "Test Bank",
-            BankAccountType.Check,
-            "Active",
-            DateTime.UtcNow,
-            null
-        );
-        _bankService.GetById(bankId, userId).Returns(response);
+        var response = new SingleResponse<BankDetailResponse>
+        {
+            Data = new BankDetailResponse(
+                bankId,
+                "Test Bank",
+                BankAccountType.Check,
+                "Active",
+                DateTime.UtcNow,
+                null
+            )
+        };
+        response.SetHttpStatusCode(200);
+        _bankService.GetById(bankId, userId).Returns(Task.FromResult(response));
 
         // Act
         var result = await _controller.GetById(bankId);
 
         // Assert
-        result.Result.Should().BeOfType<OkObjectResult>();
-        var okResult = result.Result as OkObjectResult;
-        okResult.StatusCode.Should().Be(200);
-        okResult.Value.Should().Be(response);
+        result.Result.Should().BeOfType<ObjectResult>();
+        var objectResult = result.Result as ObjectResult;
+        objectResult.StatusCode.Should().Be(200);
+        objectResult.Value.Should().Be(response);
         _bankService.Received(1).GetById(bankId, userId);
     }
 
@@ -98,13 +103,19 @@ public class BankControllerTests
         // Arrange
         var bankId = 999;
         var userId = "test-user-id";
-        _bankService.GetById(bankId, userId).Returns((BankDetailResponse?)null);
+        var response = new SingleResponse<BankDetailResponse>();
+        response.Data = null;
+        response.AddError("Bank not found.");
+        response.SetHttpStatusCode(404);
+        _bankService.GetById(bankId, userId).Returns(Task.FromResult(response));
 
         // Act
         var result = await _controller.GetById(bankId);
 
         // Assert
-        result.Result.Should().BeOfType<NotFoundResult>();
+        result.Result.Should().BeOfType<ObjectResult>();
+        var objectResult = result.Result as ObjectResult;
+        objectResult.StatusCode.Should().Be(404);
         _bankService.Received(1).GetById(bankId, userId);
     }
 
@@ -122,7 +133,16 @@ public class BankControllerTests
             new(1, "Bank 1", BankAccountType.Check),
             new(2, "Bank 2", BankAccountType.Savings)
         };
-        _bankService.GetAll(userId).Returns(banks);
+        var response = new PaginatedResponse<BankListItemResponse>
+        {
+            Data = banks,
+            TotalCount = 2,
+            TotalPages = 1,
+            CurrentPage = 1,
+            HasNextPage = false,
+            HasPrevPage = false
+        };
+        _bankService.GetAll(userId).Returns(Task.FromResult(response));
 
         // Act
         var result = await _controller.Get();
@@ -131,12 +151,12 @@ public class BankControllerTests
         result.Result.Should().BeOfType<OkObjectResult>();
         var okResult = result.Result as OkObjectResult;
         okResult.StatusCode.Should().Be(200);
-        var returnedList = okResult.Value as List<BankListItemResponse>;
-        returnedList.Should().HaveCount(2);
-        returnedList[0].Id.Should().Be(1);
-        returnedList[0].Name.Should().Be("Bank 1");
-        returnedList[1].Id.Should().Be(2);
-        returnedList[1].Name.Should().Be("Bank 2");
+        var returnedResponse = okResult.Value as PaginatedResponse<BankListItemResponse>;
+        returnedResponse.Data.Should().HaveCount(2);
+        returnedResponse.Data[0].Id.Should().Be(1);
+        returnedResponse.Data[0].Name.Should().Be("Bank 1");
+        returnedResponse.Data[1].Id.Should().Be(2);
+        returnedResponse.Data[1].Name.Should().Be("Bank 2");
         _bankService.Received(1).GetAll(userId);
     }
 
@@ -145,8 +165,16 @@ public class BankControllerTests
     {
         // Arrange
         var userId = "test-user-id";
-        var emptyList = new List<BankListItemResponse>();
-        _bankService.GetAll(userId).Returns(emptyList);
+        var response = new PaginatedResponse<BankListItemResponse>
+        {
+            Data = new List<BankListItemResponse>(),
+            TotalCount = 0,
+            TotalPages = 0,
+            CurrentPage = 1,
+            HasNextPage = false,
+            HasPrevPage = false
+        };
+        _bankService.GetAll(userId).Returns(Task.FromResult(response));
 
         // Act
         var result = await _controller.Get();
@@ -155,8 +183,8 @@ public class BankControllerTests
         result.Result.Should().BeOfType<OkObjectResult>();
         var okResult = result.Result as OkObjectResult;
         okResult.StatusCode.Should().Be(200);
-        var returnedList = okResult.Value as List<BankListItemResponse>;
-        returnedList.Should().BeEmpty();
+        var returnedResponse = okResult.Value as PaginatedResponse<BankListItemResponse>;
+        returnedResponse.Data.Should().BeEmpty();
     }
 
     #endregion

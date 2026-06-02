@@ -2,7 +2,6 @@ using System.Security.Claims;
 using Xunit;
 using NSubstitute;
 using FluentAssertions;
-using FinancesControl.API.Accounts.DTOs;
 using FinancesControl.API.Accounts.Services;
 using FinancesControl.API.Banks.Services;
 using FinancesControl.API.Cards;
@@ -50,14 +49,7 @@ public class CardServiceTests
 
     private void SetupAccountExists()
     {
-        var accountResponse = new AccountDetailResponse(
-            AccountId,
-            "Test Account",
-            "Active",
-            DateTime.UtcNow,
-            null
-        );
-        _accountService.GetById(AccountId, UserId).Returns(Task.FromResult((AccountDetailResponse?)accountResponse));
+        _accountService.ExistsAsync(AccountId, UserId).Returns(Task.FromResult(true));
     }
 
     #region CreateDebitCard Tests
@@ -86,7 +78,7 @@ public class CardServiceTests
     {
         // Arrange
         SetupAuthorizedUser();
-        _accountService.GetById(AccountId, UserId).Returns(Task.FromResult((AccountDetailResponse?)null));
+        _accountService.ExistsAsync(AccountId, UserId).Returns(Task.FromResult(false));
         var request = new CreateDebitCardRequest("4111111111111111", DateTime.UtcNow.AddYears(5), CardNetwork.Visa, 1);
 
         // Act & Assert
@@ -184,7 +176,7 @@ public class CardServiceTests
     {
         // Arrange
         SetupAuthorizedUser();
-        _accountService.GetById(AccountId, UserId).Returns(Task.FromResult((AccountDetailResponse?)null));
+        _accountService.ExistsAsync(AccountId, UserId).Returns(Task.FromResult(false));
         var request = new CreateCreditCardRequest("5555555555554444", DateTime.UtcNow.AddYears(5), CardNetwork.Mastercard, 1, 10, 20);
 
         // Act & Assert
@@ -274,24 +266,29 @@ public class CardServiceTests
 
         // Assert
         result.Should().NotBeNull();
-        result.Id.Should().Be(cardId);
-        result.CardType.Should().Be(CardType.Debit);
-        result.CardNumber.Should().Be("****1111");
-        result.CardName.Should().Be("My Card");
+        result.HttpStatusCode.Should().Be(200);
+        result.Errors.Should().BeEmpty();
+        result.Data.Should().NotBeNull();
+        result.Data.Id.Should().Be(cardId);
+        result.Data.CardType.Should().Be(CardType.Debit);
+        result.Data.CardNumber.Should().Be("****1111");
+        result.Data.CardName.Should().Be("My Card");
     }
 
     [Fact]
     public async Task GetById_AccountNotFound_ReturnsNull()
     {
         // Arrange
-        _accountService.GetById(AccountId, UserId).Returns(Task.FromResult((AccountDetailResponse?)null));
+        _accountService.ExistsAsync(AccountId, UserId).Returns(Task.FromResult(false));
         var cardId = 1;
 
         // Act
         var result = await _service.GetById(cardId, AccountId, UserId);
 
         // Assert
-        result.Should().BeNull();
+        result.Should().NotBeNull();
+        result.HttpStatusCode.Should().Be(404);
+        result.Errors.Should().Contain("Account not found.");
     }
 
     [Fact]
@@ -306,7 +303,9 @@ public class CardServiceTests
         var result = await _service.GetById(cardId, AccountId, UserId);
 
         // Assert
-        result.Should().BeNull();
+        result.Should().NotBeNull();
+        result.HttpStatusCode.Should().Be(404);
+        result.Errors.Should().Contain("Card not found.");
     }
 
     [Fact]
@@ -324,7 +323,9 @@ public class CardServiceTests
 
         // Assert
         result.Should().NotBeNull();
-        result.Status.Should().Be("Inactive");
+        result.HttpStatusCode.Should().Be(200);
+        result.Data.Should().NotBeNull();
+        result.Data.Status.Should().Be("Inactive");
     }
 
     #endregion
@@ -345,25 +346,30 @@ public class CardServiceTests
 
         // Assert
         result.Should().NotBeNull();
-        result.Id.Should().Be(cardId);
-        result.CardType.Should().Be(CardType.Credit);
-        result.CardNumber.Should().Be("****4444");
-        result.NextClosingDay.Should().NotBe(default(DateTime));
-        result.NextDueDateDay.Should().NotBe(default(DateTime));
+        result.HttpStatusCode.Should().Be(200);
+        result.Errors.Should().BeEmpty();
+        result.Data.Should().NotBeNull();
+        result.Data.Id.Should().Be(cardId);
+        result.Data.CardType.Should().Be(CardType.Credit);
+        result.Data.CardNumber.Should().Be("****4444");
+        result.Data.NextClosingDay.Should().NotBe(default(DateTime));
+        result.Data.NextDueDateDay.Should().NotBe(default(DateTime));
     }
 
     [Fact]
     public async Task GetCreditById_AccountNotFound_ReturnsNull()
     {
         // Arrange
-        _accountService.GetById(AccountId, UserId).Returns(Task.FromResult((AccountDetailResponse?)null));
+        _accountService.ExistsAsync(AccountId, UserId).Returns(Task.FromResult(false));
         var cardId = 1;
 
         // Act
         var result = await _service.GetCreditById(cardId, AccountId, UserId);
 
         // Assert
-        result.Should().BeNull();
+        result.Should().NotBeNull();
+        result.HttpStatusCode.Should().Be(404);
+        result.Errors.Should().Contain("Account not found.");
     }
 
     [Fact]
@@ -378,7 +384,9 @@ public class CardServiceTests
         var result = await _service.GetCreditById(cardId, AccountId, UserId);
 
         // Assert
-        result.Should().BeNull();
+        result.Should().NotBeNull();
+        result.HttpStatusCode.Should().Be(404);
+        result.Errors.Should().Contain("Credit card not found.");
     }
 
     [Fact]
@@ -394,7 +402,9 @@ public class CardServiceTests
         var result = await _service.GetCreditById(cardId, AccountId, UserId);
 
         // Assert
-        result.Should().BeNull();
+        result.Should().NotBeNull();
+        result.HttpStatusCode.Should().Be(404);
+        result.Errors.Should().Contain("Credit card not found.");
     }
 
     [Fact]
@@ -413,7 +423,9 @@ public class CardServiceTests
         // Assert
         result.Should().NotBeNull();
         var nextClosing = DateHelper.GetNextOccurrence(closingDay);
-        result.NextClosingDay.Should().Be(nextClosing);
+        result.HttpStatusCode.Should().Be(200);
+        result.Data.Should().NotBeNull();
+        result.Data.NextClosingDay.Should().Be(nextClosing);
     }
 
     [Fact]
@@ -432,7 +444,9 @@ public class CardServiceTests
         // Assert
         result.Should().NotBeNull();
         var nextDue = DateHelper.GetNextOccurrence(dueDay);
-        result.NextDueDateDay.Should().Be(nextDue);
+        result.HttpStatusCode.Should().Be(200);
+        result.Data.Should().NotBeNull();
+        result.Data.NextDueDateDay.Should().Be(nextDue);
     }
 
     #endregion
@@ -455,20 +469,24 @@ public class CardServiceTests
         var result = await _service.GetAll(AccountId, UserId);
 
         // Assert
-        result.Should().HaveCount(2);
+        result.Should().NotBeNull();
+        result.HttpStatusCode.Should().Be(200);
+        result.Data.Should().HaveCount(2);
     }
 
     [Fact]
     public async Task GetAll_AccountNotFound_ReturnsEmptyList()
     {
         // Arrange
-        _accountService.GetById(AccountId, UserId).Returns(Task.FromResult((AccountDetailResponse?)null));
+        _accountService.ExistsAsync(AccountId, UserId).Returns(Task.FromResult(false));
 
         // Act
         var result = await _service.GetAll(AccountId, UserId);
 
         // Assert
-        result.Should().BeEmpty();
+        result.Should().NotBeNull();
+        result.HttpStatusCode.Should().Be(404);
+        result.Errors.Should().Contain("Account not found.");
     }
 
     [Fact]
@@ -482,7 +500,9 @@ public class CardServiceTests
         var result = await _service.GetAll(AccountId, UserId);
 
         // Assert
-        result.Should().BeEmpty();
+        result.Should().NotBeNull();
+        result.HttpStatusCode.Should().Be(200);
+        result.Data.Should().BeEmpty();
     }
 
     #endregion
@@ -513,7 +533,7 @@ public class CardServiceTests
     public async Task UpdateCardName_AccountNotFound_ReturnsFalse()
     {
         // Arrange
-        _accountService.GetById(AccountId, UserId).Returns(Task.FromResult((AccountDetailResponse?)null));
+        _accountService.ExistsAsync(AccountId, UserId).Returns(Task.FromResult(false));
         var cardId = 1;
         var newName = "New Name";
 
@@ -570,7 +590,7 @@ public class CardServiceTests
     public async Task UpdateCreditCardDates_AccountNotFound_ReturnsFalse()
     {
         // Arrange
-        _accountService.GetById(AccountId, UserId).Returns(Task.FromResult((AccountDetailResponse?)null));
+        _accountService.ExistsAsync(AccountId, UserId).Returns(Task.FromResult(false));
         var cardId = 1;
         var request = new UpdateCreditCardRequest(15, 25);
 
@@ -663,7 +683,7 @@ public class CardServiceTests
     public async Task Activate_AccountNotFound_ReturnsFalse()
     {
         // Arrange
-        _accountService.GetById(AccountId, UserId).Returns(Task.FromResult((AccountDetailResponse?)null));
+        _accountService.ExistsAsync(AccountId, UserId).Returns(Task.FromResult(false));
         var cardId = 1;
 
         // Act
@@ -735,7 +755,7 @@ public class CardServiceTests
     public async Task Deactivate_AccountNotFound_ReturnsFalse()
     {
         // Arrange
-        _accountService.GetById(AccountId, UserId).Returns(Task.FromResult((AccountDetailResponse?)null));
+        _accountService.ExistsAsync(AccountId, UserId).Returns(Task.FromResult(false));
         var cardId = 1;
 
         // Act

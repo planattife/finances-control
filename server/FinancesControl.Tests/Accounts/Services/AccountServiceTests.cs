@@ -78,9 +78,10 @@ public class AccountServiceTests
 
         // Assert
         result.Should().NotBeNull();
-        result.Id.Should().Be(accountId);
-        result.Name.Should().Be("Test Account");
-        result.Status.Should().Be("Active");
+        result.Data.Should().NotBeNull();
+        result.Data.Id.Should().Be(accountId);
+        result.Data.Name.Should().Be("Test Account");
+        result.Data.Status.Should().Be("Active");
     }
 
     [Fact]
@@ -130,7 +131,8 @@ public class AccountServiceTests
 
         // Assert
         result.Should().NotBeNull();
-        result.Status.Should().Be("Inactive");
+        result.Data.Should().NotBeNull();
+        result.Data.Status.Should().Be("Inactive");
     }
 
     #endregion
@@ -154,7 +156,8 @@ public class AccountServiceTests
         var result = await _service.GetAll(userId);
 
         // Assert
-        result.Should().HaveCount(3);
+        result.Should().NotBeNull();
+        result.Data.Should().HaveCount(3);
     }
 
     [Fact]
@@ -168,7 +171,8 @@ public class AccountServiceTests
         var result = await _service.GetAll(userId);
 
         // Assert
-        result.Should().BeEmpty();
+        result.Should().NotBeNull();
+        result.Data.Should().BeEmpty();
     }
 
     #endregion
