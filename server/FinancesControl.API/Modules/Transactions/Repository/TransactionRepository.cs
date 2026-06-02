@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Dapper;
+using FinancesControl.API.Common;
 using FinancesControl.API.Data;
 using FinancesControl.API.Enums;
 using FinancesControl.API.Models;
@@ -41,11 +42,11 @@ public class TransactionRepository : ITransactionRepository
 		return MapToTransaction(result);
 	}
 
-	public async Task<List<Transaction>> GetAll(long accountId)
+	public async Task<List<Transaction>> GetAll(long accountId, PaginationParams paginationParams)
 	{
 		using var connection = _connectionFactory.CreateConnection();
 		var query = new GetAllTransactionsQuery();
-		var (sql, parameters) = query.Build(accountId);
+		var (sql, parameters) = query.Build(accountId, paginationParams);
 		
 		var results = (await connection.QueryAsync<dynamic>(sql, parameters)).ToList();
 		var transactions = new List<Transaction>();
@@ -56,6 +57,15 @@ public class TransactionRepository : ITransactionRepository
 		}
 		
 		return transactions;
+	}
+
+	public async Task<int> CountByAccountId(long accountId)
+	{
+		using var connection = _connectionFactory.CreateConnection();
+		var query = new CountTransactionsByAccountQuery();
+		var (sql, parameters) = query.Build(accountId);
+
+		return await connection.QuerySingleOrDefaultAsync<int>(sql, parameters);
 	}
 
 	public async Task<bool> Update(Transaction transaction)
