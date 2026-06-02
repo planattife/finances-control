@@ -1,5 +1,6 @@
 using FinancesControl.API.TransactionCategories.DTOs;
 using FinancesControl.API.TransactionCategories.Repository;
+using FinancesControl.API.Common;
 using FinancesControl.API.Models;
 
 namespace FinancesControl.API.TransactionCategories.Services;
@@ -19,25 +20,42 @@ public class TransactionCategoryService : ITransactionCategoryService
         return await _repository.Add(category);
     }
 
-    public async Task<TransactionCategoryDetailResponse?> GetById(long categoryId, string? userId)
+    public async Task<SingleResponse<TransactionCategoryDetailResponse>> GetById(long categoryId, string? userId)
     {
+        var response = new SingleResponse<TransactionCategoryDetailResponse>();
+
         var cat = await _repository.GetById(categoryId, userId);
-        if (cat == null) return null;
-        return new TransactionCategoryDetailResponse(
+        if (cat == null)
+        {
+            response.AddError("Category not found.");
+            response.SetHttpStatusCode(404);
+            return response;
+        }
+
+        response.Data = new TransactionCategoryDetailResponse(
             cat.Id,
             cat.Name,
             cat.IsActive ? "Active" : "Inactive",
             cat.CreatedAt,
             cat.UpdatedAt
         );
+        response.SetHttpStatusCode(200);
+        return response;
     }
 
-    public async Task<List<TransactionCategoryListItemResponse>> GetAll(string? userId)
+    public async Task<PaginatedResponse<TransactionCategoryListItemResponse>> GetAll(string? userId)
     {
+        var response = new PaginatedResponse<TransactionCategoryListItemResponse>();
+
         var categories = await _repository.GetAll(userId);
-        return categories
+        var data = categories
             .Select(c => new TransactionCategoryListItemResponse(c.Id, c.Name))
             .ToList();
+        
+        response.Data = data;
+        response.SetPagination(data.Count, 1, 1, false, false);
+        response.SetHttpStatusCode(200);
+        return response;
     }
 
     public async Task<bool> Rename(long categoryId, RenameTransactionCategoryRequest request, string? userId)
@@ -74,5 +92,10 @@ public class TransactionCategoryService : ITransactionCategoryService
         
         cat.Deactivate();
         return await _repository.Update(cat);
+    }
+
+    public async Task<bool> ExistsAsync(long categoryId)
+    {
+        return await _repository.ExistsAsync(categoryId);
     }
 }

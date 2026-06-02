@@ -9,4 +9,5 @@ public interface ITransactionRepository
 	Task<Transaction?> GetById(long transactionId, long accountId);
 	Task<List<Transaction>> GetAll(long accountId);
 	Task<bool> Update(Transaction transaction);
+	Task<bool> ExistsAsync(long transactionId, long accountId);
 }

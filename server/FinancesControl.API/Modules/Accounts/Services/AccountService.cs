@@ -20,25 +20,46 @@ public class AccountService : IAccountService
         return await _repository.Add(account);
     }
 
-    public async Task<AccountDetailResponse?> GetById(long accountId, string userId)
+    public async Task<SingleResponse<AccountDetailResponse>> GetById(long accountId, string userId)
     {
+        var response = new SingleResponse<AccountDetailResponse>();
+
         var account = await _repository.GetById(accountId, userId);
-        if (account == null) return null;
-        return new AccountDetailResponse(
+
+        if (account == null)
+        {
+            response.Data = null;
+            response.AddError("Account not found.");
+            response.SetHttpStatusCode(404);
+            return response;
+        }
+        
+        var accountDetail = new AccountDetailResponse(
             account.Id,
             account.Name,
             account.IsActive ? StatusEnum.Active.ToString() : StatusEnum.Inactive.ToString(),
             account.CreatedAt,
             account.UpdatedAt
         );
+        
+        response.Data = accountDetail;
+        return response;
     }
 
-    public async Task<List<AccountListItemResponse>> GetAll(string userId)
+    public async Task<PaginatedResponse<AccountListItemResponse>> GetAll(string userId)
     {
+        var response = new PaginatedResponse<AccountListItemResponse>();
+
         var accounts = await _repository.GetAll(userId);
-        return accounts
+
+        var data = accounts
             .Select(a => new AccountListItemResponse(a.Id, a.Name))
             .ToList();
+        
+        response.Data = data;
+        response.SetPagination(data.Count, 1, 1, false, false);
+
+        return response;
     }
 
     public async Task<bool> Update(long accountId, UpdateAccountRequest request, string userId)
@@ -63,5 +84,10 @@ public class AccountService : IAccountService
         if (account == null) return false;
         account.Deactivate();
         return await _repository.Update(account);
+    }
+
+    public async Task<bool> ExistsAsync(long accountId, string userId)
+    {
+        return await _repository.ExistsAsync(accountId, userId);
     }
 }

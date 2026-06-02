@@ -62,6 +62,15 @@ public class BankRepository : IBankRepository
         return rowsAffected > 0;
     }
 
+    public async Task<bool> ExistsAsync(long bankId, string userId)
+    {
+        using var connection = _connectionFactory.CreateConnection();
+        var query = new BankExistsQuery();
+        var (sql, parameters) = query.Build(bankId, userId);
+        
+        return await connection.QuerySingleOrDefaultAsync<bool>(sql, parameters);
+    }
+
     private static Bank MapToBank(dynamic row)
     {
         return Bank.FromDatabase(

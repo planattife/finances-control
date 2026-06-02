@@ -8,6 +8,7 @@ using FluentAssertions;
 using FinancesControl.API.Accounts.Controllers;
 using FinancesControl.API.Accounts.Services;
 using FinancesControl.API.Accounts.DTOs;
+using FinancesControl.API.Common;
 
 namespace FinancesControl.Tests.Accounts.Controllers;
 
@@ -31,7 +32,7 @@ public class AccountControllerTests
         // Arrange
         var request = new CreateAccountRequest("Test Account");
         long accountId = 1;
-        _accountService.CreateAccount(request, Arg.Any<string>()).Returns(accountId);
+        _accountService.CreateAccount(request, Arg.Any<string>()).Returns(Task.FromResult(accountId));
 
         // Act
         var result = await _controller.CreateAccount(request);
@@ -39,8 +40,8 @@ public class AccountControllerTests
         // Assert
         result.Should().BeOfType<CreatedAtActionResult>();
         var createdResult = result as CreatedAtActionResult;
-        createdResult.ActionName.Should().Be(nameof(_controller.GetById));
-        createdResult.RouteValues["accountId"].Should().Be(accountId);
+        createdResult!.ActionName.Should().Be(nameof(_controller.GetById));
+        createdResult.RouteValues!["accountId"].Should().Be(accountId);
         _accountService.Received(1).CreateAccount(request, Arg.Any<string>());
     }
 
@@ -83,23 +84,27 @@ public class AccountControllerTests
         // Arrange
         var accountId = 1;
         var userId = "test-user-id";
-        var response = new AccountDetailResponse(
-            accountId,
-            "Test Account",
-            "Active",
-            DateTime.UtcNow,
-            null
-        );
-        _accountService.GetById(accountId, userId).Returns(response);
+        var response = new SingleResponse<AccountDetailResponse>
+        {
+            Data = new AccountDetailResponse(
+                accountId,
+                "Test Account",
+                "Active",
+                DateTime.UtcNow,
+                null
+            )
+        };
+        response.SetHttpStatusCode(200);
+        _accountService.GetById(accountId, userId).Returns(Task.FromResult(response));
 
         // Act
         var result = await _controller.GetById(accountId);
 
         // Assert
-        result.Result.Should().BeOfType<OkObjectResult>();
-        var okResult = result.Result as OkObjectResult;
-        okResult.StatusCode.Should().Be(200);
-        okResult.Value.Should().Be(response);
+        result.Result.Should().BeOfType<ObjectResult>();
+        var objectResult = result.Result as ObjectResult;
+        objectResult.StatusCode.Should().Be(200);
+        objectResult.Value.Should().Be(response);
         _accountService.Received(1).GetById(accountId, userId);
     }
 
@@ -109,13 +114,19 @@ public class AccountControllerTests
         // Arrange
         var accountId = 999;
         var userId = "test-user-id";
-        _accountService.GetById(accountId, userId).Returns((AccountDetailResponse?)null);
+        var response = new SingleResponse<AccountDetailResponse>();
+        response.Data = null;
+        response.AddError("Account not found.");
+        response.SetHttpStatusCode(404);
+        _accountService.GetById(accountId, userId).Returns(Task.FromResult(response));
 
         // Act
         var result = await _controller.GetById(accountId);
 
         // Assert
-        result.Result.Should().BeOfType<NotFoundResult>();
+        result.Result.Should().BeOfType<ObjectResult>();
+        var objectResult = result.Result as ObjectResult;
+        objectResult.StatusCode.Should().Be(404);
         _accountService.Received(1).GetById(accountId, userId);
     }
 
@@ -126,14 +137,20 @@ public class AccountControllerTests
         var accountId = 1;
         var userId = "test-user-id";
         // Account belongs to different user - service returns null
-        _accountService.GetById(accountId, userId).Returns((AccountDetailResponse?)null);
+        var response = new SingleResponse<AccountDetailResponse>();
+        response.Data = null;
+        response.AddError("Account not found.");
+        response.SetHttpStatusCode(404);
+        _accountService.GetById(accountId, userId).Returns(Task.FromResult(response));
 
         // Act
         var result = await _controller.GetById(accountId);
 
         // Assert
         // Returns 404 (not found) instead of 403 (forbidden) to avoid exposing account existence
-        result.Result.Should().BeOfType<NotFoundResult>();
+        result.Result.Should().BeOfType<ObjectResult>();
+        var objectResult = result.Result as ObjectResult;
+        objectResult.StatusCode.Should().Be(404);
         _accountService.Received(1).GetById(accountId, userId);
     }
 
@@ -151,7 +168,16 @@ public class AccountControllerTests
             new(1, "Account 1"),
             new(2, "Account 2")
         };
-        _accountService.GetAll(userId).Returns(accounts);
+        var response = new PaginatedResponse<AccountListItemResponse>
+        {
+            Data = accounts,
+            TotalCount = 2,
+            TotalPages = 1,
+            CurrentPage = 1,
+            HasNextPage = false,
+            HasPrevPage = false
+        };
+        _accountService.GetAll(userId).Returns(Task.FromResult(response));
 
         // Act
         var result = await _controller.Get();
@@ -160,12 +186,12 @@ public class AccountControllerTests
         result.Result.Should().BeOfType<OkObjectResult>();
         var okResult = result.Result as OkObjectResult;
         okResult.StatusCode.Should().Be(200);
-        var returnedList = okResult.Value as List<AccountListItemResponse>;
-        returnedList.Should().HaveCount(2);
-        returnedList[0].Id.Should().Be(1);
-        returnedList[0].Name.Should().Be("Account 1");
-        returnedList[1].Id.Should().Be(2);
-        returnedList[1].Name.Should().Be("Account 2");
+        var returnedResponse = okResult.Value as PaginatedResponse<AccountListItemResponse>;
+        returnedResponse.Data.Should().HaveCount(2);
+        returnedResponse.Data[0].Id.Should().Be(1);
+        returnedResponse.Data[0].Name.Should().Be("Account 1");
+        returnedResponse.Data[1].Id.Should().Be(2);
+        returnedResponse.Data[1].Name.Should().Be("Account 2");
         _accountService.Received(1).GetAll(userId);
     }
 
@@ -174,8 +200,16 @@ public class AccountControllerTests
     {
         // Arrange
         var userId = "test-user-id";
-        var emptyList = new List<AccountListItemResponse>();
-        _accountService.GetAll(userId).Returns(emptyList);
+        var response = new PaginatedResponse<AccountListItemResponse>
+        {
+            Data = new List<AccountListItemResponse>(),
+            TotalCount = 0,
+            TotalPages = 0,
+            CurrentPage = 1,
+            HasNextPage = false,
+            HasPrevPage = false
+        };
+        _accountService.GetAll(userId).Returns(Task.FromResult(response));
 
         // Act
         var result = await _controller.Get();
@@ -184,8 +218,8 @@ public class AccountControllerTests
         result.Result.Should().BeOfType<OkObjectResult>();
         var okResult = result.Result as OkObjectResult;
         okResult.StatusCode.Should().Be(200);
-        var returnedList = okResult.Value as List<AccountListItemResponse>;
-        returnedList.Should().BeEmpty();
+        var returnedResponse = okResult.Value as PaginatedResponse<AccountListItemResponse>;
+        returnedResponse.Data.Should().BeEmpty();
     }
 
     #endregion

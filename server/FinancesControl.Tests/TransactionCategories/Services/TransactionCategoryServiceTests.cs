@@ -38,7 +38,9 @@ public class TransactionCategoryServiceTests
     {
         _repository.GetById(999, TestUserId).Returns(Task.FromResult((FinancesControl.API.Models.TransactionCategory?)null));
         var result = await _service.GetById(999, TestUserId);
-        result.Should().BeNull();
+        result.Should().NotBeNull();
+        result.HttpStatusCode.Should().Be(404);
+        result.Errors.Should().Contain("Category not found.");
     }
 
     [Fact]
@@ -48,9 +50,12 @@ public class TransactionCategoryServiceTests
         _repository.GetById(5, TestUserId).Returns(Task.FromResult((TransactionCategory?)model));
         var result = await _service.GetById(5, TestUserId);
         result.Should().NotBeNull();
-        result.Id.Should().Be(5);
-        result.Name.Should().Be("Bills");
-        result.Status.Should().Be("Active");
+        result.HttpStatusCode.Should().Be(200);
+        result.Errors.Should().BeEmpty();
+        result.Data.Should().NotBeNull();
+        result.Data.Id.Should().Be(5);
+        result.Data.Name.Should().Be("Bills");
+        result.Data.Status.Should().Be("Active");
     }
 
     [Fact]

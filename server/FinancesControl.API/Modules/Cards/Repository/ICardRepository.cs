@@ -8,4 +8,5 @@ public interface ICardRepository
     Task<Card?> GetById(long cardId, long accountId);
     Task<List<Card>> GetAll(long accountId);
     Task<bool> Update(Card card, long accountId);
+    Task<bool> ExistsAsync(long cardId, long accountId);
 }

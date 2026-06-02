@@ -125,10 +125,11 @@ public class BankServiceTests
 
         // Assert
         result.Should().NotBeNull();
-        result.Id.Should().Be(bankId);
-        result.Name.Should().Be("Test Bank");
-        result.AccountType.Should().Be(BankAccountType.Check);
-        result.Status.Should().Be("Active");
+        result.Data.Should().NotBeNull();
+        result.Data.Id.Should().Be(bankId);
+        result.Data.Name.Should().Be("Test Bank");
+        result.Data.AccountType.Should().Be(BankAccountType.Check);
+        result.Data.Status.Should().Be("Active");
     }
 
     [Fact]
@@ -161,7 +162,8 @@ public class BankServiceTests
 
         // Assert
         result.Should().NotBeNull();
-        result.Status.Should().Be("Inactive");
+        result.Data.Should().NotBeNull();
+        result.Data.Status.Should().Be("Inactive");
     }
 
     #endregion
@@ -185,9 +187,10 @@ public class BankServiceTests
         var result = await _service.GetAll(userId);
 
         // Assert
-        result.Should().HaveCount(3);
-        result[0].AccountType.Should().Be(BankAccountType.Check);
-        result[1].AccountType.Should().Be(BankAccountType.Savings);
+        result.Should().NotBeNull();
+        result.Data.Should().HaveCount(3);
+        result.Data[0].AccountType.Should().Be(BankAccountType.Check);
+        result.Data[1].AccountType.Should().Be(BankAccountType.Savings);
     }
 
     [Fact]
@@ -201,7 +204,8 @@ public class BankServiceTests
         var result = await _service.GetAll(userId);
 
         // Assert
-        result.Should().BeEmpty();
+        result.Should().NotBeNull();
+        result.Data.Should().BeEmpty();
     }
 
     #endregion

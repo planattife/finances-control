@@ -32,7 +32,7 @@ public class CardService : ICardService
 
     public async Task<long> CreateDebitCard(CreateDebitCardRequest request, long accountId, string userId)
     {
-        if (await _accountService.GetById(accountId, userId) == null)
+        if (!await _accountService.ExistsAsync(accountId, userId))
             throw new InvalidOperationException("Account not found.");
         
         if (!await _bankService.ValidateBankForUser(request.BankId, userId))
@@ -44,7 +44,7 @@ public class CardService : ICardService
 
     public async Task<long> CreateCreditCard(CreateCreditCardRequest request, long accountId, string userId)
     {
-        if (await _accountService.GetById(accountId, userId) == null)
+        if (!await _accountService.ExistsAsync(accountId, userId))
             throw new InvalidOperationException("Account not found.");
         
         if (!await _bankService.ValidateBankForUser(request.BankId, userId))
@@ -54,15 +54,26 @@ public class CardService : ICardService
         return await _repository.Add(card);
     }
 
-    public async Task<CardDetailResponse?> GetById(long cardId, long accountId, string userId)
+    public async Task<SingleResponse<CardDetailResponse>> GetById(long cardId, long accountId, string userId)
     {
-        if (await _accountService.GetById(accountId, userId) == null)
-            return null;
+        var response = new SingleResponse<CardDetailResponse>();
+        
+        if (!await _accountService.ExistsAsync(accountId, userId))
+        {
+            response.AddError("Account not found.");
+            response.SetHttpStatusCode(404);
+            return response;
+        }
 
         var card = await _repository.GetById(cardId, accountId);
-        if (card == null) return null;
+        if (card == null)
+        {
+            response.AddError("Card not found.");
+            response.SetHttpStatusCode(404);
+            return response;
+        }
 
-        return new CardDetailResponse(
+        response.Data = new CardDetailResponse(
             card.Id,
             card.CardNumber,
             card.CardType,
@@ -74,20 +85,33 @@ public class CardService : ICardService
             card.CreatedAt,
             card.UpdatedAt
         );
+        response.SetHttpStatusCode(200);
+        return response;
     }
 
-    public async Task<CreditCardDetailResponse?> GetCreditById(long cardId, long accountId, string userId)
+    public async Task<SingleResponse<CreditCardDetailResponse>> GetCreditById(long cardId, long accountId, string userId)
     {
-        if (await _accountService.GetById(accountId, userId) == null)
-            return null;
+        var response = new SingleResponse<CreditCardDetailResponse>();
+        
+        if (!await _accountService.ExistsAsync(accountId, userId))
+        {
+            response.AddError("Account not found.");
+            response.SetHttpStatusCode(404);
+            return response;
+        }
 
         var card = await _repository.GetById(cardId, accountId);
-        if (card == null || card is not CreditCard creditCard) return null;
+        if (card == null || card is not CreditCard creditCard)
+        {
+            response.AddError("Credit card not found.");
+            response.SetHttpStatusCode(404);
+            return response;
+        }
 
         var nextClosing = DateHelper.GetNextOccurrence(creditCard.ClosingDay);
         var nextDue = DateHelper.GetNextOccurrence(creditCard.DueDateDay);
 
-        return new CreditCardDetailResponse(
+        response.Data = new CreditCardDetailResponse(
             creditCard.Id,
             creditCard.CardNumber,
             creditCard.CardType,
@@ -101,15 +125,23 @@ public class CardService : ICardService
             creditCard.CreatedAt,
             creditCard.UpdatedAt
         );
+        response.SetHttpStatusCode(200);
+        return response;
     }
 
-    public async Task<List<CardListItemResponse>> GetAll(long accountId, string userId)
+    public async Task<PaginatedResponse<CardListItemResponse>> GetAll(long accountId, string userId)
     {
-        if (await _accountService.GetById(accountId, userId) == null)
-            return new List<CardListItemResponse>();
+        var response = new PaginatedResponse<CardListItemResponse>();
+        
+        if (!await _accountService.ExistsAsync(accountId, userId))
+        {
+            response.AddError("Account not found.");
+            response.SetHttpStatusCode(404);
+            return response;
+        }
 
         var cards = await _repository.GetAll(accountId);
-        return cards
+        var data = cards
             .Select(c => new CardListItemResponse(
                 c.Id,
                 c.CardNumber,
@@ -119,11 +151,16 @@ public class CardService : ICardService
                 c.CardName
             ))
             .ToList();
+        
+        response.Data = data;
+        response.SetPagination(data.Count, 1, 1, false, false);
+        response.SetHttpStatusCode(200);
+        return response;
     }
 
     public async Task<bool> UpdateCardName(long cardId, long accountId, string userId, string cardName)
     {
-        if (await _accountService.GetById(accountId, userId) == null)
+        if (!await _accountService.ExistsAsync(accountId, userId))
             return false;
 
         var card = await _repository.GetById(cardId, accountId);
@@ -136,7 +173,7 @@ public class CardService : ICardService
 
     public async Task<bool> UpdateCreditCardDates(long cardId, long accountId, string userId, UpdateCreditCardRequest request)
     {
-        if (await _accountService.GetById(accountId, userId) == null)
+        if (!await _accountService.ExistsAsync(accountId, userId))
             return false;
 
         var card = await _repository.GetById(cardId, accountId);
@@ -149,7 +186,7 @@ public class CardService : ICardService
 
     public async Task<bool> Activate(long cardId, long accountId, string userId)
     {
-        if (await _accountService.GetById(accountId, userId) == null)
+        if (!await _accountService.ExistsAsync(accountId, userId))
             return false;
 
         var card = await _repository.GetById(cardId, accountId);
@@ -160,12 +197,17 @@ public class CardService : ICardService
 
     public async Task<bool> Deactivate(long cardId, long accountId, string userId)
     {
-        if (await _accountService.GetById(accountId, userId) == null)
+        if (!await _accountService.ExistsAsync(accountId, userId))
             return false;
 
         var card = await _repository.GetById(cardId, accountId);
         if (card == null) return false;
         card.SetIsActive(false);
         return await _repository.Update(card, accountId);
+    }
+
+    public async Task<bool> ExistsAsync(long cardId, long accountId)
+    {
+        return await _repository.ExistsAsync(cardId, accountId);
     }
 }

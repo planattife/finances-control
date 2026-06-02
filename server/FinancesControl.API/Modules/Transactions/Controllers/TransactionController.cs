@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using FinancesControl.API.Transactions.DTOs;
 using FinancesControl.API.Transactions.Services;
+using FinancesControl.API.Common;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -39,16 +40,15 @@ namespace FinancesControl.API.Transactions.Controllers
 		}
 
 		[HttpGet("{accountId}/{transactionId}")]
-		public async Task<ActionResult<TransactionDetailResponse>> GetById(long accountId, long transactionId)
+		public async Task<ActionResult<SingleResponse<TransactionDetailResponse>>> GetById(long accountId, long transactionId)
 		{
 			var userId = GetUserId();
 			var resp = await _service.GetById(transactionId, accountId, userId);
-			if (resp == null) return NotFound();
-			return Ok(resp);
+			return StatusCode(resp.HttpStatusCode, resp);
 		}
 
 		[HttpGet("{accountId}")]
-		public async Task<ActionResult<List<TransactionListItemResponse>>> Get(long accountId)
+		public async Task<ActionResult<PaginatedResponse<TransactionListItemResponse>>> Get(long accountId)
 		{
 			var userId = GetUserId();
 			var resp = await _service.GetAll(accountId, userId);

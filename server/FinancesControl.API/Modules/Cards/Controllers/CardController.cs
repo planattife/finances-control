@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using FinancesControl.API.Cards.DTOs;
 using FinancesControl.API.Cards.Services;
+using FinancesControl.API.Common;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -43,27 +44,23 @@ namespace FinancesControl.API.Cards.Controllers
         }
 
         [HttpGet("{accountId}/{cardId}")]
-        public async Task<ActionResult<CardDetailResponse>> GetById(long accountId, long cardId)
+        public async Task<ActionResult<SingleResponse<CardDetailResponse>>> GetById(long accountId, long cardId)
         {
             var userId = GetCurrentUserId();
             var response = await _cardService.GetById(cardId, accountId, userId);
-            if (response == null)
-                return NotFound();
-            return Ok(response);
+            return StatusCode(response.HttpStatusCode, response);
         }
 
         [HttpGet("{accountId}/credit/{cardId}")]
-        public async Task<ActionResult<CreditCardDetailResponse>> GetCreditById(long accountId, long cardId)
+        public async Task<ActionResult<SingleResponse<CreditCardDetailResponse>>> GetCreditById(long accountId, long cardId)
         {
             var userId = GetCurrentUserId();
             var response = await _cardService.GetCreditById(cardId, accountId, userId);
-            if (response == null)
-                return NotFound();
-            return Ok(response);
+            return StatusCode(response.HttpStatusCode, response);
         }
 
         [HttpGet("{accountId}")]
-        public async Task<ActionResult<List<CardListItemResponse>>> Get(long accountId)
+        public async Task<ActionResult<PaginatedResponse<CardListItemResponse>>> Get(long accountId)
         {
             var userId = GetCurrentUserId();
             var response = await _cardService.GetAll(accountId, userId);
