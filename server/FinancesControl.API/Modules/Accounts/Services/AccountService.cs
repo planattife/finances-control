@@ -46,18 +46,24 @@ public class AccountService : IAccountService
         return response;
     }
 
-    public async Task<PaginatedResponse<AccountListItemResponse>> GetAll(string userId)
+    public async Task<PaginatedResponse<AccountListItemResponse>> GetAll(string userId, PaginationParams paginationParams)
     {
         var response = new PaginatedResponse<AccountListItemResponse>();
 
-        var accounts = await _repository.GetAll(userId);
+        var accounts = await _repository.GetAll(userId, paginationParams);
+        var totalCount = await _repository.CountByUserId(userId);
 
         var data = accounts
             .Select(a => new AccountListItemResponse(a.Id, a.Name))
             .ToList();
         
         response.Data = data;
-        response.SetPagination(data.Count, 1, 1, false, false);
+        var totalPages = (int)Math.Ceiling(totalCount / (double)paginationParams.PageSize);
+        var hasNextPage = paginationParams.PageNumber < totalPages;
+        var hasPrevPage = paginationParams.PageNumber > 1;
+
+        response.SetPagination(totalCount, totalPages, paginationParams.PageNumber, hasNextPage, hasPrevPage);
+        response.SetHttpStatusCode(200);
 
         return response;
     }

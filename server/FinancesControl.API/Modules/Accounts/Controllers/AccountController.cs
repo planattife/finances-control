@@ -40,12 +40,12 @@ namespace FinancesControl.API.Accounts.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<PaginatedResponse<AccountListItemResponse>>> Get()
+        public async Task<ActionResult<PaginatedResponse<AccountListItemResponse>>> Get([FromQuery] PaginationParams paginationParams)
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userId))
                 return Unauthorized();
-            var response = await _accountService.GetAll(userId);
+            var response = await _accountService.GetAll(userId, paginationParams);
             return Ok(response);
         }
 
