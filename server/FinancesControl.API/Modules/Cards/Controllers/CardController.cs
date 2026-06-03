@@ -60,10 +60,10 @@ namespace FinancesControl.API.Cards.Controllers
         }
 
         [HttpGet("{accountId}")]
-        public async Task<ActionResult<PaginatedResponse<CardListItemResponse>>> Get(long accountId)
+        public async Task<ActionResult<PaginatedResponse<CardListItemResponse>>> Get(long accountId, [FromQuery] PaginationParams paginationParams)
         {
             var userId = GetCurrentUserId();
-            var response = await _cardService.GetAll(accountId, userId);
+            var response = await _cardService.GetAll(accountId, userId, paginationParams);
             return Ok(response);
         }
 

@@ -252,6 +252,7 @@ public class CardControllerTests
     public async Task Get_WithMultipleCards_Returns200Ok()
     {
         // Arrange
+        var paginationParams = new PaginationParams();
         var cards = new List<CardListItemResponse>
         {
             new(1, "****1111", CardType.Debit, CardNetwork.Visa, 1, "Debit"),
@@ -260,10 +261,10 @@ public class CardControllerTests
         var response = new PaginatedResponse<CardListItemResponse> { Data = cards };
         response.SetPagination(cards.Count, 1, 1, false, false);
         response.SetHttpStatusCode(200);
-        _cardService.GetAll(AccountId, UserId).Returns(Task.FromResult(response));
+        _cardService.GetAll(AccountId, UserId, paginationParams).Returns(Task.FromResult(response));
 
         // Act
-        var result = await _controller.Get(AccountId);
+        var result = await _controller.Get(AccountId, paginationParams);
 
         // Assert
         result.Result.Should().BeOfType<OkObjectResult>();
@@ -275,21 +276,22 @@ public class CardControllerTests
         returnedResponse.Data[0].CardType.Should().Be(CardType.Debit);
         returnedResponse.Data[1].Id.Should().Be(2);
         returnedResponse.Data[1].CardType.Should().Be(CardType.Credit);
-        _cardService.Received(1).GetAll(AccountId, UserId);
+        _cardService.Received(1).GetAll(AccountId, UserId, paginationParams);
     }
 
     [Fact]
     public async Task Get_WithNoCards_Returns200OkWithEmptyList()
     {
         // Arrange
+        var paginationParams = new PaginationParams();
         var emptyList = new List<CardListItemResponse>();
         var response = new PaginatedResponse<CardListItemResponse> { Data = emptyList };
-        response.SetPagination(0, 1, 1, false, false);
+        response.SetPagination(0, 0, 1, false, false);
         response.SetHttpStatusCode(200);
-        _cardService.GetAll(AccountId, UserId).Returns(Task.FromResult(response));
+        _cardService.GetAll(AccountId, UserId, paginationParams).Returns(Task.FromResult(response));
 
         // Act
-        var result = await _controller.Get(AccountId);
+        var result = await _controller.Get(AccountId, paginationParams);
 
         // Assert
         result.Result.Should().BeOfType<OkObjectResult>();
@@ -297,6 +299,63 @@ public class CardControllerTests
         okResult.StatusCode.Should().Be(200);
         var returnedResponse = okResult.Value as PaginatedResponse<CardListItemResponse>;
         returnedResponse.Data.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task Get_WithPaginationParams_PassesPaginationParamsToService()
+    {
+        // Arrange
+        var paginationParams = new PaginationParams { PageSize = 5, PageNumber = 2 };
+        var response = new PaginatedResponse<CardListItemResponse>
+        {
+            Data = new List<CardListItemResponse>
+            {
+                new(6, "****1111", CardType.Debit, CardNetwork.Visa, 1, "Debit")
+            }
+        };
+        response.SetPagination(12, 3, 2, true, true);
+        response.SetHttpStatusCode(200);
+        _cardService.GetAll(AccountId, UserId, paginationParams).Returns(Task.FromResult(response));
+
+        // Act
+        var result = await _controller.Get(AccountId, paginationParams);
+
+        // Assert
+        var okResult = result.Result as OkObjectResult;
+        okResult.Should().NotBeNull();
+        okResult.Value.Should().Be(response);
+        await _cardService.Received(1).GetAll(AccountId, UserId, paginationParams);
+    }
+
+    [Fact]
+    public async Task Get_WithPaginationResponse_ReturnsPaginationMetadata()
+    {
+        // Arrange
+        var paginationParams = new PaginationParams { PageSize = 5, PageNumber = 2 };
+        var response = new PaginatedResponse<CardListItemResponse>
+        {
+            Data = new List<CardListItemResponse>
+            {
+                new(6, "****1111", CardType.Debit, CardNetwork.Visa, 1, "Debit")
+            }
+        };
+        response.SetPagination(12, 3, 2, true, true);
+        response.SetHttpStatusCode(200);
+        _cardService.GetAll(AccountId, UserId, paginationParams).Returns(Task.FromResult(response));
+
+        // Act
+        var result = await _controller.Get(AccountId, paginationParams);
+
+        // Assert
+        var okResult = result.Result as OkObjectResult;
+        okResult.Should().NotBeNull();
+        var returnedResponse = okResult.Value as PaginatedResponse<CardListItemResponse>;
+        returnedResponse.Should().NotBeNull();
+        returnedResponse.TotalCount.Should().Be(12);
+        returnedResponse.TotalPages.Should().Be(3);
+        returnedResponse.CurrentPage.Should().Be(2);
+        returnedResponse.HasNextPage.Should().BeTrue();
+        returnedResponse.HasPrevPage.Should().BeTrue();
     }
 
     #endregion
