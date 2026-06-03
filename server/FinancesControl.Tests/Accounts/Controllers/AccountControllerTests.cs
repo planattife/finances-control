@@ -163,7 +163,6 @@ public class AccountControllerTests
     {
         // Arrange
         var userId = "test-user-id";
-        var paginationParams = new PaginationParams();
         var accounts = new List<AccountListItemResponse>
         {
             new(1, "Account 1"),
@@ -178,10 +177,10 @@ public class AccountControllerTests
             HasNextPage = false,
             HasPrevPage = false
         };
-        _accountService.GetAll(userId, paginationParams).Returns(Task.FromResult(response));
+        _accountService.GetAll(userId).Returns(Task.FromResult(response));
 
         // Act
-        var result = await _controller.Get(paginationParams);
+        var result = await _controller.Get();
 
         // Assert
         result.Result.Should().BeOfType<OkObjectResult>();
@@ -193,7 +192,7 @@ public class AccountControllerTests
         returnedResponse.Data[0].Name.Should().Be("Account 1");
         returnedResponse.Data[1].Id.Should().Be(2);
         returnedResponse.Data[1].Name.Should().Be("Account 2");
-        _accountService.Received(1).GetAll(userId, paginationParams);
+        _accountService.Received(1).GetAll(userId);
     }
 
     [Fact]
@@ -201,7 +200,6 @@ public class AccountControllerTests
     {
         // Arrange
         var userId = "test-user-id";
-        var paginationParams = new PaginationParams();
         var response = new PaginatedResponse<AccountListItemResponse>
         {
             Data = new List<AccountListItemResponse>(),
@@ -211,10 +209,10 @@ public class AccountControllerTests
             HasNextPage = false,
             HasPrevPage = false
         };
-        _accountService.GetAll(userId, paginationParams).Returns(Task.FromResult(response));
+        _accountService.GetAll(userId).Returns(Task.FromResult(response));
 
         // Act
-        var result = await _controller.Get(paginationParams);
+        var result = await _controller.Get();
 
         // Assert
         result.Result.Should().BeOfType<OkObjectResult>();
@@ -222,41 +220,6 @@ public class AccountControllerTests
         okResult.StatusCode.Should().Be(200);
         var returnedResponse = okResult.Value as PaginatedResponse<AccountListItemResponse>;
         returnedResponse.Data.Should().BeEmpty();
-    }
-
-    [Fact]
-    public async Task Get_WithPaginationParams_PassesPaginationParamsToService()
-    {
-        // Arrange
-        var userId = "test-user-id";
-        var paginationParams = new PaginationParams { PageSize = 5, PageNumber = 2 };
-        var response = new PaginatedResponse<AccountListItemResponse>
-        {
-            Data = new List<AccountListItemResponse>
-            {
-                new(6, "Account 6")
-            },
-            TotalCount = 12,
-            TotalPages = 3,
-            CurrentPage = 2,
-            HasNextPage = true,
-            HasPrevPage = true
-        };
-        _accountService.GetAll(userId, paginationParams).Returns(Task.FromResult(response));
-
-        // Act
-        var result = await _controller.Get(paginationParams);
-
-        // Assert
-        result.Result.Should().BeOfType<OkObjectResult>();
-        var okResult = result.Result as OkObjectResult;
-        var returnedResponse = okResult.Value as PaginatedResponse<AccountListItemResponse>;
-        returnedResponse.TotalCount.Should().Be(12);
-        returnedResponse.TotalPages.Should().Be(3);
-        returnedResponse.CurrentPage.Should().Be(2);
-        returnedResponse.HasNextPage.Should().BeTrue();
-        returnedResponse.HasPrevPage.Should().BeTrue();
-        _accountService.Received(1).GetAll(userId, paginationParams);
     }
 
     #endregion
