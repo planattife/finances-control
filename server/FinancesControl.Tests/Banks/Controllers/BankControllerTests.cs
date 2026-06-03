@@ -128,6 +128,7 @@ public class BankControllerTests
     {
         // Arrange
         var userId = "test-user-id";
+        var paginationParams = new PaginationParams();
         var banks = new List<BankListItemResponse>
         {
             new(1, "Bank 1", BankAccountType.Check),
@@ -142,10 +143,10 @@ public class BankControllerTests
             HasNextPage = false,
             HasPrevPage = false
         };
-        _bankService.GetAll(userId).Returns(Task.FromResult(response));
+        _bankService.GetAll(userId, paginationParams).Returns(Task.FromResult(response));
 
         // Act
-        var result = await _controller.Get();
+        var result = await _controller.Get(paginationParams);
 
         // Assert
         result.Result.Should().BeOfType<OkObjectResult>();
@@ -157,7 +158,7 @@ public class BankControllerTests
         returnedResponse.Data[0].Name.Should().Be("Bank 1");
         returnedResponse.Data[1].Id.Should().Be(2);
         returnedResponse.Data[1].Name.Should().Be("Bank 2");
-        _bankService.Received(1).GetAll(userId);
+        _bankService.Received(1).GetAll(userId, paginationParams);
     }
 
     [Fact]
@@ -165,6 +166,7 @@ public class BankControllerTests
     {
         // Arrange
         var userId = "test-user-id";
+        var paginationParams = new PaginationParams();
         var response = new PaginatedResponse<BankListItemResponse>
         {
             Data = new List<BankListItemResponse>(),
@@ -174,10 +176,10 @@ public class BankControllerTests
             HasNextPage = false,
             HasPrevPage = false
         };
-        _bankService.GetAll(userId).Returns(Task.FromResult(response));
+        _bankService.GetAll(userId, paginationParams).Returns(Task.FromResult(response));
 
         // Act
-        var result = await _controller.Get();
+        var result = await _controller.Get(paginationParams);
 
         // Assert
         result.Result.Should().BeOfType<OkObjectResult>();
@@ -185,6 +187,65 @@ public class BankControllerTests
         okResult.StatusCode.Should().Be(200);
         var returnedResponse = okResult.Value as PaginatedResponse<BankListItemResponse>;
         returnedResponse.Data.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task Get_WithPaginationParams_PassesPaginationParamsToService()
+    {
+        // Arrange
+        var userId = "test-user-id";
+        var paginationParams = new PaginationParams { PageSize = 5, PageNumber = 2 };
+        var response = new PaginatedResponse<BankListItemResponse>
+        {
+            Data = new List<BankListItemResponse>
+            {
+                new(6, "Bank 6", BankAccountType.Check)
+            }
+        };
+        response.SetPagination(12, 3, 2, true, true);
+        response.SetHttpStatusCode(200);
+        _bankService.GetAll(userId, paginationParams).Returns(Task.FromResult(response));
+
+        // Act
+        var result = await _controller.Get(paginationParams);
+
+        // Assert
+        var okResult = result.Result as OkObjectResult;
+        okResult.Should().NotBeNull();
+        okResult.Value.Should().Be(response);
+        _bankService.Received(1).GetAll(userId, paginationParams);
+    }
+
+    [Fact]
+    public async Task Get_WithPaginationResponse_ReturnsPaginationMetadata()
+    {
+        // Arrange
+        var userId = "test-user-id";
+        var paginationParams = new PaginationParams { PageSize = 5, PageNumber = 2 };
+        var response = new PaginatedResponse<BankListItemResponse>
+        {
+            Data = new List<BankListItemResponse>
+            {
+                new(6, "Bank 6", BankAccountType.Check)
+            }
+        };
+        response.SetPagination(12, 3, 2, true, true);
+        response.SetHttpStatusCode(200);
+        _bankService.GetAll(userId, paginationParams).Returns(Task.FromResult(response));
+
+        // Act
+        var result = await _controller.Get(paginationParams);
+
+        // Assert
+        var okResult = result.Result as OkObjectResult;
+        okResult.Should().NotBeNull();
+        var returnedResponse = okResult.Value as PaginatedResponse<BankListItemResponse>;
+        returnedResponse.Should().NotBeNull();
+        returnedResponse.TotalCount.Should().Be(12);
+        returnedResponse.TotalPages.Should().Be(3);
+        returnedResponse.CurrentPage.Should().Be(2);
+        returnedResponse.HasNextPage.Should().BeTrue();
+        returnedResponse.HasPrevPage.Should().BeTrue();
     }
 
     #endregion

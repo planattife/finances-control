@@ -53,17 +53,22 @@ public class BankService : IBankService
         return response;
     }
 
-    public async Task<PaginatedResponse<BankListItemResponse>> GetAll(string userId)
+    public async Task<PaginatedResponse<BankListItemResponse>> GetAll(string userId, PaginationParams paginationParams)
     {
         var response = new PaginatedResponse<BankListItemResponse>();
 
-        var banks = await _repository.GetAll(userId);
+        var banks = await _repository.GetAll(userId, paginationParams);
+        var totalCount = await _repository.CountByUserId(userId);
         var data = banks
             .Select(b => new BankListItemResponse(b.Id, b.Name, b.AccountType))
             .ToList();
         
         response.Data = data;
-        response.SetPagination(data.Count, 1, 1, false, false);
+        var totalPages = (int)Math.Ceiling(totalCount / (double)paginationParams.PageSize);
+        var hasNextPage = paginationParams.PageNumber < totalPages;
+        var hasPrevPage = paginationParams.PageNumber > 1;
+
+        response.SetPagination(totalCount, totalPages, paginationParams.PageNumber, hasNextPage, hasPrevPage);
         response.SetHttpStatusCode(200);
         return response;
     }
