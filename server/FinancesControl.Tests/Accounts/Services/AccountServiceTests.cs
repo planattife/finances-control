@@ -96,7 +96,10 @@ public class AccountServiceTests
         var result = await _service.GetById(accountId, userId);
 
         // Assert
-        result.Should().BeNull();
+        result.Should().NotBeNull();
+        result.Data.Should().BeNull();
+        result.HttpStatusCode.Should().Be(404);
+        result.Errors.Should().Contain("Account not found.");
     }
 
     [Fact]
@@ -113,7 +116,10 @@ public class AccountServiceTests
         var result = await _service.GetById(accountId, userId);
 
         // Assert
-        result.Should().BeNull();
+        result.Should().NotBeNull();
+        result.Data.Should().BeNull();
+        result.HttpStatusCode.Should().Be(404);
+        result.Errors.Should().Contain("Account not found.");
     }
 
     [Fact]

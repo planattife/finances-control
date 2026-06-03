@@ -327,28 +327,127 @@ public class TransactionServiceTests
     [Fact]
     public async Task GetAll_WithMultipleTransactions_ReturnsAllForAccount()
     {
+        var paginationParams = new PaginationParams();
         var transactions = new List<Transaction>
         {
             new Transaction(100, PaymentMethod.Cash, TransactionType.Expense, DateTime.UtcNow, 1, AccountId, 1),
             new Transaction(200, PaymentMethod.Cash, TransactionType.Expense, DateTime.UtcNow, 1, AccountId, 2),
         };
         SetupAccountExists();
-        _repository.GetAll(AccountId).Returns(Task.FromResult(transactions));
+        _repository.GetAll(AccountId, paginationParams).Returns(Task.FromResult(transactions));
+        _repository.CountByAccountId(AccountId).Returns(Task.FromResult(transactions.Count));
         
-        var result = await _service.GetAll(AccountId, TestUserId);
+        var result = await _service.GetAll(AccountId, TestUserId, paginationParams);
         result.Data.Should().HaveCount(2);
         result.Data[0].Amount.Should().Be(100);
         result.Data[1].Amount.Should().Be(200);
+        result.TotalCount.Should().Be(2);
+        result.CurrentPage.Should().Be(1);
+        result.TotalPages.Should().Be(1);
+        result.HasNextPage.Should().BeFalse();
+        result.HasPrevPage.Should().BeFalse();
     }
 
     [Fact]
     public async Task GetAll_WithNoTransactions_ReturnsEmptyList()
     {
+        var paginationParams = new PaginationParams();
         SetupAccountExists();
-        _repository.GetAll(AccountId).Returns(Task.FromResult(new List<Transaction>()));
+        _repository.GetAll(AccountId, paginationParams).Returns(Task.FromResult(new List<Transaction>()));
+        _repository.CountByAccountId(AccountId).Returns(Task.FromResult(0));
         
-        var result = await _service.GetAll(AccountId, TestUserId);
+        var result = await _service.GetAll(AccountId, TestUserId, paginationParams);
         result.Data.Should().BeEmpty();
+        result.TotalCount.Should().Be(0);
+        result.TotalPages.Should().Be(0);
+    }
+
+    [Fact]
+    public async Task GetAll_WithPaginationParams_PassesPaginationParamsToRepository()
+    {
+        var paginationParams = new PaginationParams { PageSize = 5, PageNumber = 2 };
+        var transactions = CreateTransactions(5, 6);
+        SetupAccountExists();
+        _repository.GetAll(AccountId, paginationParams).Returns(Task.FromResult(transactions));
+        _repository.CountByAccountId(AccountId).Returns(Task.FromResult(12));
+
+        var result = await _service.GetAll(AccountId, TestUserId, paginationParams);
+
+        await _repository.Received(1).GetAll(AccountId, paginationParams);
+        await _repository.Received(1).CountByAccountId(AccountId);
+        result.Data.Should().HaveCount(5);
+        result.Data[0].Id.Should().Be(6);
+        result.Data[4].Id.Should().Be(10);
+    }
+
+    [Fact]
+    public async Task GetAll_WithSecondPage_ReturnsCorrectPaginationMetadata()
+    {
+        var paginationParams = new PaginationParams { PageSize = 5, PageNumber = 2 };
+        SetupAccountExists();
+        _repository.GetAll(AccountId, paginationParams).Returns(Task.FromResult(CreateTransactions(5, 6)));
+        _repository.CountByAccountId(AccountId).Returns(Task.FromResult(12));
+
+        var result = await _service.GetAll(AccountId, TestUserId, paginationParams);
+
+        result.TotalCount.Should().Be(12);
+        result.TotalPages.Should().Be(3);
+        result.CurrentPage.Should().Be(2);
+        result.HasNextPage.Should().BeTrue();
+        result.HasPrevPage.Should().BeTrue();
+        result.Data.Should().HaveCount(5);
+    }
+
+    [Fact]
+    public async Task GetAll_WithLastPage_ReturnsHasNextFalseAndHasPrevTrue()
+    {
+        var paginationParams = new PaginationParams { PageSize = 5, PageNumber = 3 };
+        SetupAccountExists();
+        _repository.GetAll(AccountId, paginationParams).Returns(Task.FromResult(CreateTransactions(2, 11)));
+        _repository.CountByAccountId(AccountId).Returns(Task.FromResult(12));
+
+        var result = await _service.GetAll(AccountId, TestUserId, paginationParams);
+
+        result.TotalPages.Should().Be(3);
+        result.CurrentPage.Should().Be(3);
+        result.HasNextPage.Should().BeFalse();
+        result.HasPrevPage.Should().BeTrue();
+        result.Data.Should().HaveCount(2);
+    }
+
+    [Fact]
+    public async Task GetAll_WithFirstPage_ReturnsHasPrevFalse()
+    {
+        var paginationParams = new PaginationParams { PageSize = 5, PageNumber = 1 };
+        SetupAccountExists();
+        _repository.GetAll(AccountId, paginationParams).Returns(Task.FromResult(CreateTransactions(5, 1)));
+        _repository.CountByAccountId(AccountId).Returns(Task.FromResult(12));
+
+        var result = await _service.GetAll(AccountId, TestUserId, paginationParams);
+
+        result.CurrentPage.Should().Be(1);
+        result.HasNextPage.Should().BeTrue();
+        result.HasPrevPage.Should().BeFalse();
+        result.Data.Should().HaveCount(5);
+    }
+
+    [Fact]
+    public async Task GetAll_WithInvalidPaginationParams_UsesDefaults()
+    {
+        var paginationParams = new PaginationParams { PageSize = 0, PageNumber = -1 };
+        SetupAccountExists();
+        _repository.GetAll(AccountId, paginationParams).Returns(Task.FromResult(CreateTransactions(10, 1)));
+        _repository.CountByAccountId(AccountId).Returns(Task.FromResult(12));
+
+        var result = await _service.GetAll(AccountId, TestUserId, paginationParams);
+
+        paginationParams.PageSize.Should().Be(10);
+        paginationParams.PageNumber.Should().Be(1);
+        result.TotalCount.Should().Be(12);
+        result.TotalPages.Should().Be(2);
+        result.CurrentPage.Should().Be(1);
+        result.HasNextPage.Should().BeTrue();
+        result.HasPrevPage.Should().BeFalse();
     }
 
     [Fact]
@@ -493,5 +592,12 @@ public class TransactionServiceTests
         result.Should().NotBeNull();
         result.Data.Should().NotBeNull();
         result.Data.Description.Should().Be("Test description");
+    }
+
+    private static List<Transaction> CreateTransactions(int count, int startId)
+    {
+        return Enumerable.Range(startId, count)
+            .Select(id => new Transaction(100 + id, PaymentMethod.Cash, TransactionType.Expense, DateTime.UtcNow, 1, AccountId, id))
+            .ToList();
     }
 }

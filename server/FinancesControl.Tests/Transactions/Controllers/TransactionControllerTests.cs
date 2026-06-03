@@ -164,6 +164,7 @@ public class TransactionControllerTests
     [Fact]
     public async Task Get_ReturnsList()
     {
+        var paginationParams = new PaginationParams();
         var list = new List<TransactionListItemResponse>
         {
             new() { Id = 1, Amount = 100, PaymentMethod = "Cash", TransactionType = "Expense", TransactionDate = DateTime.UtcNow, CategoryId = 1, Status = "Active" },
@@ -171,8 +172,8 @@ public class TransactionControllerTests
         };
         var response = new PaginatedResponse<TransactionListItemResponse> { Data = list };
         response.SetHttpStatusCode(200);
-        _service.GetAll(AccountId, TestUserId).Returns(Task.FromResult(response));
-        var result = await _controller.Get(AccountId);
+        _service.GetAll(AccountId, TestUserId, paginationParams).Returns(Task.FromResult(response));
+        var result = await _controller.Get(AccountId, paginationParams);
         var ok = result.Result as OkObjectResult;
         var returnedResponse = ok.Value as PaginatedResponse<TransactionListItemResponse>;
         returnedResponse.Data.Should().HaveCount(2);
@@ -183,15 +184,67 @@ public class TransactionControllerTests
     [Fact]
     public async Task Get_WhenEmpty_ReturnsEmptyList()
     {
+        var paginationParams = new PaginationParams();
         var response = new PaginatedResponse<TransactionListItemResponse> { Data = new List<TransactionListItemResponse>() };
         response.SetHttpStatusCode(200);
-        _service.GetAll(AccountId, TestUserId).Returns(Task.FromResult(response));
-        var result = await _controller.Get(AccountId);
+        _service.GetAll(AccountId, TestUserId, paginationParams).Returns(Task.FromResult(response));
+        var result = await _controller.Get(AccountId, paginationParams);
         var ok = result.Result as OkObjectResult;
         ok.Should().NotBeNull();
         var returnedResponse = ok.Value as PaginatedResponse<TransactionListItemResponse>;
         returnedResponse.Should().NotBeNull();
         returnedResponse.Data.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task Get_WithPaginationParams_PassesPaginationParamsToService()
+    {
+        var paginationParams = new PaginationParams { PageSize = 5, PageNumber = 2 };
+        var response = new PaginatedResponse<TransactionListItemResponse>
+        {
+            Data = new List<TransactionListItemResponse>
+            {
+                new() { Id = 6, Amount = 100, PaymentMethod = "Cash", TransactionType = "Expense", TransactionDate = DateTime.UtcNow, CategoryId = 1, Status = "Active" }
+            }
+        };
+        response.SetPagination(12, 3, 2, true, true);
+        response.SetHttpStatusCode(200);
+        _service.GetAll(AccountId, TestUserId, paginationParams).Returns(Task.FromResult(response));
+
+        var result = await _controller.Get(AccountId, paginationParams);
+
+        var ok = result.Result as OkObjectResult;
+        ok.Should().NotBeNull();
+        ok.Value.Should().Be(response);
+        await _service.Received(1).GetAll(AccountId, TestUserId, paginationParams);
+    }
+
+    [Fact]
+    public async Task Get_WithPaginationResponse_ReturnsPaginationMetadata()
+    {
+        var paginationParams = new PaginationParams { PageSize = 5, PageNumber = 2 };
+        var response = new PaginatedResponse<TransactionListItemResponse>
+        {
+            Data = new List<TransactionListItemResponse>
+            {
+                new() { Id = 6, Amount = 100, PaymentMethod = "Cash", TransactionType = "Expense", TransactionDate = DateTime.UtcNow, CategoryId = 1, Status = "Active" }
+            }
+        };
+        response.SetPagination(12, 3, 2, true, true);
+        response.SetHttpStatusCode(200);
+        _service.GetAll(AccountId, TestUserId, paginationParams).Returns(Task.FromResult(response));
+
+        var result = await _controller.Get(AccountId, paginationParams);
+
+        var ok = result.Result as OkObjectResult;
+        ok.Should().NotBeNull();
+        var returnedResponse = ok.Value as PaginatedResponse<TransactionListItemResponse>;
+        returnedResponse.Should().NotBeNull();
+        returnedResponse.TotalCount.Should().Be(12);
+        returnedResponse.TotalPages.Should().Be(3);
+        returnedResponse.CurrentPage.Should().Be(2);
+        returnedResponse.HasNextPage.Should().BeTrue();
+        returnedResponse.HasPrevPage.Should().BeTrue();
     }
 
     [Fact]
