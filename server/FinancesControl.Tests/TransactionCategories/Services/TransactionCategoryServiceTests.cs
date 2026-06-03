@@ -6,6 +6,7 @@ using FinancesControl.API.TransactionCategories.DTOs;
 using FinancesControl.API.TransactionCategories.Repository;
 using FinancesControl.API.TransactionCategories.Services;
 using FinancesControl.API.Models;
+using FinancesControl.API.Common;
 
 namespace FinancesControl.Tests.TransactionCategories.Services;
 
@@ -56,6 +57,93 @@ public class TransactionCategoryServiceTests
         result.Data.Id.Should().Be(5);
         result.Data.Name.Should().Be("Bills");
         result.Data.Status.Should().Be("Active");
+    }
+
+    [Fact]
+    public async Task GetAll_ReturnsPaginatedList()
+    {
+        var paginationParams = new PaginationParams();
+        var categories = new List<TransactionCategory>
+        {
+            new("Food", 1, TestUserId),
+            new("Bills", 2, TestUserId)
+        };
+        _repository.GetAll(TestUserId, paginationParams).Returns(Task.FromResult(categories));
+        _repository.CountByUserId(TestUserId).Returns(Task.FromResult(categories.Count));
+
+        var result = await _service.GetAll(TestUserId, paginationParams);
+
+        result.Should().NotBeNull();
+        result.HttpStatusCode.Should().Be(200);
+        result.Data.Should().HaveCount(2);
+        result.TotalCount.Should().Be(2);
+        result.TotalPages.Should().Be(1);
+        result.CurrentPage.Should().Be(1);
+        result.HasNextPage.Should().BeFalse();
+        result.HasPrevPage.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task GetAll_WithEmptyResult_ReturnsZeroTotalPages()
+    {
+        var paginationParams = new PaginationParams();
+        _repository.GetAll(TestUserId, paginationParams).Returns(Task.FromResult(new List<TransactionCategory>()));
+        _repository.CountByUserId(TestUserId).Returns(Task.FromResult(0));
+
+        var result = await _service.GetAll(TestUserId, paginationParams);
+
+        result.Data.Should().BeEmpty();
+        result.TotalCount.Should().Be(0);
+        result.TotalPages.Should().Be(0);
+        result.CurrentPage.Should().Be(1);
+        result.HasNextPage.Should().BeFalse();
+        result.HasPrevPage.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task GetAll_WithPaginationParams_PassesPaginationParamsToRepository()
+    {
+        var paginationParams = new PaginationParams { PageSize = 5, PageNumber = 2 };
+        _repository.GetAll(TestUserId, paginationParams).Returns(Task.FromResult(new List<TransactionCategory>()));
+        _repository.CountByUserId(TestUserId).Returns(Task.FromResult(0));
+
+        await _service.GetAll(TestUserId, paginationParams);
+
+        await _repository.Received(1).GetAll(TestUserId, paginationParams);
+        await _repository.Received(1).CountByUserId(TestUserId);
+    }
+
+    [Fact]
+    public async Task GetAll_WithSecondPage_ReturnsCorrectPaginationMetadata()
+    {
+        var paginationParams = new PaginationParams { PageSize = 5, PageNumber = 2 };
+        _repository.GetAll(TestUserId, paginationParams).Returns(Task.FromResult(new List<TransactionCategory>()));
+        _repository.CountByUserId(TestUserId).Returns(Task.FromResult(12));
+
+        var result = await _service.GetAll(TestUserId, paginationParams);
+
+        result.TotalCount.Should().Be(12);
+        result.TotalPages.Should().Be(3);
+        result.CurrentPage.Should().Be(2);
+        result.HasNextPage.Should().BeTrue();
+        result.HasPrevPage.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task GetAll_WithInvalidPaginationParams_UsesDefaults()
+    {
+        var paginationParams = new PaginationParams { PageSize = 0, PageNumber = -1 };
+        _repository.GetAll(TestUserId, paginationParams).Returns(Task.FromResult(new List<TransactionCategory>()));
+        _repository.CountByUserId(TestUserId).Returns(Task.FromResult(12));
+
+        var result = await _service.GetAll(TestUserId, paginationParams);
+
+        paginationParams.PageSize.Should().Be(10);
+        paginationParams.PageNumber.Should().Be(1);
+        result.TotalPages.Should().Be(2);
+        result.CurrentPage.Should().Be(1);
+        result.HasNextPage.Should().BeTrue();
+        result.HasPrevPage.Should().BeFalse();
     }
 
     [Fact]

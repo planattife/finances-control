@@ -86,6 +86,7 @@ public class TransactionCategoryControllerTests
     [Fact]
     public async Task Get_ReturnsList()
     {
+        var paginationParams = new PaginationParams();
         var list = new List<TransactionCategoryListItemResponse>
         {
             new(1, "Food"),
@@ -94,15 +95,58 @@ public class TransactionCategoryControllerTests
         var response = new PaginatedResponse<TransactionCategoryListItemResponse> { Data = list };
         response.SetPagination(list.Count, 1, 1, false, false);
         response.SetHttpStatusCode(200);
-        _service.GetAll(TestUserId).Returns(Task.FromResult(response));
+        _service.GetAll(TestUserId, paginationParams).Returns(Task.FromResult(response));
 
-        var result = await _controller.Get();
+        var result = await _controller.Get(paginationParams);
         var ok = result.Result as OkObjectResult;
         ok.Value.Should().Be(response);
         var returnedResponse = ok.Value as PaginatedResponse<TransactionCategoryListItemResponse>;
         returnedResponse.Data.Should().HaveCount(2);
         returnedResponse.Data[0].Name.Should().Be("Food");
         returnedResponse.Data[1].Name.Should().Be("Bills");
+    }
+
+    [Fact]
+    public async Task Get_WithPaginationParams_PassesPaginationParamsToService()
+    {
+        var paginationParams = new PaginationParams { PageSize = 5, PageNumber = 2 };
+        var response = new PaginatedResponse<TransactionCategoryListItemResponse>
+        {
+            Data = new List<TransactionCategoryListItemResponse>()
+        };
+        response.SetPagination(12, 3, 2, true, true);
+        response.SetHttpStatusCode(200);
+        _service.GetAll(TestUserId, paginationParams).Returns(Task.FromResult(response));
+
+        await _controller.Get(paginationParams);
+
+        await _service.Received(1).GetAll(TestUserId, paginationParams);
+    }
+
+    [Fact]
+    public async Task Get_WithPaginationResponse_ReturnsPaginationMetadata()
+    {
+        var paginationParams = new PaginationParams { PageSize = 5, PageNumber = 2 };
+        var response = new PaginatedResponse<TransactionCategoryListItemResponse>
+        {
+            Data = new List<TransactionCategoryListItemResponse>
+            {
+                new(6, "Transport")
+            }
+        };
+        response.SetPagination(12, 3, 2, true, true);
+        response.SetHttpStatusCode(200);
+        _service.GetAll(TestUserId, paginationParams).Returns(Task.FromResult(response));
+
+        var result = await _controller.Get(paginationParams);
+
+        var ok = result.Result as OkObjectResult;
+        var returnedResponse = ok.Value as PaginatedResponse<TransactionCategoryListItemResponse>;
+        returnedResponse.TotalCount.Should().Be(12);
+        returnedResponse.TotalPages.Should().Be(3);
+        returnedResponse.CurrentPage.Should().Be(2);
+        returnedResponse.HasNextPage.Should().BeTrue();
+        returnedResponse.HasPrevPage.Should().BeTrue();
     }
 
     [Fact]

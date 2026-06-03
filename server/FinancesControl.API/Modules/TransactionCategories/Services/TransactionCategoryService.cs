@@ -43,17 +43,22 @@ public class TransactionCategoryService : ITransactionCategoryService
         return response;
     }
 
-    public async Task<PaginatedResponse<TransactionCategoryListItemResponse>> GetAll(string? userId)
+    public async Task<PaginatedResponse<TransactionCategoryListItemResponse>> GetAll(string? userId, PaginationParams paginationParams)
     {
         var response = new PaginatedResponse<TransactionCategoryListItemResponse>();
 
-        var categories = await _repository.GetAll(userId);
+        var categories = await _repository.GetAll(userId, paginationParams);
+        var totalCount = await _repository.CountByUserId(userId);
         var data = categories
             .Select(c => new TransactionCategoryListItemResponse(c.Id, c.Name))
             .ToList();
         
         response.Data = data;
-        response.SetPagination(data.Count, 1, 1, false, false);
+        var totalPages = (int)Math.Ceiling(totalCount / (double)paginationParams.PageSize);
+        var hasNextPage = paginationParams.PageNumber < totalPages;
+        var hasPrevPage = paginationParams.PageNumber > 1;
+
+        response.SetPagination(totalCount, totalPages, paginationParams.PageNumber, hasNextPage, hasPrevPage);
         response.SetHttpStatusCode(200);
         return response;
     }

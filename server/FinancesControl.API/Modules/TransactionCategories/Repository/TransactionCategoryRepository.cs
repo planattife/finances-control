@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Dapper;
+using FinancesControl.API.Common;
 using FinancesControl.API.Data;
 using FinancesControl.API.Models;
 using FinancesControl.API.TransactionCategories.Repository.SqlCommands;
@@ -40,15 +41,24 @@ public class TransactionCategoryRepository : ITransactionCategoryRepository
         return MapToTransactionCategory(result);
     }
 
-    public async Task<List<TransactionCategory>> GetAll(string? userId)
+    public async Task<List<TransactionCategory>> GetAll(string? userId, PaginationParams paginationParams)
     {
         using var connection = _connectionFactory.CreateConnection();
         var query = new GetAllTransactionCategoriesQuery();
-        var (sql, parameters) = query.Build(userId);
+        var (sql, parameters) = query.Build(userId, paginationParams);
         
         var results = (await connection.QueryAsync<dynamic>(sql, parameters)).ToList();
         
         return results.Select(MapToTransactionCategory).ToList();
+    }
+
+    public async Task<int> CountByUserId(string? userId)
+    {
+        using var connection = _connectionFactory.CreateConnection();
+        var query = new CountTransactionCategoriesByUserQuery();
+        var (sql, parameters) = query.Build(userId);
+
+        return await connection.QuerySingleOrDefaultAsync<int>(sql, parameters);
     }
 
     public async Task<bool> Update(TransactionCategory category)
