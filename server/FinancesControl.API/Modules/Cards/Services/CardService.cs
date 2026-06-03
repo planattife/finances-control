@@ -129,7 +129,7 @@ public class CardService : ICardService
         return response;
     }
 
-    public async Task<PaginatedResponse<CardListItemResponse>> GetAll(long accountId, string userId)
+    public async Task<PaginatedResponse<CardListItemResponse>> GetAll(long accountId, string userId, PaginationParams paginationParams)
     {
         var response = new PaginatedResponse<CardListItemResponse>();
         
@@ -140,7 +140,8 @@ public class CardService : ICardService
             return response;
         }
 
-        var cards = await _repository.GetAll(accountId);
+        var cards = await _repository.GetAll(accountId, paginationParams);
+        var totalCount = await _repository.CountByAccountId(accountId);
         var data = cards
             .Select(c => new CardListItemResponse(
                 c.Id,
@@ -153,7 +154,11 @@ public class CardService : ICardService
             .ToList();
         
         response.Data = data;
-        response.SetPagination(data.Count, 1, 1, false, false);
+        var totalPages = (int)Math.Ceiling(totalCount / (double)paginationParams.PageSize);
+        var hasNextPage = paginationParams.PageNumber < totalPages;
+        var hasPrevPage = paginationParams.PageNumber > 1;
+
+        response.SetPagination(totalCount, totalPages, paginationParams.PageNumber, hasNextPage, hasPrevPage);
         response.SetHttpStatusCode(200);
         return response;
     }

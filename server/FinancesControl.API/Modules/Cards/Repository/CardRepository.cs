@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Dapper;
 using FinancesControl.API.Cards.Repository.SqlCommands;
+using FinancesControl.API.Common;
 using FinancesControl.API.Data;
 using FinancesControl.API.Enums;
 using FinancesControl.API.Models;
@@ -73,11 +74,11 @@ public class CardRepository : ICardRepository
         return MapToCard(result);
     }
 
-    public async Task<List<Card>> GetAll(long accountId)
+    public async Task<List<Card>> GetAll(long accountId, PaginationParams paginationParams)
     {
         using var connection = _connectionFactory.CreateConnection();
         var query = new GetAllCardsQuery();
-        var (sql, parameters) = query.Build(accountId);
+        var (sql, parameters) = query.Build(accountId, paginationParams);
         
         var results = (await connection.QueryAsync<dynamic>(sql, parameters)).ToList();
         var cards = new List<Card>();
@@ -88,6 +89,15 @@ public class CardRepository : ICardRepository
         }
         
         return cards;
+    }
+
+    public async Task<int> CountByAccountId(long accountId)
+    {
+        using var connection = _connectionFactory.CreateConnection();
+        var query = new CountCardsByAccountQuery();
+        var (sql, parameters) = query.Build(accountId);
+
+        return await connection.QuerySingleOrDefaultAsync<int>(sql, parameters);
     }
 
     public async Task<bool> Update(Card card, long accountId)

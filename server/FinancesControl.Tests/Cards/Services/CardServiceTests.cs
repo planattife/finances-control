@@ -457,52 +457,169 @@ public class CardServiceTests
     public async Task GetAll_WithMultipleCards_ReturnsAllCards()
     {
         // Arrange
+        var paginationParams = new PaginationParams();
         SetupAccountExists();
         var cards = new List<Card>
         {
             new("****1111", DateTime.UtcNow.AddYears(5), CardNetwork.Visa, 1, AccountId, CardType.Debit, 1),
             new("****4444", DateTime.UtcNow.AddYears(5), CardNetwork.Mastercard, 1, AccountId, CardType.Debit, 2)
         };
-        _repository.GetAll(AccountId).Returns(Task.FromResult(cards));
+        _repository.GetAll(AccountId, paginationParams).Returns(Task.FromResult(cards));
+        _repository.CountByAccountId(AccountId).Returns(Task.FromResult(cards.Count));
 
         // Act
-        var result = await _service.GetAll(AccountId, UserId);
+        var result = await _service.GetAll(AccountId, UserId, paginationParams);
 
         // Assert
         result.Should().NotBeNull();
         result.HttpStatusCode.Should().Be(200);
         result.Data.Should().HaveCount(2);
+        result.TotalCount.Should().Be(2);
+        result.CurrentPage.Should().Be(1);
+        result.TotalPages.Should().Be(1);
+        result.HasNextPage.Should().BeFalse();
+        result.HasPrevPage.Should().BeFalse();
     }
 
     [Fact]
     public async Task GetAll_AccountNotFound_ReturnsEmptyList()
     {
         // Arrange
+        var paginationParams = new PaginationParams();
         _accountService.ExistsAsync(AccountId, UserId).Returns(Task.FromResult(false));
 
         // Act
-        var result = await _service.GetAll(AccountId, UserId);
+        var result = await _service.GetAll(AccountId, UserId, paginationParams);
 
         // Assert
         result.Should().NotBeNull();
         result.HttpStatusCode.Should().Be(404);
         result.Errors.Should().Contain("Account not found.");
+        await _repository.DidNotReceive().GetAll(Arg.Any<long>(), Arg.Any<PaginationParams>());
+        await _repository.DidNotReceive().CountByAccountId(Arg.Any<long>());
     }
 
     [Fact]
     public async Task GetAll_WithNoCards_ReturnsEmptyList()
     {
         // Arrange
+        var paginationParams = new PaginationParams();
         SetupAccountExists();
-        _repository.GetAll(AccountId).Returns(Task.FromResult(new List<Card>()));
+        _repository.GetAll(AccountId, paginationParams).Returns(Task.FromResult(new List<Card>()));
+        _repository.CountByAccountId(AccountId).Returns(Task.FromResult(0));
 
         // Act
-        var result = await _service.GetAll(AccountId, UserId);
+        var result = await _service.GetAll(AccountId, UserId, paginationParams);
 
         // Assert
         result.Should().NotBeNull();
         result.HttpStatusCode.Should().Be(200);
         result.Data.Should().BeEmpty();
+        result.TotalCount.Should().Be(0);
+        result.TotalPages.Should().Be(0);
+    }
+
+    [Fact]
+    public async Task GetAll_WithPaginationParams_PassesPaginationParamsToRepository()
+    {
+        // Arrange
+        var paginationParams = new PaginationParams { PageSize = 5, PageNumber = 2 };
+        var cards = CreateCards(5, 6);
+        SetupAccountExists();
+        _repository.GetAll(AccountId, paginationParams).Returns(Task.FromResult(cards));
+        _repository.CountByAccountId(AccountId).Returns(Task.FromResult(12));
+
+        // Act
+        var result = await _service.GetAll(AccountId, UserId, paginationParams);
+
+        // Assert
+        await _repository.Received(1).GetAll(AccountId, paginationParams);
+        await _repository.Received(1).CountByAccountId(AccountId);
+        result.Data.Should().HaveCount(5);
+        result.Data[0].Id.Should().Be(6);
+        result.Data[4].Id.Should().Be(10);
+    }
+
+    [Fact]
+    public async Task GetAll_WithSecondPage_ReturnsCorrectPaginationMetadata()
+    {
+        // Arrange
+        var paginationParams = new PaginationParams { PageSize = 5, PageNumber = 2 };
+        SetupAccountExists();
+        _repository.GetAll(AccountId, paginationParams).Returns(Task.FromResult(CreateCards(5, 6)));
+        _repository.CountByAccountId(AccountId).Returns(Task.FromResult(12));
+
+        // Act
+        var result = await _service.GetAll(AccountId, UserId, paginationParams);
+
+        // Assert
+        result.TotalCount.Should().Be(12);
+        result.TotalPages.Should().Be(3);
+        result.CurrentPage.Should().Be(2);
+        result.HasNextPage.Should().BeTrue();
+        result.HasPrevPage.Should().BeTrue();
+        result.Data.Should().HaveCount(5);
+    }
+
+    [Fact]
+    public async Task GetAll_WithLastPage_ReturnsHasNextFalseAndHasPrevTrue()
+    {
+        // Arrange
+        var paginationParams = new PaginationParams { PageSize = 5, PageNumber = 3 };
+        SetupAccountExists();
+        _repository.GetAll(AccountId, paginationParams).Returns(Task.FromResult(CreateCards(2, 11)));
+        _repository.CountByAccountId(AccountId).Returns(Task.FromResult(12));
+
+        // Act
+        var result = await _service.GetAll(AccountId, UserId, paginationParams);
+
+        // Assert
+        result.TotalPages.Should().Be(3);
+        result.CurrentPage.Should().Be(3);
+        result.HasNextPage.Should().BeFalse();
+        result.HasPrevPage.Should().BeTrue();
+        result.Data.Should().HaveCount(2);
+    }
+
+    [Fact]
+    public async Task GetAll_WithFirstPage_ReturnsHasPrevFalse()
+    {
+        // Arrange
+        var paginationParams = new PaginationParams { PageSize = 5, PageNumber = 1 };
+        SetupAccountExists();
+        _repository.GetAll(AccountId, paginationParams).Returns(Task.FromResult(CreateCards(5, 1)));
+        _repository.CountByAccountId(AccountId).Returns(Task.FromResult(12));
+
+        // Act
+        var result = await _service.GetAll(AccountId, UserId, paginationParams);
+
+        // Assert
+        result.CurrentPage.Should().Be(1);
+        result.HasNextPage.Should().BeTrue();
+        result.HasPrevPage.Should().BeFalse();
+        result.Data.Should().HaveCount(5);
+    }
+
+    [Fact]
+    public async Task GetAll_WithInvalidPaginationParams_UsesDefaults()
+    {
+        // Arrange
+        var paginationParams = new PaginationParams { PageSize = 0, PageNumber = -1 };
+        SetupAccountExists();
+        _repository.GetAll(AccountId, paginationParams).Returns(Task.FromResult(CreateCards(10, 1)));
+        _repository.CountByAccountId(AccountId).Returns(Task.FromResult(12));
+
+        // Act
+        var result = await _service.GetAll(AccountId, UserId, paginationParams);
+
+        // Assert
+        paginationParams.PageSize.Should().Be(10);
+        paginationParams.PageNumber.Should().Be(1);
+        result.TotalCount.Should().Be(12);
+        result.TotalPages.Should().Be(2);
+        result.CurrentPage.Should().Be(1);
+        result.HasNextPage.Should().BeTrue();
+        result.HasPrevPage.Should().BeFalse();
     }
 
     #endregion
@@ -800,4 +917,11 @@ public class CardServiceTests
     }
 
     #endregion
+
+    private static List<Card> CreateCards(int count, int startId)
+    {
+        return Enumerable.Range(startId, count)
+            .Select(id => new Card("****1111", DateTime.UtcNow.AddYears(5), CardNetwork.Visa, 1, AccountId, CardType.Debit, id))
+            .ToList();
+    }
 }
