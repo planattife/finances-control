@@ -160,7 +160,7 @@ public class TransactionService : ITransactionService
 		return response;
 	}
 
-	public async Task<PaginatedResponse<TransactionListItemResponse>> GetAll(long accountId, string? userId)
+	public async Task<PaginatedResponse<TransactionListItemResponse>> GetAll(long accountId, string? userId, PaginationParams paginationParams)
 	{
 		var response = new PaginatedResponse<TransactionListItemResponse>();
 
@@ -175,7 +175,8 @@ public class TransactionService : ITransactionService
 			return response;
 		}
 
-		var transactions = await _repository.GetAll(accountId);
+		var transactions = await _repository.GetAll(accountId, paginationParams);
+		var totalCount = await _repository.CountByAccountId(accountId);
 		var data = transactions
 			.Select(t => new TransactionListItemResponse
 			{
@@ -190,7 +191,11 @@ public class TransactionService : ITransactionService
 			.ToList();
 
 		response.Data = data;
-		response.SetPagination(data.Count, 1, 1, false, false);
+		var totalPages = (int)Math.Ceiling(totalCount / (double)paginationParams.PageSize);
+		var hasNextPage = paginationParams.PageNumber < totalPages;
+		var hasPrevPage = paginationParams.PageNumber > 1;
+
+		response.SetPagination(totalCount, totalPages, paginationParams.PageNumber, hasNextPage, hasPrevPage);
 		response.SetHttpStatusCode(200);
 		return response;
 	}

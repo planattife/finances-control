@@ -144,7 +144,10 @@ public class BankServiceTests
         var result = await _service.GetById(bankId, userId);
 
         // Assert
-        result.Should().BeNull();
+        result.Should().NotBeNull();
+        result.Data.Should().BeNull();
+        result.HttpStatusCode.Should().Be(404);
+        result.Errors.Should().Contain("Bank not found.");
     }
 
     [Fact]
