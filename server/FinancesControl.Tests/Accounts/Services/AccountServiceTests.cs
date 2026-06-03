@@ -6,6 +6,7 @@ using FinancesControl.API.Accounts;
 using FinancesControl.API.Accounts.DTOs;
 using FinancesControl.API.Accounts.Repository;
 using FinancesControl.API.Accounts.Services;
+using FinancesControl.API.Common;
 
 namespace FinancesControl.Tests.Accounts.Services;
 
@@ -150,16 +151,18 @@ public class AccountServiceTests
     {
         // Arrange
         var userId = "user-123";
+        var paginationParams = new PaginationParams();
         var accounts = new List<Account>
         {
             new(1, "Account 1", userId),
             new(2, "Account 2", userId),
             new(3, "Account 3", userId)
         };
-        _repository.GetAll(userId).Returns(Task.FromResult(accounts));
+        _repository.GetAll(userId, paginationParams).Returns(Task.FromResult(accounts));
+        _repository.CountByUserId(userId).Returns(Task.FromResult(accounts.Count));
 
         // Act
-        var result = await _service.GetAll(userId);
+        var result = await _service.GetAll(userId, paginationParams);
 
         // Assert
         result.Should().NotBeNull();
@@ -171,14 +174,96 @@ public class AccountServiceTests
     {
         // Arrange
         var userId = "user-123";
-        _repository.GetAll(userId).Returns(Task.FromResult(new List<Account>()));
+        var paginationParams = new PaginationParams();
+        _repository.GetAll(userId, paginationParams).Returns(Task.FromResult(new List<Account>()));
+        _repository.CountByUserId(userId).Returns(Task.FromResult(0));
 
         // Act
-        var result = await _service.GetAll(userId);
+        var result = await _service.GetAll(userId, paginationParams);
 
         // Assert
         result.Should().NotBeNull();
         result.Data.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task GetAll_WithPaginationParams_PassesPaginationParamsToRepository()
+    {
+        // Arrange
+        var userId = "user-123";
+        var paginationParams = new PaginationParams { PageSize = 5, PageNumber = 2 };
+        var accounts = CreateAccounts(5, 6, userId);
+        _repository.GetAll(userId, paginationParams).Returns(Task.FromResult(accounts));
+        _repository.CountByUserId(userId).Returns(Task.FromResult(12));
+
+        // Act
+        var result = await _service.GetAll(userId, paginationParams);
+
+        // Assert
+        result.Should().NotBeNull();
+        await _repository.Received(1).GetAll(userId, paginationParams);
+        await _repository.Received(1).CountByUserId(userId);
+    }
+
+    [Fact]
+    public async Task GetAll_WithPaginationMetadata_ReturnsCorrectPagination()
+    {
+        // Arrange
+        var userId = "user-123";
+        var paginationParams = new PaginationParams { PageSize = 5, PageNumber = 2 };
+        _repository.GetAll(userId, paginationParams).Returns(Task.FromResult(CreateAccounts(5, 6, userId)));
+        _repository.CountByUserId(userId).Returns(Task.FromResult(12));
+
+        // Act
+        var result = await _service.GetAll(userId, paginationParams);
+
+        // Assert
+        result.TotalCount.Should().Be(12);
+        result.TotalPages.Should().Be(3);
+        result.CurrentPage.Should().Be(2);
+        result.HasNextPage.Should().BeTrue();
+        result.HasPrevPage.Should().BeTrue();
+        result.HttpStatusCode.Should().Be(200);
+    }
+
+    [Fact]
+    public async Task GetAll_WithLastPage_ReturnsNoNextPage()
+    {
+        // Arrange
+        var userId = "user-123";
+        var paginationParams = new PaginationParams { PageSize = 5, PageNumber = 3 };
+        _repository.GetAll(userId, paginationParams).Returns(Task.FromResult(CreateAccounts(2, 11, userId)));
+        _repository.CountByUserId(userId).Returns(Task.FromResult(12));
+
+        // Act
+        var result = await _service.GetAll(userId, paginationParams);
+
+        // Assert
+        result.TotalPages.Should().Be(3);
+        result.CurrentPage.Should().Be(3);
+        result.HasNextPage.Should().BeFalse();
+        result.HasPrevPage.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task GetAll_WithInvalidPaginationParams_UsesDefaults()
+    {
+        // Arrange
+        var userId = "user-123";
+        var paginationParams = new PaginationParams { PageSize = 0, PageNumber = -1 };
+        _repository.GetAll(userId, paginationParams).Returns(Task.FromResult(CreateAccounts(10, 1, userId)));
+        _repository.CountByUserId(userId).Returns(Task.FromResult(12));
+
+        // Act
+        var result = await _service.GetAll(userId, paginationParams);
+
+        // Assert
+        paginationParams.PageSize.Should().Be(10);
+        paginationParams.PageNumber.Should().Be(1);
+        result.TotalPages.Should().Be(2);
+        result.CurrentPage.Should().Be(1);
+        result.HasNextPage.Should().BeTrue();
+        result.HasPrevPage.Should().BeFalse();
     }
 
     #endregion
@@ -372,4 +457,11 @@ public class AccountServiceTests
     }
 
     #endregion
+
+    private static List<Account> CreateAccounts(int count, int startId, string userId)
+    {
+        return Enumerable.Range(startId, count)
+            .Select(id => new Account(id, $"Account {id}", userId))
+            .ToList();
+    }
 }

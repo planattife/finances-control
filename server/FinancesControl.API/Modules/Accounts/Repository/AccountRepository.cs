@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Dapper;
 using FinancesControl.API.Accounts.Repository.SqlCommands;
+using FinancesControl.API.Common;
 using FinancesControl.API.Data;
 
 namespace FinancesControl.API.Accounts.Repository;
@@ -40,15 +41,24 @@ public class AccountRepository : IAccountRepository
         return MapToAccount(result);
     }
 
-    public async Task<List<Account>> GetAll(string userId)
+    public async Task<List<Account>> GetAll(string userId, PaginationParams paginationParams)
     {
         using var connection = _connectionFactory.CreateConnection();
         var query = new GetAllAccountsQuery();
-        var (sql, parameters) = query.Build(userId);
+        var (sql, parameters) = query.Build(userId, paginationParams);
         
         var results = (await connection.QueryAsync<dynamic>(sql, parameters)).ToList();
         
         return results.Select(MapToAccount).ToList();
+    }
+
+    public async Task<int> CountByUserId(string userId)
+    {
+        using var connection = _connectionFactory.CreateConnection();
+        var query = new CountAccountsByUserQuery();
+        var (sql, parameters) = query.Build(userId);
+
+        return await connection.QuerySingleOrDefaultAsync<int>(sql, parameters);
     }
 
     public async Task<bool> Update(Account account)
