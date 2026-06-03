@@ -41,10 +41,10 @@ namespace FinancesControl.API.TransactionCategories.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<PaginatedResponse<TransactionCategoryListItemResponse>>> Get()
+        public async Task<ActionResult<PaginatedResponse<TransactionCategoryListItemResponse>>> Get([FromQuery] PaginationParams paginationParams)
         {
             var userId = GetUserId();
-            var resp = await _service.GetAll(userId);
+            var resp = await _service.GetAll(userId, paginationParams);
             return Ok(resp);
         }
 
