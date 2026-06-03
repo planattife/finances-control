@@ -7,7 +7,7 @@ public interface IBankService
 {
     Task<long> CreateBank(CreateBankRequest request);
     Task<SingleResponse<BankDetailResponse>> GetById(long bankId, string userId);
-    Task<PaginatedResponse<BankListItemResponse>> GetAll(string userId);
+    Task<PaginatedResponse<BankListItemResponse>> GetAll(string userId, PaginationParams paginationParams);
     Task<bool> Update(long bankId, UpdateBankRequest request, string userId);
     Task<bool> Activate(long bankId, string userId);
     Task<bool> Deactivate(long bankId, string userId);

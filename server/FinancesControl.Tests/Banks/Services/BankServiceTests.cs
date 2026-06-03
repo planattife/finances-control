@@ -7,6 +7,7 @@ using FinancesControl.API.Banks;
 using FinancesControl.API.Banks.DTOs;
 using FinancesControl.API.Banks.Repository;
 using FinancesControl.API.Banks.Services;
+using FinancesControl.API.Common;
 using FinancesControl.API.Enums;
 using Microsoft.AspNetCore.Http;
 
@@ -178,22 +179,29 @@ public class BankServiceTests
     {
         // Arrange
         var userId = "mock-user-id";
+        var paginationParams = new PaginationParams();
         var banks = new List<Bank>
         {
             new("Bank 1", BankAccountType.Check, 1, userId),
             new("Bank 2", BankAccountType.Savings, 2, userId),
             new("Bank 3", BankAccountType.Check, 3, userId)
         };
-        _repository.GetAll(userId).Returns(Task.FromResult(banks));
+        _repository.GetAll(userId, paginationParams).Returns(Task.FromResult(banks));
+        _repository.CountByUserId(userId).Returns(Task.FromResult(banks.Count));
 
         // Act
-        var result = await _service.GetAll(userId);
+        var result = await _service.GetAll(userId, paginationParams);
 
         // Assert
         result.Should().NotBeNull();
         result.Data.Should().HaveCount(3);
         result.Data[0].AccountType.Should().Be(BankAccountType.Check);
         result.Data[1].AccountType.Should().Be(BankAccountType.Savings);
+        result.TotalCount.Should().Be(3);
+        result.TotalPages.Should().Be(1);
+        result.CurrentPage.Should().Be(1);
+        result.HasNextPage.Should().BeFalse();
+        result.HasPrevPage.Should().BeFalse();
     }
 
     [Fact]
@@ -201,14 +209,82 @@ public class BankServiceTests
     {
         // Arrange
         var userId = "mock-user-id";
-        _repository.GetAll(userId).Returns(Task.FromResult(new List<Bank>()));
+        var paginationParams = new PaginationParams();
+        _repository.GetAll(userId, paginationParams).Returns(Task.FromResult(new List<Bank>()));
+        _repository.CountByUserId(userId).Returns(Task.FromResult(0));
 
         // Act
-        var result = await _service.GetAll(userId);
+        var result = await _service.GetAll(userId, paginationParams);
 
         // Assert
         result.Should().NotBeNull();
         result.Data.Should().BeEmpty();
+        result.TotalCount.Should().Be(0);
+        result.TotalPages.Should().Be(0);
+    }
+
+    [Fact]
+    public async Task GetAll_WithPaginationParams_PassesPaginationParamsToRepository()
+    {
+        // Arrange
+        var userId = "mock-user-id";
+        var paginationParams = new PaginationParams { PageSize = 5, PageNumber = 2 };
+        var banks = CreateBanks(5, 6, userId);
+        _repository.GetAll(userId, paginationParams).Returns(Task.FromResult(banks));
+        _repository.CountByUserId(userId).Returns(Task.FromResult(12));
+
+        // Act
+        var result = await _service.GetAll(userId, paginationParams);
+
+        // Assert
+        await _repository.Received(1).GetAll(userId, paginationParams);
+        await _repository.Received(1).CountByUserId(userId);
+        result.Data.Should().HaveCount(5);
+        result.Data[0].Id.Should().Be(6);
+        result.Data[4].Id.Should().Be(10);
+    }
+
+    [Fact]
+    public async Task GetAll_WithSecondPage_ReturnsCorrectPaginationMetadata()
+    {
+        // Arrange
+        var userId = "mock-user-id";
+        var paginationParams = new PaginationParams { PageSize = 5, PageNumber = 2 };
+        _repository.GetAll(userId, paginationParams).Returns(Task.FromResult(CreateBanks(5, 6, userId)));
+        _repository.CountByUserId(userId).Returns(Task.FromResult(12));
+
+        // Act
+        var result = await _service.GetAll(userId, paginationParams);
+
+        // Assert
+        result.TotalCount.Should().Be(12);
+        result.TotalPages.Should().Be(3);
+        result.CurrentPage.Should().Be(2);
+        result.HasNextPage.Should().BeTrue();
+        result.HasPrevPage.Should().BeTrue();
+        result.Data.Should().HaveCount(5);
+    }
+
+    [Fact]
+    public async Task GetAll_WithInvalidPaginationParams_UsesDefaults()
+    {
+        // Arrange
+        var userId = "mock-user-id";
+        var paginationParams = new PaginationParams { PageSize = 0, PageNumber = -1 };
+        _repository.GetAll(userId, paginationParams).Returns(Task.FromResult(CreateBanks(10, 1, userId)));
+        _repository.CountByUserId(userId).Returns(Task.FromResult(12));
+
+        // Act
+        var result = await _service.GetAll(userId, paginationParams);
+
+        // Assert
+        paginationParams.PageSize.Should().Be(10);
+        paginationParams.PageNumber.Should().Be(1);
+        result.TotalCount.Should().Be(12);
+        result.TotalPages.Should().Be(2);
+        result.CurrentPage.Should().Be(1);
+        result.HasNextPage.Should().BeTrue();
+        result.HasPrevPage.Should().BeFalse();
     }
 
     #endregion
@@ -398,6 +474,13 @@ public class BankServiceTests
 
         var httpContext = new DefaultHttpContext { User = principal };
         _httpContextAccessor.HttpContext.Returns(httpContext);
+    }
+
+    private static List<Bank> CreateBanks(int count, int startId, string userId)
+    {
+        return Enumerable.Range(startId, count)
+            .Select(id => new Bank($"Bank {id}", BankAccountType.Check, id, userId))
+            .ToList();
     }
 
     #endregion

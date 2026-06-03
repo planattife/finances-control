@@ -130,8 +130,46 @@ gh pr create \
 If GitHub CLI is unavailable or authentication is missing:
 
 * Explain what is missing.
-* Provide the exact command required to resolve the issue.
 * Do not guess credentials or repository settings.
+
+Execute the command only once.
+
+If the command succeeds:
+
+* Return the pull request URL if available.
+
+If the command fails:
+
+* Follow the Failure Handling section.
+* Do not retry.
+
+## Failure Handling
+
+Attempt the pull request creation process only once.
+
+Do not retry any command automatically.
+
+Do not attempt alternative commands, authentication flows, branch pushes, repository configuration changes, or recovery actions.
+
+If any step fails, including but not limited to:
+
+- GitHub CLI errors
+- Authentication failures
+- Permission errors
+- Missing remote branches
+- Network issues
+- Repository configuration issues
+- Pull request creation failures
+
+Immediately stop the process and return:
+
+1. The generated pull request title.
+2. The generated pull request description.
+3. A brief explanation of the failure.
+
+Do not make additional attempts to create the pull request.
+Do not ask for confirmation before stopping.
+Do not retry under any circumstances.
 
 ## Expected Output
 
@@ -141,6 +179,3 @@ Produce:
 2. Generated PR description.
 3. Pull request creation command (if needed).
 4. Pull request URL after creation (if available).
-
-```
-```
