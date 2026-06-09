@@ -2,6 +2,7 @@ using System;
 using Xunit;
 using FluentAssertions;
 using FinancesControl.API.Banks;
+using FinancesControl.API.Common;
 using FinancesControl.API.Enums;
 
 namespace FinancesControl.Tests.Banks.Models;
@@ -17,14 +18,14 @@ public class BankTests
     public void Constructor_WithInvalidName_ThrowsArgumentException(string invalidName)
     {
         // Act & Assert
-        Assert.Throws<ArgumentException>(() => new Bank(invalidName, BankAccountType.Check, 1, "123"));
+        Assert.Throws<DomainValidationException>(() => new Bank(invalidName, BankAccountType.Check, 1, "123"));
     }
 
     [Fact]
     public void Constructor_WithNameTooShort_ThrowsArgumentException()
     {
         // Act & Assert
-        Assert.Throws<ArgumentException>(() => new Bank("A", BankAccountType.Check, 1, "123"));
+        Assert.Throws<DomainValidationException>(() => new Bank("A", BankAccountType.Check, 1, "123"));
     }
 
     [Fact]
@@ -34,7 +35,7 @@ public class BankTests
         var longName = new string('A', 51);
 
         // Act & Assert
-        Assert.Throws<ArgumentException>(() => new Bank(longName, BankAccountType.Check, 1, "123"));
+        Assert.Throws<DomainValidationException>(() => new Bank(longName, BankAccountType.Check, 1, "123"));
     }
 
     [Fact]

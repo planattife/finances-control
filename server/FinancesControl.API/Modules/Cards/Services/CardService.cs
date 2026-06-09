@@ -27,16 +27,16 @@ public class CardService : ICardService
     private string GetCurrentUserId()
     {
         var userId = _httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        return userId ?? throw new InvalidOperationException("User context not available");
+        return userId ?? throw new AuthenticationContextException("User context is not available.");
     }
 
     public async Task<long> CreateDebitCard(CreateDebitCardRequest request, long accountId, string userId)
     {
         if (!await _accountService.ExistsAsync(accountId, userId))
-            throw new InvalidOperationException("Account not found.");
+            throw new ResourceNotFoundException("Account not found.");
         
         if (!await _bankService.ValidateBankForUser(request.BankId, userId))
-            throw new InvalidOperationException("Bank is not valid.");
+            throw new BusinessRuleException("Bank is not valid.");
         
         var card = new Card(CardMaskingHelper.MaskCardNumber(request.CardNumber), request.ExpirationDate, request.CardNetwork, request.BankId, accountId, CardType.Debit, 0, request.CardName);
         return await _repository.Add(card);
@@ -45,10 +45,10 @@ public class CardService : ICardService
     public async Task<long> CreateCreditCard(CreateCreditCardRequest request, long accountId, string userId)
     {
         if (!await _accountService.ExistsAsync(accountId, userId))
-            throw new InvalidOperationException("Account not found.");
+            throw new ResourceNotFoundException("Account not found.");
         
         if (!await _bankService.ValidateBankForUser(request.BankId, userId))
-            throw new InvalidOperationException("Bank is not valid.");
+            throw new BusinessRuleException("Bank is not valid.");
         
         var card = new CreditCard(CardMaskingHelper.MaskCardNumber(request.CardNumber), request.ExpirationDate, request.CardNetwork, request.BankId, accountId, request.ClosingDay, request.DueDateDay, CardType.Credit, 0, request.CardName);
         return await _repository.Add(card);

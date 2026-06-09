@@ -1,6 +1,7 @@
 using System;
 using Xunit;
 using FluentAssertions;
+using FinancesControl.API.Common;
 using FinancesControl.API.Models;
 
 namespace FinancesControl.Tests.TransactionCategories.Models;
@@ -15,7 +16,7 @@ public class TransactionCategoryTests
     [InlineData("   ")]
     public void Constructor_InvalidName_Throws(string name)
     {
-        Assert.Throws<ArgumentException>(() => new TransactionCategory(name, 1, TestUserId));
+        Assert.Throws<DomainValidationException>(() => new TransactionCategory(name, 1, TestUserId));
     }
 
     [Fact]

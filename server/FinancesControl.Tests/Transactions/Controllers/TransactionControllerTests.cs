@@ -77,11 +77,9 @@ public class TransactionControllerTests
             AccountId = 2
         };
         _service.When(s => s.CreateTransaction(request, AccountId, TestUserId))
-            .Do(x => { throw new ArgumentException("Invalid account"); });
+            .Do(x => { throw new DomainValidationException("Invalid account"); });
 
-        var result = await _controller.Create(AccountId, request);
-
-        result.Should().BeOfType<BadRequestObjectResult>();
+        await Assert.ThrowsAsync<DomainValidationException>(() => _controller.Create(AccountId, request));
     }
 
     [Fact]
@@ -97,10 +95,9 @@ public class TransactionControllerTests
             AccountId = AccountId
         };
         _service.When(s => s.CreateTransaction(request, AccountId, TestUserId))
-            .Do(x => { throw new ArgumentException(); });
+            .Do(x => { throw new DomainValidationException("Amount cannot be less than 0."); });
         
-        var result = await _controller.Create(AccountId, request);
-        result.Should().BeOfType<BadRequestObjectResult>();
+        await Assert.ThrowsAsync<DomainValidationException>(() => _controller.Create(AccountId, request));
     }
 
     [Fact]
@@ -116,10 +113,9 @@ public class TransactionControllerTests
             AccountId = AccountId
         };
         _service.When(s => s.CreateTransaction(request, AccountId, TestUserId))
-            .Do(x => { throw new ArgumentException(); });
+            .Do(x => { throw new DomainValidationException("CategoryId must be greater than 0."); });
         
-        var result = await _controller.Create(AccountId, request);
-        result.Should().BeOfType<BadRequestObjectResult>();
+        await Assert.ThrowsAsync<DomainValidationException>(() => _controller.Create(AccountId, request));
     }
 
     [Fact]
@@ -319,8 +315,8 @@ public class TransactionControllerTests
     {
         var req = new UpdateTransactionRequest { NewAmount = -50 };
         _service.When(s => s.Update(2, AccountId, req, TestUserId))
-            .Do(x => { throw new ArgumentException(); });
-        await Assert.ThrowsAsync<ArgumentException>(async () => await _controller.Update(AccountId, 2, req));
+            .Do(x => { throw new DomainValidationException("Amount cannot be less than 0."); });
+        await Assert.ThrowsAsync<DomainValidationException>(async () => await _controller.Update(AccountId, 2, req));
     }
 
     [Fact]
@@ -328,8 +324,8 @@ public class TransactionControllerTests
     {
         var req = new UpdateTransactionRequest { NewCategoryId = 0 };
         _service.When(s => s.Update(2, AccountId, req, TestUserId))
-            .Do(x => { throw new ArgumentException(); });
-        await Assert.ThrowsAsync<ArgumentException>(async () => await _controller.Update(AccountId, 2, req));
+            .Do(x => { throw new DomainValidationException("CategoryId must be greater than 0."); });
+        await Assert.ThrowsAsync<DomainValidationException>(async () => await _controller.Update(AccountId, 2, req));
     }
 
     [Fact]

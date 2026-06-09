@@ -22,7 +22,7 @@ namespace FinancesControl.API.Banks.Controllers
         private string GetCurrentUserId()
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            return userId ?? throw new InvalidOperationException("User context is not available");
+            return userId ?? throw new AuthenticationContextException("User context is not available.");
         }
 
         [HttpPost]

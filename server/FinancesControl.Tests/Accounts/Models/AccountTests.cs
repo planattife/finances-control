@@ -1,6 +1,7 @@
 using Xunit;
 using FluentAssertions;
 using FinancesControl.API.Accounts;
+using FinancesControl.API.Common;
 
 namespace FinancesControl.Tests.Accounts.Models;
 
@@ -15,14 +16,14 @@ public class AccountTests
     public void Constructor_WithInvalidName_ThrowsArgumentException(string invalidName)
     {
         // Act & Assert
-        Assert.Throws<ArgumentException>(() => new Account(1, invalidName, "user-123"));
+        Assert.Throws<DomainValidationException>(() => new Account(1, invalidName, "user-123"));
     }
 
     [Fact]
     public void Constructor_WithNameTooShort_ThrowsArgumentException()
     {
         // Act & Assert
-        Assert.Throws<ArgumentException>(() => new Account(1, "A", "user-123"));
+        Assert.Throws<DomainValidationException>(() => new Account(1, "A", "user-123"));
     }
 
     [Fact]
@@ -32,7 +33,7 @@ public class AccountTests
         var longName = new string('A', 51);
 
         // Act & Assert
-        Assert.Throws<ArgumentException>(() => new Account(1, longName, "user-123"));
+        Assert.Throws<DomainValidationException>(() => new Account(1, longName, "user-123"));
     }
 
     [Fact]
@@ -63,7 +64,7 @@ public class AccountTests
         var account = new Account(1, "Original Name", "user-123");
 
         // Act & Assert
-        Assert.Throws<ArgumentException>(() => account.Rename(invalidName));
+        Assert.Throws<DomainValidationException>(() => account.Rename(invalidName));
     }
 
     [Fact]

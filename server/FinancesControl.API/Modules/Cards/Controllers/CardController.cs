@@ -23,7 +23,7 @@ namespace FinancesControl.API.Cards.Controllers
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userId))
-                throw new InvalidOperationException("User context not available");
+                throw new AuthenticationContextException("User context is not available.");
             return userId;
         }
 

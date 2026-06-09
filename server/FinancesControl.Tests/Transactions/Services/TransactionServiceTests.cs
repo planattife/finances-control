@@ -62,7 +62,7 @@ public class TransactionServiceTests
     {
         var request = new CreateTransactionRequest { Amount = 100, PaymentMethod = PaymentMethod.Cash, CategoryId = 1, TransactionType = TransactionType.Expense, TransactionDate = DateTime.UtcNow, AccountId = 2 };
         
-        var ex = await Assert.ThrowsAsync<ArgumentException>(() => _service.CreateTransaction(request, AccountId, TestUserId));
+        var ex = await Assert.ThrowsAsync<DomainValidationException>(() => _service.CreateTransaction(request, AccountId, TestUserId));
         ex.Message.Should().Contain("Invalid account");
     }
 
@@ -75,8 +75,8 @@ public class TransactionServiceTests
         var request = new CreateTransactionRequest { Amount = 100, PaymentMethod = PaymentMethod.Cash, CategoryId = 1, TransactionType = TransactionType.Expense, TransactionDate = DateTime.UtcNow, AccountId = 999 };
         _accountService.ExistsAsync(999, TestUserId).Returns(Task.FromResult(false));
         
-        var ex = await Assert.ThrowsAsync<ArgumentException>(() => _service.CreateTransaction(request, 999, TestUserId));
-        ex.Message.Should().Contain("Invalid Account.");
+        var ex = await Assert.ThrowsAsync<ResourceNotFoundException>(() => _service.CreateTransaction(request, 999, TestUserId));
+        ex.Message.Should().Contain("Account not found.");
     }
 
     [Fact]
@@ -86,9 +86,8 @@ public class TransactionServiceTests
         SetupAccountExists();
         _categoryService.ExistsAsync(999).Returns(Task.FromResult(false));
         
-        var ex = await Assert.ThrowsAsync<ArgumentException>(() => _service.CreateTransaction(request, AccountId, TestUserId));
+        var ex = await Assert.ThrowsAsync<ResourceNotFoundException>(() => _service.CreateTransaction(request, AccountId, TestUserId));
         ex.Message.Should().Contain("Transaction category with ID 999 does not exist");
-        ex.ParamName.Should().Be(nameof(request.CategoryId));
     }
 
     [Fact]
@@ -99,9 +98,8 @@ public class TransactionServiceTests
         _categoryService.ExistsAsync(1).Returns(Task.FromResult(true));
         _cardService.GetById(999, AccountId, TestUserId).Returns(Task.FromResult(new SingleResponse<CardDetailResponse>()));
         
-        var ex = await Assert.ThrowsAsync<ArgumentException>(() => _service.CreateTransaction(request, AccountId, TestUserId));
+        var ex = await Assert.ThrowsAsync<ResourceNotFoundException>(() => _service.CreateTransaction(request, AccountId, TestUserId));
         ex.Message.Should().Contain("Card with ID 999 does not exist");
-        ex.ParamName.Should().Be(nameof(request.CardId));
     }
 
     [Fact]
@@ -112,9 +110,8 @@ public class TransactionServiceTests
         _categoryService.ExistsAsync(1).Returns(Task.FromResult(true));
         _cardService.GetById(999, AccountId, TestUserId).Returns(Task.FromResult(new SingleResponse<CardDetailResponse>()));
         
-        var ex = await Assert.ThrowsAsync<ArgumentException>(() => _service.CreateTransaction(request, AccountId, TestUserId));
+        var ex = await Assert.ThrowsAsync<ResourceNotFoundException>(() => _service.CreateTransaction(request, AccountId, TestUserId));
         ex.Message.Should().Contain("Card with ID 999 does not exist");
-        ex.ParamName.Should().Be(nameof(request.CardId));
     }
 
     [Fact]
@@ -125,9 +122,8 @@ public class TransactionServiceTests
         _categoryService.ExistsAsync(1).Returns(Task.FromResult(true));
         _bankService.ExistsAsync(999, TestUserId).Returns(Task.FromResult(false));
         
-        var ex = await Assert.ThrowsAsync<ArgumentException>(() => _service.CreateTransaction(request, AccountId, TestUserId));
+        var ex = await Assert.ThrowsAsync<ResourceNotFoundException>(() => _service.CreateTransaction(request, AccountId, TestUserId));
         ex.Message.Should().Contain("Bank with ID 999 does not exist");
-        ex.ParamName.Should().Be(nameof(request.BankId));
     }
 
     [Fact]
@@ -138,9 +134,8 @@ public class TransactionServiceTests
         _categoryService.ExistsAsync(1).Returns(Task.FromResult(true));
         _bankService.ExistsAsync(999, TestUserId).Returns(Task.FromResult(false));
         
-        var ex = await Assert.ThrowsAsync<ArgumentException>(() => _service.CreateTransaction(request, AccountId, TestUserId));
+        var ex = await Assert.ThrowsAsync<ResourceNotFoundException>(() => _service.CreateTransaction(request, AccountId, TestUserId));
         ex.Message.Should().Contain("Bank with ID 999 does not exist");
-        ex.ParamName.Should().Be(nameof(request.BankId));
     }
 
     [Fact]
@@ -151,9 +146,8 @@ public class TransactionServiceTests
         _categoryService.ExistsAsync(1).Returns(Task.FromResult(true));
         _bankService.ExistsAsync(999, TestUserId).Returns(Task.FromResult(false));
         
-        var ex = await Assert.ThrowsAsync<ArgumentException>(() => _service.CreateTransaction(request, AccountId, TestUserId));
+        var ex = await Assert.ThrowsAsync<ResourceNotFoundException>(() => _service.CreateTransaction(request, AccountId, TestUserId));
         ex.Message.Should().Contain("Bank with ID 999 does not exist");
-        ex.ParamName.Should().Be(nameof(request.BankId));
     }
 
     [Fact]
@@ -178,7 +172,7 @@ public class TransactionServiceTests
         SetupAccountExists();
         _categoryService.ExistsAsync(1).Returns(Task.FromResult(true));
         
-        await Assert.ThrowsAsync<ArgumentException>(() => _service.CreateTransaction(request, AccountId, TestUserId));
+        await Assert.ThrowsAsync<DomainValidationException>(() => _service.CreateTransaction(request, AccountId, TestUserId));
     }
 
     [Fact]
@@ -188,7 +182,7 @@ public class TransactionServiceTests
         
         SetupAccountExists();
         
-        await Assert.ThrowsAsync<ArgumentException>(() => _service.CreateTransaction(request, AccountId, TestUserId));
+        await Assert.ThrowsAsync<DomainValidationException>(() => _service.CreateTransaction(request, AccountId, TestUserId));
     }
 
     [Fact]
@@ -199,7 +193,7 @@ public class TransactionServiceTests
         SetupAccountExists();
         _categoryService.ExistsAsync(1).Returns(Task.FromResult(true));
         
-        await Assert.ThrowsAsync<ArgumentException>(() => _service.CreateTransaction(request, AccountId, TestUserId));
+        await Assert.ThrowsAsync<DomainValidationException>(() => _service.CreateTransaction(request, AccountId, TestUserId));
     }
 
     [Fact]
@@ -210,7 +204,7 @@ public class TransactionServiceTests
         SetupAccountExists();
         _categoryService.ExistsAsync(1).Returns(Task.FromResult(true));
         
-        await Assert.ThrowsAsync<ArgumentException>(() => _service.CreateTransaction(request, AccountId, TestUserId));
+        await Assert.ThrowsAsync<DomainValidationException>(() => _service.CreateTransaction(request, AccountId, TestUserId));
     }
 
     [Fact]
@@ -221,7 +215,7 @@ public class TransactionServiceTests
         SetupAccountExists();
         _categoryService.ExistsAsync(1).Returns(Task.FromResult(true));
         
-        await Assert.ThrowsAsync<ArgumentException>(() => _service.CreateTransaction(request, AccountId, TestUserId));
+        await Assert.ThrowsAsync<DomainValidationException>(() => _service.CreateTransaction(request, AccountId, TestUserId));
     }
 
     [Fact]
@@ -235,9 +229,8 @@ public class TransactionServiceTests
         _categoryService.ExistsAsync(1).Returns(Task.FromResult(true));
         _cardService.GetById(1, AccountId, TestUserId).Returns(Task.FromResult(CreateCardResponse(1, CardType.Credit, "Inactive")));
         
-        var ex = await Assert.ThrowsAsync<ArgumentException>(() => _service.CreateTransaction(request, AccountId, TestUserId));
+        var ex = await Assert.ThrowsAsync<BusinessRuleException>(() => _service.CreateTransaction(request, AccountId, TestUserId));
         ex.Message.Should().Contain("is not active and cannot be used for transactions");
-        ex.ParamName.Should().Be(nameof(request.CardId));
     }
 
     [Fact]
@@ -251,9 +244,8 @@ public class TransactionServiceTests
         _categoryService.ExistsAsync(1).Returns(Task.FromResult(true));
         _cardService.GetById(2, AccountId, TestUserId).Returns(Task.FromResult(CreateCardResponse(2, CardType.Debit, "Inactive")));
         
-        var ex = await Assert.ThrowsAsync<ArgumentException>(() => _service.CreateTransaction(request, AccountId, TestUserId));
+        var ex = await Assert.ThrowsAsync<BusinessRuleException>(() => _service.CreateTransaction(request, AccountId, TestUserId));
         ex.Message.Should().Contain("is not active and cannot be used for transactions");
-        ex.ParamName.Should().Be(nameof(request.CardId));
     }
 
     [Fact]
@@ -543,7 +535,7 @@ public class TransactionServiceTests
         var t = new Transaction(100, PaymentMethod.Cash, TransactionType.Expense, DateTime.UtcNow, 1, AccountId, 5);
         _repository.GetById(5, AccountId).Returns(Task.FromResult((Transaction?)t));
         var req = new UpdateTransactionRequest { NewAmount = -50 };
-        await Assert.ThrowsAsync<ArgumentException>(() => _service.Update(5, AccountId, req, TestUserId));
+        await Assert.ThrowsAsync<DomainValidationException>(() => _service.Update(5, AccountId, req, TestUserId));
     }
 
     [Fact]
