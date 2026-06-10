@@ -19,7 +19,7 @@ public class BankService : IBankService
 
     private string GetCurrentUserId()
     {
-        return _httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new InvalidOperationException("User context is not available");
+        return _httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new AuthenticationContextException("User context is not available.");
     }
 
     public async Task<long> CreateBank(CreateBankRequest request)

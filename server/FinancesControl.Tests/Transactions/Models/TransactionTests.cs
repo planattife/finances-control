@@ -1,6 +1,7 @@
 using System;
 using Xunit;
 using FluentAssertions;
+using FinancesControl.API.Common;
 using FinancesControl.API.Models;
 using FinancesControl.API.Enums;
 
@@ -32,21 +33,21 @@ public class TransactionTests
     public void ChangeAmount_ToNegative_Throws()
     {
         var t = new Transaction(100, PaymentMethod.Cash, TransactionType.Expense, DateTime.UtcNow, 1, 10, 2);
-        Assert.Throws<ArgumentException>(() => t.ChangeAmount(-1));
+        Assert.Throws<DomainValidationException>(() => t.ChangeAmount(-1));
     }
 
     [Fact]
     public void ChangeCategory_ToZero_Throws()
     {
         var t = new Transaction(100, PaymentMethod.Cash, TransactionType.Expense, DateTime.UtcNow, 1, 10, 2);
-        Assert.Throws<ArgumentException>(() => t.ChangeCategory(0));
+        Assert.Throws<DomainValidationException>(() => t.ChangeCategory(0));
     }
 
     [Fact]
     public void ChangeCategory_ToNegative_Throws()
     {
         var t = new Transaction(100, PaymentMethod.Cash, TransactionType.Expense, DateTime.UtcNow, 1, 10, 2);
-        Assert.Throws<ArgumentException>(() => t.ChangeCategory(-5));
+        Assert.Throws<DomainValidationException>(() => t.ChangeCategory(-5));
     }
 
     [Fact]
@@ -94,7 +95,7 @@ public class TransactionTests
     [InlineData(-100)]
     public void Constructor_InvalidAmount_Throws(decimal amount)
     {
-        Assert.Throws<ArgumentException>(() => new Transaction(amount, PaymentMethod.Cash, TransactionType.Expense, DateTime.UtcNow, 1, 10, 2));
+        Assert.Throws<DomainValidationException>(() => new Transaction(amount, PaymentMethod.Cash, TransactionType.Expense, DateTime.UtcNow, 1, 10, 2));
     }
 
     [Theory]
@@ -102,6 +103,6 @@ public class TransactionTests
     [InlineData(-1)]
     public void Constructor_InvalidCategoryId_Throws(long categoryId)
     {
-        Assert.Throws<ArgumentException>(() => new Transaction(100, PaymentMethod.Cash, TransactionType.Expense, DateTime.UtcNow, categoryId, 10, 2));
+        Assert.Throws<DomainValidationException>(() => new Transaction(100, PaymentMethod.Cash, TransactionType.Expense, DateTime.UtcNow, categoryId, 10, 2));
     }
 }

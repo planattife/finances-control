@@ -37,7 +37,7 @@ public class TransactionService : ITransactionService
 	{
 		// Validate that URL accountId matches request AccountId
 		if (accountId != request.AccountId)
-			throw new ArgumentException("Invalid account. URL account ID does not match request account ID.");
+			throw new DomainValidationException("Invalid account. URL account ID does not match request account ID.");
 
 		// Validate foreign key constraints before attempting insert
 		await ValidateForeignKeys(request, accountId, userId);
@@ -49,21 +49,21 @@ public class TransactionService : ITransactionService
 			case PaymentMethod.Credit:
 			case PaymentMethod.Debit:
 				if (request.CardId == null || request.CardId <= 0)
-					throw new ArgumentException("Card must be provided for card transactions.");
+					throw new DomainValidationException("Card must be provided for card transactions.");
 				transaction = new CardTransaction(request.Amount, request.PaymentMethod, request.TransactionType,  request.TransactionDate, request.CategoryId, request.CardId.Value, request.AccountId, 0, request.Description);
 				break;
 			case PaymentMethod.Pix:
 			case PaymentMethod.BankSlip:
 			case PaymentMethod.BankTransfer:
 				if (request.BankId == null || request.BankId <= 0)
-					throw new ArgumentException("Bank must be provided for general transactions.");
+					throw new DomainValidationException("Bank must be provided for general transactions.");
 				transaction = new GeneralTransaction(request.Amount, request.PaymentMethod, request.TransactionType, request.TransactionDate, request.CategoryId, request.BankId.Value, request.AccountId, 0, request.Description);
 				break;
 			case PaymentMethod.Cash:
 				transaction = new Transaction(request.Amount, request.PaymentMethod, request.TransactionType, request.TransactionDate, request.CategoryId, request.AccountId, 0, request.Description);
 				break;
 			default:
-				throw new ArgumentException("Unsupported payment method");
+				throw new DomainValidationException("Unsupported payment method.");
 		}
 		return await _repository.Add(transaction);
 	}
@@ -72,28 +72,32 @@ public class TransactionService : ITransactionService
     {
         // Validate Account exists
         await ValidateAccount(accountId, userId);
+        var authenticatedUserId = userId!;
 
         // Validate Category exists
+        if (request.CategoryId <= 0)
+            throw new DomainValidationException("CategoryId must be greater than 0.");
+
         if (!await _categoryService.ExistsAsync(request.CategoryId))
-            throw new ArgumentException($"Transaction category with ID {request.CategoryId} does not exist.", nameof(request.CategoryId));
+            throw new ResourceNotFoundException($"Transaction category with ID {request.CategoryId} does not exist.");
 
         // Validate Card exists (if applicable)
         if (request.PaymentMethod == PaymentMethod.Credit || request.PaymentMethod == PaymentMethod.Debit)
         {
             if (request.CardId == null || request.CardId <= 0)
-                throw new ArgumentException("Card ID must be provided for credit/debit card transactions.", nameof(request.CardId));
+                throw new DomainValidationException("Card ID must be provided for credit/debit card transactions.");
 
-			var cardResponse = await _cardService.GetById(request.CardId.Value, accountId, userId);
+			var cardResponse = await _cardService.GetById(request.CardId.Value, accountId, authenticatedUserId);
             if (cardResponse.Data == null)
-                throw new ArgumentException($"Card with ID {request.CardId} does not exist.", nameof(request.CardId));
+                throw new ResourceNotFoundException($"Card with ID {request.CardId} does not exist.");
 
             if (cardResponse.Data.Status == "Inactive")
-                throw new ArgumentException($"Card with ID {request.CardId} is not active and cannot be used for transactions.", nameof(request.CardId));
+                throw new BusinessRuleException($"Card with ID {request.CardId} is not active and cannot be used for transactions.");
 
             if ((request.PaymentMethod == PaymentMethod.Credit && cardResponse.Data.CardType != CardType.Credit) ||
                 (request.PaymentMethod == PaymentMethod.Debit && cardResponse.Data.CardType != CardType.Debit))
             {
-                throw new ArgumentException($"Card with ID {request.CardId} does not match the specified payment method.", nameof(request.CardId));
+                throw new BusinessRuleException($"Card with ID {request.CardId} does not match the specified payment method.");
             }
         }
 
@@ -101,17 +105,20 @@ public class TransactionService : ITransactionService
         if (request.PaymentMethod == PaymentMethod.Pix || request.PaymentMethod == PaymentMethod.BankSlip || request.PaymentMethod == PaymentMethod.BankTransfer)
         {
             if (request.BankId == null || request.BankId <= 0)
-                throw new ArgumentException("Bank ID must be provided for pix/bank slip/bank transfer transactions.", nameof(request.BankId));
+                throw new DomainValidationException("Bank ID must be provided for pix/bank slip/bank transfer transactions.");
 
-            if (!await _bankService.ExistsAsync(request.BankId.Value, userId))
-                throw new ArgumentException($"Bank with ID {request.BankId} does not exist.", nameof(request.BankId));
+            if (!await _bankService.ExistsAsync(request.BankId.Value, authenticatedUserId))
+                throw new ResourceNotFoundException($"Bank with ID {request.BankId} does not exist.");
         }
     }
 
     private async Task ValidateAccount(long accountId, string? userId)
     {
-        if (userId != null && !await _accountService.ExistsAsync(accountId, userId))
-            throw new ArgumentException($"Invalid Account.");
+        if (string.IsNullOrEmpty(userId))
+            throw new AuthenticationContextException("User context is not available.");
+
+        if (!await _accountService.ExistsAsync(accountId, userId))
+            throw new ResourceNotFoundException("Account not found.");
     }
 
 	public async Task<SingleResponse<TransactionDetailResponse>> GetById(long transactionId, long accountId, string? userId)
@@ -122,7 +129,7 @@ public class TransactionService : ITransactionService
 		{
 			await ValidateAccount(accountId, userId);
 		}
-		catch (Exception ex)
+		catch (ResourceNotFoundException ex)
 		{
 			response.AddError(ex.Message);
 			response.SetHttpStatusCode(404);
@@ -168,7 +175,7 @@ public class TransactionService : ITransactionService
 		{
 			await ValidateAccount(accountId, userId);
 		}
-		catch (Exception ex)
+		catch (ResourceNotFoundException ex)
 		{
 			response.AddError(ex.Message);
 			response.SetHttpStatusCode(404);
@@ -206,7 +213,7 @@ public class TransactionService : ITransactionService
 		{
 			await ValidateAccount(accountId, userId);
 		}
-		catch (Exception)
+		catch (ResourceNotFoundException)
 		{
 			return false;
 		}
@@ -223,7 +230,7 @@ public class TransactionService : ITransactionService
 		{
 			await ValidateAccount(accountId, userId);
 		}
-		catch (Exception)
+		catch (ResourceNotFoundException)
 		{
 			return false;
 		}
@@ -239,7 +246,7 @@ public class TransactionService : ITransactionService
 		if (request.NewCategoryId.HasValue && request.NewCategoryId > 0)
 		{
 			if (!await _categoryService.ExistsAsync(request.NewCategoryId.Value))
-				throw new ArgumentException($"Transaction category with ID {request.NewCategoryId.Value} does not exist.", nameof(request.NewCategoryId));
+				throw new ResourceNotFoundException($"Transaction category with ID {request.NewCategoryId.Value} does not exist.");
 			transaction.ChangeCategory(request.NewCategoryId.Value);
 		}
 

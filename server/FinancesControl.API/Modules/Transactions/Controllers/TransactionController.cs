@@ -27,16 +27,9 @@ namespace FinancesControl.API.Transactions.Controllers
 		[HttpPost("{accountId}")]
 		public async Task<IActionResult> Create(long accountId, CreateTransactionRequest request)
 		{
-			try
-			{
-				var userId = GetUserId();
-				var id = await _service.CreateTransaction(request, accountId, userId);
-				return CreatedAtAction(nameof(GetById), new { accountId = accountId, transactionId = id }, null);
-			}
-			catch (ArgumentException ex)
-			{
-				return BadRequest(ex.Message);
-			}
+			var userId = GetUserId();
+			var id = await _service.CreateTransaction(request, accountId, userId);
+			return CreatedAtAction(nameof(GetById), new { accountId = accountId, transactionId = id }, null);
 		}
 
 		[HttpGet("{accountId}/{transactionId}")]

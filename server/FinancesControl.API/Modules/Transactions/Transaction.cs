@@ -1,4 +1,5 @@
 using FinancesControl.API.Enums;
+using FinancesControl.API.Common;
 
 namespace FinancesControl.API.Models;
 
@@ -47,7 +48,7 @@ public class Transaction : BaseModel
     {
         if (accountId <= 0)
         {
-            throw new ArgumentException("An account must be provided.", nameof(accountId));
+            throw new DomainValidationException("An account must be provided.");
         }
     }
 
@@ -81,7 +82,7 @@ public class Transaction : BaseModel
     {
         if (amount < 0)
         {
-            throw new ArgumentException("Amount cannot be less than 0", nameof(amount));
+            throw new DomainValidationException("Amount cannot be less than 0.");
         }
     }
 
@@ -89,7 +90,7 @@ public class Transaction : BaseModel
     {
         if (categoryId <= 0)
         {
-            throw new ArgumentException("CategoryId must be greater than 0", nameof(categoryId));
+            throw new DomainValidationException("CategoryId must be greater than 0.");
         }
     }
 

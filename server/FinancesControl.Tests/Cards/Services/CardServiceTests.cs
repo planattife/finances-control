@@ -82,7 +82,7 @@ public class CardServiceTests
         var request = new CreateDebitCardRequest("4111111111111111", DateTime.UtcNow.AddYears(5), CardNetwork.Visa, 1);
 
         // Act & Assert
-        await Assert.ThrowsAsync<InvalidOperationException>(() => _service.CreateDebitCard(request, AccountId, UserId));
+        await Assert.ThrowsAsync<ResourceNotFoundException>(() => _service.CreateDebitCard(request, AccountId, UserId));
     }
 
     [Fact]
@@ -144,7 +144,7 @@ public class CardServiceTests
         _bankService.ValidateBankForUser(1, UserId).Returns(Task.FromResult(false));
 
         // Act & Assert
-        var exception = await Assert.ThrowsAsync<InvalidOperationException>(() => _service.CreateDebitCard(request, AccountId, UserId));
+        var exception = await Assert.ThrowsAsync<BusinessRuleException>(() => _service.CreateDebitCard(request, AccountId, UserId));
         exception.Message.Should().Be("Bank is not valid.");
     }
 
@@ -180,7 +180,7 @@ public class CardServiceTests
         var request = new CreateCreditCardRequest("5555555555554444", DateTime.UtcNow.AddYears(5), CardNetwork.Mastercard, 1, 10, 20);
 
         // Act & Assert
-        await Assert.ThrowsAsync<InvalidOperationException>(() => _service.CreateCreditCard(request, AccountId, UserId));
+        await Assert.ThrowsAsync<ResourceNotFoundException>(() => _service.CreateCreditCard(request, AccountId, UserId));
     }
 
     [Fact]
@@ -243,7 +243,7 @@ public class CardServiceTests
         _bankService.ValidateBankForUser(1, UserId).Returns(Task.FromResult(false));
 
         // Act & Assert
-        var exception = await Assert.ThrowsAsync<InvalidOperationException>(() => _service.CreateCreditCard(request, AccountId, UserId));
+        var exception = await Assert.ThrowsAsync<BusinessRuleException>(() => _service.CreateCreditCard(request, AccountId, UserId));
         exception.Message.Should().Be("Bank is not valid.");
         _repository.DidNotReceive().Add(Arg.Any<Card>());
     }
