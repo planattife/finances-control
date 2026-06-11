@@ -1,8 +1,11 @@
+import { useNavigate } from 'react-router-dom'
 import Button from '../../components/Button'
 import InputField from '../../components/InputField'
 import './LoginPage.css'
 
 function LoginPage() {
+  const navigate = useNavigate()
+
   return (
     <main className="login-page">
       <section className="login-page__form-panel" aria-label="Sign in">
@@ -15,7 +18,13 @@ function LoginPage() {
             />
           </header>
 
-          <form className="login-form" onSubmit={(event) => event.preventDefault()}>
+          <form
+            className="login-form"
+            onSubmit={(event) => {
+              event.preventDefault()
+              navigate('/home')
+            }}
+          >
             <div className="login-form__intro">
               <h1>Welcome back</h1>
               <p>Sign in to continue managing your finances with clarity.</p>

@@ -1,4 +1,3 @@
-````md
 ---
 name: create-pull-request
 description: Create a pull request from the current branch. Generate the PR title from the branch name and create a concise PR description based on the work completed during the current Codex session.

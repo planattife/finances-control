@@ -1,8 +1,14 @@
+import { Navigate, Route, Routes } from 'react-router-dom'
+import HomePage from './pages/Home/HomePage'
+import LoginPage from './pages/Login/LoginPage'
+
 function App() {
   return (
-    <>
-      <h1>Finances Control Web</h1>
-    </>
+    <Routes>
+      <Route path="/" element={<LoginPage />} />
+      <Route path="/home" element={<HomePage />} />
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
   )
 }
 
