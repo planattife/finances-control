@@ -1,10 +1,34 @@
+import type { FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
+import type { AxiosError } from 'axios'
 import Button from '../../components/Button'
 import InputField from '../../components/InputField'
+import { useAuth } from '../../features/auth/AuthContext'
+import { useLogin } from '../../features/auth/useLogin'
+import type { ApiErrorResponse } from '../../types/auth'
 import './LoginPage.css'
 
 function LoginPage() {
   const navigate = useNavigate()
+  const loginMutation = useLogin()
+  const { refreshCurrentUser } = useAuth()
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+
+    const formData = new FormData(event.currentTarget)
+    const email = String(formData.get('email') ?? '')
+    const password = String(formData.get('password') ?? '')
+
+    try {
+      await loginMutation.mutateAsync({ email, password })
+      await refreshCurrentUser()
+      navigate('/home')
+    } catch (error) {
+      const loginError = error as AxiosError<ApiErrorResponse>
+      alert(loginError.response?.data?.detail ?? loginError.message ?? 'Login failed')
+    }
+  }
 
   return (
     <main className="login-page">
@@ -20,10 +44,7 @@ function LoginPage() {
 
           <form
             className="login-form"
-            onSubmit={(event) => {
-              event.preventDefault()
-              navigate('/home')
-            }}
+            onSubmit={handleSubmit}
           >
             <div className="login-form__intro">
               <h1>Welcome back</h1>
@@ -48,7 +69,9 @@ function LoginPage() {
               />
             </div>
 
-            <Button type="submit">Sign In</Button>
+            <Button type="submit" disabled={loginMutation.isLoading}>
+              {loginMutation.isLoading ? 'Signing In...' : 'Sign In'}
+            </Button>
           </form>
         </div>
       </section>
