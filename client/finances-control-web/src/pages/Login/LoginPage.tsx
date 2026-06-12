@@ -1,5 +1,5 @@
 import type { FormEvent } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Navigate, useNavigate } from 'react-router-dom'
 import type { AxiosError } from 'axios'
 import Button from '../../components/Button'
 import InputField from '../../components/InputField'
@@ -11,7 +11,7 @@ import './LoginPage.css'
 function LoginPage() {
   const navigate = useNavigate()
   const loginMutation = useLogin()
-  const { refreshCurrentUser } = useAuth()
+  const { isAuthenticated, isCheckingAuth, refreshCurrentUser } = useAuth()
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -28,6 +28,14 @@ function LoginPage() {
       const loginError = error as AxiosError<ApiErrorResponse>
       alert(loginError.response?.data?.detail ?? loginError.message ?? 'Login failed')
     }
+  }
+
+  if (isCheckingAuth) {
+    return <p>Loading...</p>
+  }
+
+  if (isAuthenticated) {
+    return <Navigate to="/home" replace />
   }
 
   return (

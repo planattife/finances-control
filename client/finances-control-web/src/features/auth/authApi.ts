@@ -5,6 +5,10 @@ export async function login(payload: LoginRequest): Promise<void> {
   await axiosClient.post('/login?useCookies=true', payload)
 }
 
+export async function logout(): Promise<void> {
+  await axiosClient.post('/logout')
+}
+
 export async function getCurrentUser(): Promise<CurrentUser> {
   const response = await axiosClient.get<CurrentUser>('/manage/info')
   return response.data
