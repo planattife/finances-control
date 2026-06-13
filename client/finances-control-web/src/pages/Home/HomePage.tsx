@@ -1,8 +1,8 @@
 import type { AxiosError } from 'axios'
 import { useNavigate } from 'react-router-dom'
 import Button from '../../components/Button'
-import { useAuth } from '../../features/auth/AuthContext'
 import { useLogout } from '../../features/auth/useLogout'
+import { useAuth } from '../../features/auth/useAuth'
 import type { ApiErrorResponse } from '../../types/auth'
 
 function HomePage() {
