@@ -1,6 +1,8 @@
-import type { ChangeEvent, FC } from 'react'
+import type { FC } from 'react'
 import type { AxiosError } from 'axios'
 import { useNavigate } from 'react-router-dom'
+import AccountDropdown from '../accounts/AccountDropdown'
+import { clearStoredSelectedAccountId } from '../../features/accounts/accountSelectionStorage'
 import { useLogout } from '../../features/auth/useLogout'
 import { useAuth } from '../../features/auth/useAuth'
 import type { ApiErrorResponse } from '../../types/auth'
@@ -13,13 +15,10 @@ const Topbar: FC<TopbarProps> = () => {
   const logoutMutation = useLogout()
   const { clearUser, user } = useAuth()
 
-  function handleAccountChange(event: ChangeEvent<HTMLSelectElement>) {
-    console.info('Selected account placeholder:', event.target.value)
-  }
-
   async function handleLogout() {
     try {
       await logoutMutation.mutateAsync()
+      clearStoredSelectedAccountId()
       clearUser()
       navigate('/')
     } catch (error) {
@@ -30,14 +29,7 @@ const Topbar: FC<TopbarProps> = () => {
 
   return (
     <header className={styles.topbar}>
-      <label className={styles.accountSelector}>
-        <span className={styles.accountSelectorLabel}>Account</span>
-        <select className={styles.accountSelect} defaultValue="all" onChange={handleAccountChange}>
-          <option value="all">All accounts</option>
-          <option value="checking">Checking account</option>
-          <option value="savings">Savings account</option>
-        </select>
-      </label>
+      <AccountDropdown />
 
       <div className={styles.userActions}>
         <span className={styles.username}>{user?.email ?? 'User'}</span>
