@@ -39,6 +39,16 @@ namespace FinancesControl.API.Accounts.Controllers
             return StatusCode(response.HttpStatusCode, response);
         }
 
+        [HttpGet("{accountId}/account-kpi")]
+        public async Task<ActionResult<SingleResponse<AccountKpiResponse>>> GetAccountKpi(long accountId)
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized();
+            var response = await _accountService.GetAccountKpi(accountId, userId);
+            return StatusCode(response.HttpStatusCode, response);
+        }
+
         [HttpGet]
         public async Task<ActionResult<PaginatedResponse<AccountListItemResponse>>> Get([FromQuery] PaginationParams paginationParams)
         {

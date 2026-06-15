@@ -156,6 +156,78 @@ public class AccountControllerTests
 
     #endregion
 
+    #region GetAccountKpi Tests
+
+    [Fact]
+    public async Task GetAccountKpi_WithValidId_Returns200Ok()
+    {
+        // Arrange
+        var accountId = 1;
+        var userId = "test-user-id";
+        var response = new SingleResponse<AccountKpiResponse>
+        {
+            Data = new AccountKpiResponse(accountId, 2, 5)
+        };
+        response.SetHttpStatusCode(200);
+        _accountService.GetAccountKpi(accountId, userId).Returns(Task.FromResult(response));
+
+        // Act
+        var result = await _controller.GetAccountKpi(accountId);
+
+        // Assert
+        result.Result.Should().BeOfType<ObjectResult>();
+        var objectResult = result.Result as ObjectResult;
+        objectResult.StatusCode.Should().Be(200);
+        objectResult.Value.Should().Be(response);
+        _accountService.Received(1).GetAccountKpi(accountId, userId);
+    }
+
+    [Fact]
+    public async Task GetAccountKpi_WithInvalidId_Returns404NotFound()
+    {
+        // Arrange
+        var accountId = 999;
+        var userId = "test-user-id";
+        var response = new SingleResponse<AccountKpiResponse>();
+        response.Data = null;
+        response.AddError("Account not found.");
+        response.SetHttpStatusCode(404);
+        _accountService.GetAccountKpi(accountId, userId).Returns(Task.FromResult(response));
+
+        // Act
+        var result = await _controller.GetAccountKpi(accountId);
+
+        // Assert
+        result.Result.Should().BeOfType<ObjectResult>();
+        var objectResult = result.Result as ObjectResult;
+        objectResult.StatusCode.Should().Be(404);
+        objectResult.Value.Should().Be(response);
+        _accountService.Received(1).GetAccountKpi(accountId, userId);
+    }
+
+    [Fact]
+    public async Task GetAccountKpi_WithoutUserId_ReturnsUnauthorized()
+    {
+        // Arrange
+        var accountId = 1;
+        _controller.ControllerContext = new ControllerContext
+        {
+            HttpContext = new DefaultHttpContext
+            {
+                User = new ClaimsPrincipal(new ClaimsIdentity())
+            }
+        };
+
+        // Act
+        var result = await _controller.GetAccountKpi(accountId);
+
+        // Assert
+        result.Result.Should().BeOfType<UnauthorizedResult>();
+        await _accountService.DidNotReceive().GetAccountKpi(Arg.Any<long>(), Arg.Any<string>());
+    }
+
+    #endregion
+
     #region Get Tests
 
     [Fact]
