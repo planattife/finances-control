@@ -46,6 +46,24 @@ public class AccountService : IAccountService
         return response;
     }
 
+    public async Task<SingleResponse<AccountKpiResponse>> GetAccountKpi(long accountId, string userId)
+    {
+        var response = new SingleResponse<AccountKpiResponse>();
+
+        var accountKpi = await _repository.GetAccountKpi(accountId, userId);
+
+        if (accountKpi == null)
+        {
+            response.Data = null;
+            response.AddError("Account not found.");
+            response.SetHttpStatusCode(404);
+            return response;
+        }
+
+        response.Data = accountKpi;
+        return response;
+    }
+
     public async Task<PaginatedResponse<AccountListItemResponse>> GetAll(string userId, PaginationParams paginationParams)
     {
         var response = new PaginatedResponse<AccountListItemResponse>();

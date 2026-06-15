@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Dapper;
+using FinancesControl.API.Accounts.DTOs;
 using FinancesControl.API.Accounts.Repository.SqlCommands;
 using FinancesControl.API.Common;
 using FinancesControl.API.Data;
@@ -39,6 +40,15 @@ public class AccountRepository : IAccountRepository
             return null;
 
         return MapToAccount(result);
+    }
+
+    public async Task<AccountKpiResponse?> GetAccountKpi(long accountId, string userId)
+    {
+        using var connection = _connectionFactory.CreateConnection();
+        var query = new GetAccountKpiQuery();
+        var (sql, parameters) = query.Build(accountId, userId);
+
+        return await connection.QuerySingleOrDefaultAsync<AccountKpiResponse>(sql, parameters);
     }
 
     public async Task<List<Account>> GetAll(string userId, PaginationParams paginationParams)

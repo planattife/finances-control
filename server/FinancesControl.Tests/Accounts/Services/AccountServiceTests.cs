@@ -144,6 +144,83 @@ public class AccountServiceTests
 
     #endregion
 
+    #region GetAccountKpi Tests
+
+    [Fact]
+    public async Task GetAccountKpi_WithValidId_ReturnsAccountKpi()
+    {
+        // Arrange
+        var accountId = 1;
+        var userId = "user-123";
+        var accountKpi = new AccountKpiResponse(accountId, 2, 5);
+        _repository.GetAccountKpi(accountId, userId).Returns(Task.FromResult((AccountKpiResponse?)accountKpi));
+
+        // Act
+        var result = await _service.GetAccountKpi(accountId, userId);
+
+        // Assert
+        result.Should().NotBeNull();
+        result.Data.Should().NotBeNull();
+        result.Data.AccountId.Should().Be(accountId);
+        result.Data.CardsCount.Should().Be(2);
+        result.Data.TransactionsCount.Should().Be(5);
+        result.HttpStatusCode.Should().Be(200);
+    }
+
+    [Fact]
+    public async Task GetAccountKpi_WithInvalidId_ReturnsNotFound()
+    {
+        // Arrange
+        var accountId = 999;
+        var userId = "user-123";
+        _repository.GetAccountKpi(accountId, userId).Returns(Task.FromResult((AccountKpiResponse?)null));
+
+        // Act
+        var result = await _service.GetAccountKpi(accountId, userId);
+
+        // Assert
+        result.Should().NotBeNull();
+        result.Data.Should().BeNull();
+        result.HttpStatusCode.Should().Be(404);
+        result.Errors.Should().Contain("Account not found.");
+    }
+
+    [Fact]
+    public async Task GetAccountKpi_WithValidId_PassesAccountIdAndUserIdToRepository()
+    {
+        // Arrange
+        var accountId = 1;
+        var userId = "user-123";
+        var accountKpi = new AccountKpiResponse(accountId, 0, 0);
+        _repository.GetAccountKpi(accountId, userId).Returns(Task.FromResult((AccountKpiResponse?)accountKpi));
+
+        // Act
+        await _service.GetAccountKpi(accountId, userId);
+
+        // Assert
+        await _repository.Received(1).GetAccountKpi(accountId, userId);
+    }
+
+    [Fact]
+    public async Task GetAccountKpi_WithZeroCounts_ReturnsZeroCounts()
+    {
+        // Arrange
+        var accountId = 1;
+        var userId = "user-123";
+        var accountKpi = new AccountKpiResponse(accountId, 0, 0);
+        _repository.GetAccountKpi(accountId, userId).Returns(Task.FromResult((AccountKpiResponse?)accountKpi));
+
+        // Act
+        var result = await _service.GetAccountKpi(accountId, userId);
+
+        // Assert
+        result.Data.Should().NotBeNull();
+        result.Data.CardsCount.Should().Be(0);
+        result.Data.TransactionsCount.Should().Be(0);
+    }
+
+    #endregion
+
     #region GetAll Tests
 
     [Fact]
