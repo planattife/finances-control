@@ -72,7 +72,7 @@ public class AccountService : IAccountService
         var totalCount = await _repository.CountByUserId(userId);
 
         var data = accounts
-            .Select(a => new AccountListItemResponse(a.Id, a.Name))
+            .Select(a => new AccountListItemResponse(a.Id, a.Name, a.IsActive))
             .ToList();
         
         response.Data = data;
