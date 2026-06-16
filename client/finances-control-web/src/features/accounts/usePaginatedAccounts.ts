@@ -1,37 +1,43 @@
 import { useCallback, useEffect, useState } from 'react'
 import { getAccounts } from './accountsApi'
-import type { Account } from '../../types/account'
+import type { Account, PagedAccountResponse } from '../../types/account'
 
 type UsePaginatedAccountsOptions = {
-  pageSize?: number
   initialPage?: number
+  pageNumber?: number
+  pageSize?: number
 }
 
 export function usePaginatedAccounts({
   initialPage = 1,
+  pageNumber,
   pageSize = 5,
 }: UsePaginatedAccountsOptions = {}) {
   const [accounts, setAccounts] = useState<Account[]>([])
-  const [currentPage, setCurrentPage] = useState(initialPage)
-  const [hasNextPage, setHasNextPage] = useState(true)
+  const [response, setResponse] = useState<PagedAccountResponse | null>(null)
+  const [currentPage, setCurrentPage] = useState(pageNumber ?? initialPage)
   const [isLoading, setIsLoading] = useState(true)
   const [isLoadingMore, setIsLoadingMore] = useState(false)
   const [error, setError] = useState<unknown>(null)
+  const requestedPage = pageNumber ?? initialPage
 
   useEffect(() => {
     let isActive = true
 
-    async function loadInitialPage() {
+    async function loadPage() {
+      setIsLoading(true)
+      setError(null)
+
       try {
-        const response = await getAccounts({ pageNumber: initialPage, pageSize })
+        const nextResponse = await getAccounts({ pageNumber: requestedPage, pageSize })
 
         if (!isActive) {
           return
         }
 
-        setAccounts(response.data)
-        setCurrentPage(response.currentPage)
-        setHasNextPage(response.hasNextPage)
+        setAccounts(nextResponse.data)
+        setCurrentPage(nextResponse.currentPage)
+        setResponse(nextResponse)
       } catch (loadError) {
         if (!isActive) {
           return
@@ -45,15 +51,15 @@ export function usePaginatedAccounts({
       }
     }
 
-    void loadInitialPage()
+    void loadPage()
 
     return () => {
       isActive = false
     }
-  }, [initialPage, pageSize])
+  }, [pageSize, requestedPage])
 
   const loadNextPage = useCallback(async () => {
-    if (isLoading || isLoadingMore || !hasNextPage) {
+    if (isLoading || isLoadingMore || !response?.hasNextPage) {
       return []
     }
 
@@ -61,13 +67,13 @@ export function usePaginatedAccounts({
     setError(null)
 
     try {
-      const response = await getAccounts({ pageNumber: currentPage + 1, pageSize })
+      const nextResponse = await getAccounts({ pageNumber: currentPage + 1, pageSize })
 
-      setAccounts((previousAccounts) => [...previousAccounts, ...response.data])
-      setCurrentPage(response.currentPage)
-      setHasNextPage(response.hasNextPage)
+      setAccounts((previousAccounts) => [...previousAccounts, ...nextResponse.data])
+      setCurrentPage(nextResponse.currentPage)
+      setResponse(nextResponse)
 
-      return response.data
+      return nextResponse.data
     } catch (loadError) {
       setError(loadError)
 
@@ -75,13 +81,13 @@ export function usePaginatedAccounts({
     } finally {
       setIsLoadingMore(false)
     }
-  }, [currentPage, hasNextPage, isLoading, isLoadingMore, pageSize])
+  }, [currentPage, isLoading, isLoadingMore, pageSize, response?.hasNextPage])
 
   const loadUntilAccount = useCallback(
     async (accountId: number) => {
       let accumulatedAccounts = accounts
       let nextPage = currentPage + 1
-      let canLoadNextPage = hasNextPage
+      let canLoadNextPage = response?.hasNextPage ?? false
       let matchedAccount = accumulatedAccounts.find((account) => account.id === accountId)
 
       setError(null)
@@ -90,16 +96,16 @@ export function usePaginatedAccounts({
         setIsLoadingMore(true)
 
         try {
-          const response = await getAccounts({ pageNumber: nextPage, pageSize })
+          const nextResponse = await getAccounts({ pageNumber: nextPage, pageSize })
 
-          accumulatedAccounts = [...accumulatedAccounts, ...response.data]
+          accumulatedAccounts = [...accumulatedAccounts, ...nextResponse.data]
           matchedAccount = accumulatedAccounts.find((account) => account.id === accountId)
-          nextPage = response.currentPage + 1
-          canLoadNextPage = response.hasNextPage
+          nextPage = nextResponse.currentPage + 1
+          canLoadNextPage = nextResponse.hasNextPage
 
           setAccounts(accumulatedAccounts)
-          setCurrentPage(response.currentPage)
-          setHasNextPage(response.hasNextPage)
+          setCurrentPage(nextResponse.currentPage)
+          setResponse(nextResponse)
         } catch (loadError) {
           setError(loadError)
           break
@@ -113,16 +119,21 @@ export function usePaginatedAccounts({
         matchedAccount,
       }
     },
-    [accounts, currentPage, hasNextPage, pageSize],
+    [accounts, currentPage, pageSize, response?.hasNextPage],
   )
 
   return {
     accounts,
+    currentPage,
     error,
-    hasNextPage,
+    errors: response?.errors ?? [],
+    hasNextPage: response?.hasNextPage ?? false,
+    hasPrevPage: response?.hasPrevPage ?? false,
     isLoading,
     isLoadingMore,
-    loadUntilAccount,
     loadNextPage,
+    loadUntilAccount,
+    totalCount: response?.totalCount ?? 0,
+    totalPages: response?.totalPages ?? 0,
   }
 }

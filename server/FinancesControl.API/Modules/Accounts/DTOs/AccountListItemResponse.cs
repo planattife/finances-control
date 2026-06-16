@@ -3,5 +3,6 @@ namespace FinancesControl.API.Accounts.DTOs;
 public record AccountListItemResponse
 (
     long Id,
-    string Name
+    string Name,
+    bool IsActive
 );

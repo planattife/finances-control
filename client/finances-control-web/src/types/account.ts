@@ -1,5 +1,6 @@
 export type Account = {
   id: number
+  isActive: boolean
   name: string
 }
 
