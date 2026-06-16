@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import CreateNewButton from '../../components/CreateNewButton'
 import IconButton from '../../components/IconButton'
+import Modal from '../../components/Modal'
 import { usePaginatedAccounts } from '../../features/accounts/usePaginatedAccounts'
 import styles from './AccountsPage.module.css'
 
@@ -51,6 +52,7 @@ function getPaginationItems(currentPage: number, totalPages: number) {
 }
 
 function AccountsPage() {
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
   const [selectedPage, setSelectedPage] = useState(1)
   const alertedErrorsRef = useRef('')
   const {
@@ -102,10 +104,18 @@ function AccountsPage() {
     }
   }
 
+  function openCreateModal() {
+    setIsCreateModalOpen(true)
+  }
+
+  function closeCreateModal() {
+    setIsCreateModalOpen(false)
+  }
+
   return (
     <section className={styles.page}>
       <div className={styles.header}>
-        <CreateNewButton />
+        <CreateNewButton onClick={openCreateModal} />
       </div>
 
       <div className={styles.card}>
@@ -219,6 +229,28 @@ function AccountsPage() {
           </button>
         </nav>
       </div>
+
+      <Modal
+        cancelText="Cancel"
+        isFormModal
+        isOpen={isCreateModalOpen}
+        onClose={closeCreateModal}
+        onSubmit={closeCreateModal}
+        submitText="Create"
+        title="Create Account"
+      >
+        <div className={styles.createForm}>
+          <label className={styles.field}>
+            <span className={styles.fieldLabel}>Name</span>
+            <input className={styles.textInput} name="name" type="text" />
+          </label>
+
+          <label className={styles.checkboxField}>
+            <input className={styles.checkbox} defaultChecked name="isActive" type="checkbox" />
+            <span className={styles.fieldLabel}>Active</span>
+          </label>
+        </div>
+      </Modal>
     </section>
   )
 }

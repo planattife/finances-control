@@ -1,0 +1,86 @@
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  width: 100%;
+}
+
+.secondaryButton,
+.primaryButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 104px;
+  min-height: 42px;
+  padding: 0 18px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  line-height: 1;
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    color 160ms ease,
+    transform 160ms ease;
+}
+
+.secondaryButton {
+  border: 1px solid var(--color-border-default);
+  color: var(--color-text-secondary);
+  background: var(--color-background-surface);
+}
+
+.secondaryButton:hover:not(:disabled) {
+  border-color: var(--color-border-strong);
+  color: var(--color-primary-main);
+  background: var(--color-component-hover-background);
+}
+
+.primaryButton {
+  border: 0;
+  color: var(--color-primary-contrast);
+  background: var(--color-primary-main);
+}
+
+.primaryButton:hover:not(:disabled) {
+  background: var(--color-primary-hover);
+  box-shadow: var(--shadow-button-primary);
+}
+
+.primaryButton:active:not(:disabled),
+.secondaryButton:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.primaryButton:active:not(:disabled) {
+  background: var(--color-primary-active);
+}
+
+.secondaryButton:focus-visible,
+.primaryButton:focus-visible {
+  outline: 3px solid var(--color-component-focus-ring);
+  outline-offset: 2px;
+}
+
+.secondaryButton:disabled,
+.primaryButton:disabled {
+  color: var(--color-component-disabled-text);
+  background: var(--color-component-disabled-background);
+  cursor: not-allowed;
+}
+
+@media (max-width: 420px) {
+  .actions {
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+
+  .secondaryButton,
+  .primaryButton {
+    width: 100%;
+  }
+}
