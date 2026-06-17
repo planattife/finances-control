@@ -10,6 +10,14 @@ export type AccountKpi = {
   transactionsCount: number
 }
 
+export type AccountDetails = {
+  id: number
+  name: string
+  status: string
+  createdAt: string
+  lastUpdate: string
+}
+
 export type PagedAccountResponse = {
   errors: string[]
   httpStatusCode: number
@@ -23,6 +31,12 @@ export type PagedAccountResponse = {
 
 export type AccountKpiResponse = {
   data: AccountKpi
+  errors: string[]
+  httpStatusCode: number
+}
+
+export type AccountDetailsResponse = {
+  data: AccountDetails
   errors: string[]
   httpStatusCode: number
 }
