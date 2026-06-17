@@ -205,9 +205,3 @@ button.pageItem:focus-visible {
   box-shadow: 0 0 0 4px var(--color-component-input-focus-ring);
 }
 
-.checkboxField {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  width: fit-content;
-}
