@@ -6,6 +6,10 @@ export type GetAccountsParams = {
   pageNumber: number
 }
 
+export type CreateAccountRequest = {
+  name: string
+}
+
 export async function getAccounts({
   pageNumber,
   pageSize,
@@ -18,4 +22,8 @@ export async function getAccounts({
   })
 
   return response.data
+}
+
+export async function createAccount(payload: CreateAccountRequest): Promise<void> {
+  await axiosClient.post('/api/Account', payload)
 }

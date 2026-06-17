@@ -58,6 +58,23 @@ export function usePaginatedAccounts({
     }
   }, [pageSize, requestedPage])
 
+  const reload = useCallback(async () => {
+    setIsLoading(true)
+    setError(null)
+
+    try {
+      const nextResponse = await getAccounts({ pageNumber: requestedPage, pageSize })
+
+      setAccounts(nextResponse.data)
+      setCurrentPage(nextResponse.currentPage)
+      setResponse(nextResponse)
+    } catch (loadError) {
+      setError(loadError)
+    } finally {
+      setIsLoading(false)
+    }
+  }, [pageSize, requestedPage])
+
   const loadNextPage = useCallback(async () => {
     if (isLoading || isLoadingMore || !response?.hasNextPage) {
       return []
@@ -133,6 +150,7 @@ export function usePaginatedAccounts({
     isLoadingMore,
     loadNextPage,
     loadUntilAccount,
+    reload,
     totalCount: response?.totalCount ?? 0,
     totalPages: response?.totalPages ?? 0,
   }
