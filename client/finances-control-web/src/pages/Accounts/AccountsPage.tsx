@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import CreateNewButton from '../../components/CreateNewButton'
 import IconButton from '../../components/IconButton'
-import Modal from '../../components/Modal'
 import { usePaginatedAccounts } from '../../features/accounts/usePaginatedAccounts'
+import CreateAccountModal from './CreateAccountModal'
 import styles from './AccountsPage.module.css'
 
 const pageSize = 5
@@ -63,6 +63,7 @@ function AccountsPage() {
     hasNextPage,
     hasPrevPage,
     isLoading,
+    reload,
     totalPages,
   } = usePaginatedAccounts({ pageNumber: selectedPage, pageSize })
   const paginationItems = useMemo(
@@ -230,27 +231,11 @@ function AccountsPage() {
         </nav>
       </div>
 
-      <Modal
-        cancelText="Cancel"
-        isFormModal
+      <CreateAccountModal
         isOpen={isCreateModalOpen}
         onClose={closeCreateModal}
-        onSubmit={closeCreateModal}
-        submitText="Create"
-        title="Create Account"
-      >
-        <div className={styles.createForm}>
-          <label className={styles.field}>
-            <span className={styles.fieldLabel}>Name</span>
-            <input className={styles.textInput} name="name" type="text" />
-          </label>
-
-          <label className={styles.checkboxField}>
-            <input className={styles.checkbox} defaultChecked name="isActive" type="checkbox" />
-            <span className={styles.fieldLabel}>Active</span>
-          </label>
-        </div>
-      </Modal>
+        onCreated={reload}
+      />
     </section>
   )
 }
