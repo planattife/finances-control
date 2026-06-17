@@ -1,5 +1,5 @@
 import { axiosClient } from '../../api/axiosClient'
-import type { PagedAccountResponse } from '../../types/account'
+import type { AccountKpiResponse, PagedAccountResponse } from '../../types/account'
 
 export type GetAccountsParams = {
   pageSize: number
@@ -16,6 +16,14 @@ export async function getAccounts({
       PageNumber: pageNumber,
     },
   })
+
+  return response.data
+}
+
+export async function getAccountKpi(accountId: number): Promise<AccountKpiResponse> {
+  const response = await axiosClient.get<AccountKpiResponse>(
+    `/api/Account/${encodeURIComponent(accountId)}/account-kpi`,
+  )
 
   return response.data
 }

@@ -4,6 +4,12 @@ export type Account = {
   name: string
 }
 
+export type AccountKpi = {
+  accountId: number
+  cardsCount: number
+  transactionsCount: number
+}
+
 export type PagedAccountResponse = {
   errors: string[]
   httpStatusCode: number
@@ -13,4 +19,10 @@ export type PagedAccountResponse = {
   currentPage: number
   hasNextPage: boolean
   hasPrevPage: boolean
+}
+
+export type AccountKpiResponse = {
+  data: AccountKpi
+  errors: string[]
+  httpStatusCode: number
 }

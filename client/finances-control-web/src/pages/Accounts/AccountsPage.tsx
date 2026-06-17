@@ -3,6 +3,7 @@ import CreateNewButton from '../../components/CreateNewButton'
 import IconButton from '../../components/IconButton'
 import Modal from '../../components/Modal'
 import { usePaginatedAccounts } from '../../features/accounts/usePaginatedAccounts'
+import AccountDetails from './AccountDetails'
 import styles from './AccountsPage.module.css'
 
 const pageSize = 5
@@ -53,6 +54,7 @@ function getPaginationItems(currentPage: number, totalPages: number) {
 
 function AccountsPage() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
+  const [selectedAccountId, setSelectedAccountId] = useState<number | null>(null)
   const [selectedPage, setSelectedPage] = useState(1)
   const alertedErrorsRef = useRef('')
   const {
@@ -112,6 +114,14 @@ function AccountsPage() {
     setIsCreateModalOpen(false)
   }
 
+  function openAccountModal(accountId: number) {
+    setSelectedAccountId(accountId)
+  }
+
+  function closeAccountModal() {
+    setSelectedAccountId(null)
+  }
+
   return (
     <section className={styles.page}>
       <div className={styles.header}>
@@ -163,7 +173,15 @@ function AccountsPage() {
 
               {!isLoading && !error && accounts.map((account) => (
                 <tr key={account.id}>
-                  <td>{account.name}</td>
+                  <td>
+                    <button
+                      className={styles.accountNameButton}
+                      onClick={() => openAccountModal(account.id)}
+                      type="button"
+                    >
+                      {account.name}
+                    </button>
+                  </td>
                   <td className={styles.activeCell}>
                     <input
                       aria-label={`${account.name} active status`}
@@ -250,6 +268,15 @@ function AccountsPage() {
             <span className={styles.fieldLabel}>Active</span>
           </label>
         </div>
+      </Modal>
+
+      <Modal
+        cancelText="Close"
+        isOpen={selectedAccountId !== null}
+        onClose={closeAccountModal}
+        title="Account Details"
+      >
+        {selectedAccountId !== null && <AccountDetails accountId={selectedAccountId} />}
       </Modal>
     </section>
   )
