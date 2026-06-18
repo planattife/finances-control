@@ -1,3 +1,4 @@
+import ActionButton from '../ActionButton'
 import styles from './ActionButtons.module.css'
 
 interface ActionButtonsProps {
@@ -17,14 +18,14 @@ function ActionButtons({
 }: ActionButtonsProps) {
   return (
     <div className={styles.actions}>
-      <button className={styles.secondaryButton} onClick={onClose} type="button">
+      <ActionButton onClick={onClose}>
         {cancelText}
-      </button>
+      </ActionButton>
 
       {isFormModal && (
-        <button className={styles.primaryButton} onClick={onSubmit} type="button">
+        <ActionButton onClick={onSubmit} variant="primary">
           {submitText}
-        </button>
+        </ActionButton>
       )}
     </div>
   )

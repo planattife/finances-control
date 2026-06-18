@@ -1,3 +1,5 @@
+import { Pencil } from 'lucide-react'
+import ActionButton from '../../components/ActionButton'
 import KpiCard from '../../components/KpiCard'
 import { useAccountDetails } from '../../features/accounts/useAccountDetails'
 import { useAccountKpi } from '../../features/accounts/useAccountKpi'
@@ -58,6 +60,7 @@ function AccountDetails({ accountId }: AccountDetailsProps) {
   const errors = [...accountKpiErrors, ...accountDetailsErrors]
   const isLoading = isAccountKpiLoading || isAccountDetailsLoading
   const isActive = accountDetails?.status.toLowerCase() === 'active'
+  const statusActionText = isActive ? 'Inactivate' : 'Activate'
 
   if (isLoading) {
     return <p className={styles.stateMessage}>Loading account details...</p>
@@ -73,6 +76,10 @@ function AccountDetails({ accountId }: AccountDetailsProps) {
       <div aria-label="Account KPIs" className={styles.kpiSection}>
         <KpiCard label="CARDS" value={accountKpi.cardsCount} />
         <KpiCard label="TRANSACTIONS" value={accountKpi.transactionsCount} />
+      </div>
+      <div aria-label="Account actions" className={styles.actions}>
+        <ActionButton dangerHover={isActive}>{statusActionText}</ActionButton>
+        <ActionButton icon={<Pencil aria-hidden="true" />}>Edit</ActionButton>
       </div>
       <dl className={styles.infoGrid}>
         <div className={styles.infoItem}>

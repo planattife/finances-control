@@ -1,5 +1,6 @@
 import { type KeyboardEvent, type MouseEvent, type ReactNode, useEffect, useId, useRef } from 'react'
 import { createPortal } from 'react-dom'
+import { X } from 'lucide-react'
 import ActionButtons from './ActionButtons'
 import styles from './Modal.module.css'
 
@@ -22,14 +23,6 @@ const focusableSelector = [
   'select:not([disabled])',
   '[tabindex]:not([tabindex="-1"])',
 ].join(',')
-
-function CloseIcon() {
-  return (
-    <svg aria-hidden="true" fill="none" viewBox="0 0 24 24">
-      <path d="m6 6 12 12M18 6 6 18" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
-    </svg>
-  )
-}
 
 function getFocusableElements(container: HTMLDivElement) {
   return Array.from(container.querySelectorAll<HTMLElement>(focusableSelector)).filter(
@@ -143,7 +136,7 @@ function Modal({
           </h2>
           <button aria-label="Close modal" className={styles.closeButton} onClick={onClose} type="button">
             <span className={styles.closeIcon}>
-              <CloseIcon />
+              <X aria-hidden="true" />
             </span>
           </button>
         </header>
