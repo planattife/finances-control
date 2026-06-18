@@ -32,6 +32,14 @@ export async function createAccount(payload: CreateAccountRequest): Promise<void
   await axiosClient.post('/api/Account', payload)
 }
 
+export async function activateAccount(accountId: number): Promise<void> {
+  await axiosClient.post(`/api/Account/${encodeURIComponent(accountId)}/activate`)
+}
+
+export async function deactivateAccount(accountId: number): Promise<void> {
+  await axiosClient.post(`/api/Account/${encodeURIComponent(accountId)}/deactivate`)
+}
+
 export async function getAccountKpi(accountId: number): Promise<AccountKpiResponse> {
   const response = await axiosClient.get<AccountKpiResponse>(
     `/api/Account/${encodeURIComponent(accountId)}/account-kpi`,
