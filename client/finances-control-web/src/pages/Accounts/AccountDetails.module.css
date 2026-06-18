@@ -11,6 +11,15 @@
   width: 100%;
 }
 
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  width: 100%;
+}
+
 .stateMessage {
   margin: 0;
   color: var(--color-text-muted);
@@ -86,6 +95,15 @@
   .kpiSection {
     grid-template-columns: 1fr;
     gap: 12px;
+  }
+
+  .actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .actions button {
+    width: 100%;
   }
 
   .infoGrid {

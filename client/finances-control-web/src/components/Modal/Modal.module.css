@@ -72,8 +72,8 @@
 }
 
 .closeButton:hover:not(:disabled) {
-  color: var(--color-primary-main);
-  background: var(--color-component-hover-background);
+  color: var(--color-state-error);
+  background: color-mix(in srgb, var(--color-state-error) 10%, var(--color-background-surface));
 }
 
 .closeButton:active:not(:disabled) {
@@ -86,9 +86,18 @@
 }
 
 .closeIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   width: 18px;
   height: 18px;
   stroke: currentColor;
+}
+
+.closeIcon svg {
+  width: 18px;
+  height: 18px;
+  stroke-width: 3;
 }
 
 .body {
