@@ -3,10 +3,12 @@ import ActionButton from '../../components/ActionButton'
 import KpiCard from '../../components/KpiCard'
 import { useAccountDetails } from '../../features/accounts/useAccountDetails'
 import { useAccountKpi } from '../../features/accounts/useAccountKpi'
+import { useChangeAccountStatus } from '../../features/accounts/useChangeAccountStatus'
 import styles from './AccountDetails.module.css'
 
 interface AccountDetailsProps {
   accountId: number
+  onStatusChanged?: () => Promise<void> | void
 }
 
 const brDateFormatter = new Intl.DateTimeFormat('pt-BR', {
@@ -44,12 +46,13 @@ function formatDateTime(value: string) {
   return brDateTimeFormatter.format(date).replace(',', '')
 }
 
-function AccountDetails({ accountId }: AccountDetailsProps) {
+function AccountDetails({ accountId, onStatusChanged }: AccountDetailsProps) {
   const {
     accountDetails,
     error: accountDetailsError,
     errors: accountDetailsErrors,
     isLoading: isAccountDetailsLoading,
+    reload: reloadAccountDetails,
   } = useAccountDetails(accountId)
   const {
     accountKpi,
@@ -57,10 +60,22 @@ function AccountDetails({ accountId }: AccountDetailsProps) {
     errors: accountKpiErrors,
     isLoading: isAccountKpiLoading,
   } = useAccountKpi(accountId)
+  const { changeAccountStatus, isLoading: isChangingAccountStatus } = useChangeAccountStatus()
   const errors = [...accountKpiErrors, ...accountDetailsErrors]
   const isLoading = isAccountKpiLoading || isAccountDetailsLoading
   const isActive = accountDetails?.status.toLowerCase() === 'active'
-  const statusActionText = isActive ? 'Inactivate' : 'Activate'
+  const nextStatus = isActive ? 'inactive' : 'active'
+  const nextStatusLabel = nextStatus === 'active' ? 'Active' : 'Inactive'
+  const statusActionText = isChangingAccountStatus
+    ? `${isActive ? 'Inactivating' : 'Activating'}...`
+    : isActive ? 'Inactivate' : 'Activate'
+
+  async function handleStatusChange() {
+    await changeAccountStatus({ accountId, nextStatus })
+    await reloadAccountDetails()
+    await onStatusChanged?.()
+    alert(`The Account Status was changed to ${nextStatusLabel}`)
+  }
 
   if (isLoading) {
     return <p className={styles.stateMessage}>Loading account details...</p>
@@ -78,7 +93,13 @@ function AccountDetails({ accountId }: AccountDetailsProps) {
         <KpiCard label="TRANSACTIONS" value={accountKpi.transactionsCount} />
       </div>
       <div aria-label="Account actions" className={styles.actions}>
-        <ActionButton dangerHover={isActive}>{statusActionText}</ActionButton>
+        <ActionButton
+          dangerHover={isActive}
+          disabled={isChangingAccountStatus}
+          onClick={handleStatusChange}
+        >
+          {statusActionText}
+        </ActionButton>
         <ActionButton icon={<Pencil aria-hidden="true" />}>Edit</ActionButton>
       </div>
       <dl className={styles.infoGrid}>

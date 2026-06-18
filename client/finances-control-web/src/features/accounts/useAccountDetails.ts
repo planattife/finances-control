@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import type { AccountDetails, AccountDetailsResponse } from '../../types/account'
 import { getAccountDetails } from './accountsApi'
 
@@ -7,6 +7,24 @@ export function useAccountDetails(accountId: number) {
   const [response, setResponse] = useState<AccountDetailsResponse | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<unknown>(null)
+
+  const reload = useCallback(async () => {
+    setIsLoading(true)
+    setError(null)
+
+    try {
+      const nextResponse = await getAccountDetails(accountId)
+
+      setAccountDetails(nextResponse.data)
+      setResponse(nextResponse)
+    } catch (loadError) {
+      setAccountDetails(null)
+      setResponse(null)
+      setError(loadError)
+    } finally {
+      setIsLoading(false)
+    }
+  }, [accountId])
 
   useEffect(() => {
     let isActive = true
@@ -51,5 +69,6 @@ export function useAccountDetails(accountId: number) {
     error,
     errors: response?.errors ?? [],
     isLoading,
+    reload,
   }
 }

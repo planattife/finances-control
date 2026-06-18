@@ -239,7 +239,9 @@ function AccountsPage() {
         onClose={closeAccountModal}
         title="Account Details"
       >
-        {selectedAccountId !== null && <AccountDetails accountId={selectedAccountId} />}
+        {selectedAccountId !== null && (
+          <AccountDetails accountId={selectedAccountId} onStatusChanged={reload} />
+        )}
       </Modal>
     </section>
   )
