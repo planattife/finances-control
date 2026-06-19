@@ -6,6 +6,7 @@ import Modal from '../../components/Modal'
 import { usePaginatedAccounts } from '../../features/accounts/usePaginatedAccounts'
 import CreateAccountModal from './CreateAccountModal'
 import AccountDetails from './AccountDetails'
+import UpdateAccountModal from './UpdateAccountModal'
 import styles from './AccountsPage.module.css'
 
 const pageSize = 5
@@ -36,6 +37,7 @@ function getPaginationItems(currentPage: number, totalPages: number) {
 function AccountsPage() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
   const [selectedAccountId, setSelectedAccountId] = useState<number | null>(null)
+  const [editingAccountId, setEditingAccountId] = useState<number | null>(null)
   const [selectedPage, setSelectedPage] = useState(1)
   const alertedErrorsRef = useRef('')
   const {
@@ -102,6 +104,19 @@ function AccountsPage() {
 
   function closeAccountModal() {
     setSelectedAccountId(null)
+  }
+
+  function openEditModalFromDetails(accountId: number) {
+    closeAccountModal()
+    openEditModal(accountId)
+  }
+
+  function openEditModal(accountId: number) {
+    setEditingAccountId(accountId)
+  }
+
+  function closeEditModal() {
+    setEditingAccountId(null)
   }
 
   return (
@@ -175,7 +190,10 @@ function AccountsPage() {
                   </td>
                   <td className={styles.actionsCell}>
                     <div className={styles.actions}>
-                      <IconButton label={`Edit ${account.name}`}>
+                      <IconButton
+                        label={`Edit ${account.name}`}
+                        onClick={() => openEditModal(account.id)}
+                      >
                         <Pencil aria-hidden="true" />
                       </IconButton>
                     </div>
@@ -233,6 +251,16 @@ function AccountsPage() {
         onCreated={reload}
       />
 
+      {editingAccountId !== null && (
+        <UpdateAccountModal
+          accountId={editingAccountId}
+          isOpen={editingAccountId !== null}
+          key={editingAccountId}
+          onClose={closeEditModal}
+          onUpdated={reload}
+        />
+      )}
+
       <Modal
         cancelText="Close"
         isOpen={selectedAccountId !== null}
@@ -240,7 +268,11 @@ function AccountsPage() {
         title="Account Details"
       >
         {selectedAccountId !== null && (
-          <AccountDetails accountId={selectedAccountId} onStatusChanged={reload} />
+          <AccountDetails
+            accountId={selectedAccountId}
+            onEdit={openEditModalFromDetails}
+            onStatusChanged={reload}
+          />
         )}
       </Modal>
     </section>
