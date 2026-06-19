@@ -14,6 +14,10 @@ export type CreateAccountRequest = {
   name: string
 }
 
+export type UpdateAccountRequest = {
+  name: string
+}
+
 export async function getAccounts({
   pageNumber,
   pageSize,
@@ -30,6 +34,10 @@ export async function getAccounts({
 
 export async function createAccount(payload: CreateAccountRequest): Promise<void> {
   await axiosClient.post('/api/Account', payload)
+}
+
+export async function updateAccount(accountId: number, payload: UpdateAccountRequest): Promise<void> {
+  await axiosClient.put(`/api/Account/${encodeURIComponent(accountId)}`, payload)
 }
 
 export async function activateAccount(accountId: number): Promise<void> {

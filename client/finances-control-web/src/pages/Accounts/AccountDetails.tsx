@@ -8,6 +8,7 @@ import styles from './AccountDetails.module.css'
 
 interface AccountDetailsProps {
   accountId: number
+  onEdit?: (accountId: number) => void
   onStatusChanged?: () => Promise<void> | void
 }
 
@@ -46,7 +47,7 @@ function formatDateTime(value: string) {
   return brDateTimeFormatter.format(date).replace(',', '')
 }
 
-function AccountDetails({ accountId, onStatusChanged }: AccountDetailsProps) {
+function AccountDetails({ accountId, onEdit, onStatusChanged }: AccountDetailsProps) {
   const {
     accountDetails,
     error: accountDetailsError,
@@ -100,7 +101,9 @@ function AccountDetails({ accountId, onStatusChanged }: AccountDetailsProps) {
         >
           {statusActionText}
         </ActionButton>
-        <ActionButton icon={<Pencil aria-hidden="true" />}>Edit</ActionButton>
+        <ActionButton icon={<Pencil aria-hidden="true" />} onClick={() => onEdit?.(accountId)}>
+          Edit
+        </ActionButton>
       </div>
       <dl className={styles.infoGrid}>
         <div className={styles.infoItem}>
