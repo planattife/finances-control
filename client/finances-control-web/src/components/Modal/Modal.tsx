@@ -9,6 +9,7 @@ interface ModalProps {
   onClose: () => void
   title: string
   children: ReactNode
+  hideFooter?: boolean
   isFormModal?: boolean
   onSubmit?: () => void
   submitText?: string
@@ -35,6 +36,7 @@ function Modal({
   onClose,
   title,
   children,
+  hideFooter = false,
   isFormModal = false,
   onSubmit,
   submitText = 'Submit',
@@ -143,15 +145,17 @@ function Modal({
 
         <div className={styles.body}>{children}</div>
 
-        <footer className={styles.footer}>
-          <ActionButtons
-            cancelText={cancelText}
-            isFormModal={isFormModal}
-            onClose={onClose}
-            onSubmit={onSubmit}
-            submitText={submitText}
-          />
-        </footer>
+        {!hideFooter && (
+          <footer className={styles.footer}>
+            <ActionButtons
+              cancelText={cancelText}
+              isFormModal={isFormModal}
+              onClose={onClose}
+              onSubmit={onSubmit}
+              submitText={submitText}
+            />
+          </footer>
+        )}
       </div>
     </div>,
     document.body,
