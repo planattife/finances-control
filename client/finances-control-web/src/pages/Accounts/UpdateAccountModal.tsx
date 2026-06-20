@@ -1,5 +1,7 @@
-import { useState } from 'react'
 import ActionButton from '../../components/ActionButton'
+import UpdateAccountForm, {
+  type UpdateAccountFormData,
+} from '../../components/forms/UpdateAccountForm/UpdateAccountForm'
 import Modal from '../../components/Modal'
 import { useAccountDetails } from '../../features/accounts/useAccountDetails'
 import { useChangeAccountStatus } from '../../features/accounts/useChangeAccountStatus'
@@ -14,7 +16,6 @@ type UpdateAccountModalProps = {
 }
 
 function UpdateAccountModal({ accountId, isOpen, onClose, onUpdated }: UpdateAccountModalProps) {
-  const [editedName, setEditedName] = useState<string | null>(null)
   const {
     accountDetails,
     error: accountDetailsError,
@@ -24,8 +25,6 @@ function UpdateAccountModal({ accountId, isOpen, onClose, onUpdated }: UpdateAcc
   const { changeAccountStatus, isLoading: isChangingAccountStatus } = useChangeAccountStatus()
   const { updateAccount, isLoading: isUpdating } = useUpdateAccount()
   const isBusy = isAccountDetailsLoading || isUpdating || isChangingAccountStatus
-  const name = editedName ?? accountDetails?.name ?? ''
-  const trimmedName = name.trim()
   const isActive = accountDetails?.status.toLowerCase() === 'active'
   const nextStatus = isActive ? 'inactive' : 'active'
   const nextStatusLabel = nextStatus === 'active' ? 'Active' : 'Inactive'
@@ -33,19 +32,18 @@ function UpdateAccountModal({ accountId, isOpen, onClose, onUpdated }: UpdateAcc
     ? `${isActive ? 'Inactivating' : 'Activating'}...`
     : isActive ? 'Inactivate' : 'Activate'
 
-  async function handleSubmit() {
-    if (trimmedName.length === 0 || isBusy) {
+  async function handleSubmit(data: UpdateAccountFormData) {
+    if (isBusy) {
       return
     }
 
     try {
       await updateAccount({
         accountId,
-        payload: { name: trimmedName },
+        payload: { name: data.name },
       })
       await onUpdated()
       onClose()
-      setEditedName(null)
       alert('Account was updated.')
     } catch (error) {
       const updateError = error as Error
@@ -79,12 +77,9 @@ function UpdateAccountModal({ accountId, isOpen, onClose, onUpdated }: UpdateAcc
 
   return (
     <Modal
-      cancelText="Cancel"
-      isFormModal
+      hideFooter
       isOpen={isOpen}
       onClose={handleClose}
-      onSubmit={handleSubmit}
-      submitText={isUpdating ? 'Updating...' : 'Update'}
       title="Edit Account"
     >
       {isAccountDetailsLoading && (
@@ -96,29 +91,21 @@ function UpdateAccountModal({ accountId, isOpen, onClose, onUpdated }: UpdateAcc
       )}
 
       {!isAccountDetailsLoading && !accountDetailsError && accountDetails && (
-        <div className={styles.createForm}>
-          <label className={styles.field}>
-            <span className={styles.fieldLabel}>Account Name</span>
-            <input
-              className={styles.textInput}
+        <UpdateAccountForm
+          defaultValues={{ name: accountDetails.name }}
+          isLoading={isBusy}
+          onCancel={handleClose}
+          onSubmit={handleSubmit}
+          statusAction={(
+            <ActionButton
+              dangerHover={isActive}
               disabled={isBusy}
-              maxLength={50}
-              minLength={2}
-              name="name"
-              onChange={(event) => setEditedName(event.target.value)}
-              type="text"
-              value={name}
-            />
-          </label>
-          <ActionButton
-            className={styles.statusAction}
-            dangerHover={isActive}
-            disabled={isBusy}
-            onClick={handleStatusChange}
-          >
-            {statusActionText}
-          </ActionButton>
-        </div>
+              onClick={handleStatusChange}
+            >
+              {statusActionText}
+            </ActionButton>
+          )}
+        />
       )}
     </Modal>
   )
