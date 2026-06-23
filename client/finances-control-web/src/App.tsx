@@ -2,7 +2,6 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 import ProtectedLayout from './components/layout/ProtectedLayout'
 import ProtectedRoute from './components/ProtectedRoute'
 import AccountsPage from './pages/Accounts/AccountsPage'
-import ToastDemo from './features/toast-demo/ToastDemo'
 import LoginPage from './pages/Login/LoginPage'
 import PlaceholderPage from './pages/Placeholder/PlaceholderPage'
 import AppToaster from './shared/notifications/AppToaster'
@@ -38,7 +37,6 @@ function App() {
             }
           />
           <Route path="/home" element={<Navigate to="/accounts" replace />} />
-          <Route path="/toast-demo" element={<ToastDemo />} />
         </Route>
         <Route
           path="*"
