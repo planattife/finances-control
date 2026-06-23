@@ -6,6 +6,7 @@ import Modal from '../../components/Modal'
 import { useAccountDetails } from '../../features/accounts/useAccountDetails'
 import { useChangeAccountStatus } from '../../features/accounts/useChangeAccountStatus'
 import { useUpdateAccount } from '../../features/accounts/useUpdateAccount'
+import { showPromise } from '../../shared/notifications/toastService'
 import styles from './AccountsPage.module.css'
 
 type UpdateAccountModalProps = {
@@ -27,7 +28,8 @@ function UpdateAccountModal({ accountId, isOpen, onClose, onUpdated }: UpdateAcc
   const isBusy = isAccountDetailsLoading || isUpdating || isChangingAccountStatus
   const isActive = accountDetails?.status.toLowerCase() === 'active'
   const nextStatus = isActive ? 'inactive' : 'active'
-  const nextStatusLabel = nextStatus === 'active' ? 'Active' : 'Inactive'
+  const nextStatusActionLabel = nextStatus === 'active' ? 'Activating' : 'Inactivating'
+  const nextStatusSuccessLabel = nextStatus === 'active' ? 'activated' : 'inactivated'
   const statusActionText = isChangingAccountStatus
     ? `${isActive ? 'Inactivating' : 'Activating'}...`
     : isActive ? 'Inactivate' : 'Activate'
@@ -38,16 +40,21 @@ function UpdateAccountModal({ accountId, isOpen, onClose, onUpdated }: UpdateAcc
     }
 
     try {
-      await updateAccount({
-        accountId,
-        payload: { name: data.name },
-      })
+      await showPromise(
+        updateAccount({
+          accountId,
+          payload: { name: data.name },
+        }),
+        {
+          loading: 'Updating account...',
+          success: 'Account updated successfully',
+          error: 'Could not update account',
+        },
+      )
       await onUpdated()
       onClose()
-      alert('Account was updated.')
-    } catch (error) {
-      const updateError = error as Error
-      alert(updateError.message || 'Could not update account.')
+    } catch {
+      // The promise toast displays the failure state and the modal remains open.
     }
   }
 
@@ -65,13 +72,15 @@ function UpdateAccountModal({ accountId, isOpen, onClose, onUpdated }: UpdateAcc
     }
 
     try {
-      await changeAccountStatus({ accountId, nextStatus })
+      await showPromise(changeAccountStatus({ accountId, nextStatus }), {
+        loading: `${nextStatusActionLabel} account...`,
+        success: `Account ${nextStatusSuccessLabel} successfully`,
+        error: 'Could not change account status',
+      })
       await reloadAccountDetails()
       await onUpdated()
-      alert(`The Account Status was changed to ${nextStatusLabel}`)
-    } catch (error) {
-      const statusError = error as Error
-      alert(statusError.message || 'Could not change account status.')
+    } catch {
+      // The promise toast displays the failure state and the modal remains open.
     }
   }
 

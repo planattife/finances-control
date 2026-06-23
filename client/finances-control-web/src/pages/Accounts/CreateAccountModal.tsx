@@ -3,6 +3,7 @@ import CreateAccountForm, {
 } from '../../components/forms/CreateAccountForm/CreateAccountForm'
 import Modal from '../../components/Modal'
 import { useCreateAccount } from '../../features/accounts/useCreateAccount'
+import { showPromise } from '../../shared/notifications/toastService'
 
 type CreateAccountModalProps = {
   isOpen: boolean
@@ -15,12 +16,15 @@ function CreateAccountModal({ isOpen, onClose, onCreated }: CreateAccountModalPr
 
   async function handleSubmit(data: CreateAccountFormData) {
     try {
-      await createAccount({ name: data.name })
+      await showPromise(createAccount({ name: data.name }), {
+        loading: 'Creating account...',
+        success: 'Account created successfully',
+        error: 'Could not create account',
+      })
       await onCreated()
       onClose()
-    } catch (error) {
-      const createError = error as Error
-      alert(createError.message || 'Could not create account.')
+    } catch {
+      // The promise toast displays the failure state and the modal remains open.
     }
   }
 

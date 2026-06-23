@@ -4,6 +4,7 @@ import KpiCard from '../../components/KpiCard'
 import { useAccountDetails } from '../../features/accounts/useAccountDetails'
 import { useAccountKpi } from '../../features/accounts/useAccountKpi'
 import { useChangeAccountStatus } from '../../features/accounts/useChangeAccountStatus'
+import { showPromise } from '../../shared/notifications/toastService'
 import styles from './AccountDetails.module.css'
 
 interface AccountDetailsProps {
@@ -66,16 +67,24 @@ function AccountDetails({ accountId, onEdit, onStatusChanged }: AccountDetailsPr
   const isLoading = isAccountKpiLoading || isAccountDetailsLoading
   const isActive = accountDetails?.status.toLowerCase() === 'active'
   const nextStatus = isActive ? 'inactive' : 'active'
-  const nextStatusLabel = nextStatus === 'active' ? 'Active' : 'Inactive'
+  const nextStatusActionLabel = nextStatus === 'active' ? 'Activating' : 'Inactivating'
+  const nextStatusSuccessLabel = nextStatus === 'active' ? 'activated' : 'inactivated'
   const statusActionText = isChangingAccountStatus
     ? `${isActive ? 'Inactivating' : 'Activating'}...`
     : isActive ? 'Inactivate' : 'Activate'
 
   async function handleStatusChange() {
-    await changeAccountStatus({ accountId, nextStatus })
-    await reloadAccountDetails()
-    await onStatusChanged?.()
-    alert(`The Account Status was changed to ${nextStatusLabel}`)
+    try {
+      await showPromise(changeAccountStatus({ accountId, nextStatus }), {
+        loading: `${nextStatusActionLabel} account...`,
+        success: `Account ${nextStatusSuccessLabel} successfully`,
+        error: 'Could not change account status',
+      })
+      await reloadAccountDetails()
+      await onStatusChanged?.()
+    } catch {
+      // The promise toast displays the failure state and the details remain unchanged.
+    }
   }
 
   if (isLoading) {
