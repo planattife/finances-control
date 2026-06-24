@@ -89,8 +89,8 @@ public class TransactionCategoryControllerTests
         var paginationParams = new PaginationParams();
         var list = new List<TransactionCategoryListItemResponse>
         {
-            new(1, "Food"),
-            new(2, "Bills")
+            new(1, "Food", true),
+            new(2, "Bills", false)
         };
         var response = new PaginatedResponse<TransactionCategoryListItemResponse> { Data = list };
         response.SetPagination(list.Count, 1, 1, false, false);
@@ -103,7 +103,9 @@ public class TransactionCategoryControllerTests
         var returnedResponse = ok.Value as PaginatedResponse<TransactionCategoryListItemResponse>;
         returnedResponse.Data.Should().HaveCount(2);
         returnedResponse.Data[0].Name.Should().Be("Food");
+        returnedResponse.Data[0].IsDefault.Should().BeTrue();
         returnedResponse.Data[1].Name.Should().Be("Bills");
+        returnedResponse.Data[1].IsDefault.Should().BeFalse();
     }
 
     [Fact]
@@ -131,7 +133,7 @@ public class TransactionCategoryControllerTests
         {
             Data = new List<TransactionCategoryListItemResponse>
             {
-                new(6, "Transport")
+                new(6, "Transport", false)
             }
         };
         response.SetPagination(12, 3, 2, true, true);

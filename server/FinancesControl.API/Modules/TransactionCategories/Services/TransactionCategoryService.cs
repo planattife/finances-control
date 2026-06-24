@@ -50,7 +50,7 @@ public class TransactionCategoryService : ITransactionCategoryService
         var categories = await _repository.GetAll(userId, paginationParams);
         var totalCount = await _repository.CountByUserId(userId);
         var data = categories
-            .Select(c => new TransactionCategoryListItemResponse(c.Id, c.Name))
+            .Select(c => new TransactionCategoryListItemResponse(c.Id, c.Name, c.IsDefault))
             .ToList();
         
         response.Data = data;
