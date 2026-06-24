@@ -1,3 +1,5 @@
+import type { PagedResponse } from './pagedResponse'
+
 export type Account = {
   id: number
   isActive: boolean
@@ -18,16 +20,7 @@ export type AccountDetails = {
   lastUpdate: string
 }
 
-export type PagedAccountResponse = {
-  errors: string[]
-  httpStatusCode: number
-  data: Account[]
-  totalCount: number
-  totalPages: number
-  currentPage: number
-  hasNextPage: boolean
-  hasPrevPage: boolean
-}
+export type PagedAccountResponse = PagedResponse<Account>
 
 export type AccountKpiResponse = {
   data: AccountKpi

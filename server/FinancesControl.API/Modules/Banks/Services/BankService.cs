@@ -60,7 +60,7 @@ public class BankService : IBankService
         var banks = await _repository.GetAll(userId, paginationParams);
         var totalCount = await _repository.CountByUserId(userId);
         var data = banks
-            .Select(b => new BankListItemResponse(b.Id, b.Name, b.AccountType))
+            .Select(b => new BankListItemResponse(b.Id, b.Name, b.AccountType, b.IsActive))
             .ToList();
         
         response.Data = data;

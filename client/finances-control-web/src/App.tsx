@@ -2,6 +2,7 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 import ProtectedLayout from './components/layout/ProtectedLayout'
 import ProtectedRoute from './components/ProtectedRoute'
 import AccountsPage from './pages/Accounts/AccountsPage'
+import BanksPage from './pages/Banks/BanksPage'
 import LoginPage from './pages/Login/LoginPage'
 import PlaceholderPage from './pages/Placeholder/PlaceholderPage'
 import AppToaster from './shared/notifications/AppToaster'
@@ -19,10 +20,7 @@ function App() {
           }
         >
           <Route path="/accounts" element={<AccountsPage />} />
-          <Route
-            path="/banks"
-            element={<PlaceholderPage description="Bank management will be available here." title="Banks" />}
-          />
+          <Route path="/banks" element={<BanksPage />} />
           <Route
             path="/cards"
             element={<PlaceholderPage description="Card management will be available here." title="Cards" />}
