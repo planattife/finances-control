@@ -238,8 +238,8 @@ public class AccountControllerTests
         var paginationParams = new PaginationParams();
         var accounts = new List<AccountListItemResponse>
         {
-            new(1, "Account 1"),
-            new(2, "Account 2")
+            new(1, "Account 1", true),
+            new(2, "Account 2", true)
         };
         var response = new PaginatedResponse<AccountListItemResponse>
         {
@@ -306,7 +306,7 @@ public class AccountControllerTests
         {
             Data = new List<AccountListItemResponse>
             {
-                new(6, "Account 6")
+                new(6, "Account 6", true)
             },
             TotalCount = 12,
             TotalPages = 3,

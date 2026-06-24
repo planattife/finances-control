@@ -5,5 +5,6 @@ namespace FinancesControl.API.Banks.DTOs;
 public record BankListItemResponse(
     long Id,
     string Name,
-    BankAccountType AccountType
+    BankAccountType AccountType,
+    bool IsActive
 );

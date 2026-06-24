@@ -131,8 +131,8 @@ public class BankControllerTests
         var paginationParams = new PaginationParams();
         var banks = new List<BankListItemResponse>
         {
-            new(1, "Bank 1", BankAccountType.Check),
-            new(2, "Bank 2", BankAccountType.Savings)
+            new(1, "Bank 1", BankAccountType.Check, true),
+            new(2, "Bank 2", BankAccountType.Savings, true)
         };
         var response = new PaginatedResponse<BankListItemResponse>
         {
@@ -199,7 +199,7 @@ public class BankControllerTests
         {
             Data = new List<BankListItemResponse>
             {
-                new(6, "Bank 6", BankAccountType.Check)
+                new(6, "Bank 6", BankAccountType.Check, true)
             }
         };
         response.SetPagination(12, 3, 2, true, true);
@@ -226,7 +226,7 @@ public class BankControllerTests
         {
             Data = new List<BankListItemResponse>
             {
-                new(6, "Bank 6", BankAccountType.Check)
+                new(6, "Bank 6", BankAccountType.Check, true)
             }
         };
         response.SetPagination(12, 3, 2, true, true);
