@@ -14,6 +14,7 @@ const navigationItems: NavigationItem[] = [
   { label: 'Banks', to: '/banks' },
   { label: 'Cards', to: '/cards' },
   { label: 'Transactions', to: '/transactions' },
+  { label: 'Categories', to: '/categories' },
 ]
 
 const Sidebar: FC<SidebarProps> = () => {

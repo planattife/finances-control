@@ -36,6 +36,7 @@ public class TransactionCategoryService : ITransactionCategoryService
             cat.Id,
             cat.Name,
             cat.IsActive ? "Active" : "Inactive",
+            cat.IsDefault,
             cat.CreatedAt,
             cat.UpdatedAt
         );
@@ -50,7 +51,7 @@ public class TransactionCategoryService : ITransactionCategoryService
         var categories = await _repository.GetAll(userId, paginationParams);
         var totalCount = await _repository.CountByUserId(userId);
         var data = categories
-            .Select(c => new TransactionCategoryListItemResponse(c.Id, c.Name, c.IsDefault))
+            .Select(c => new TransactionCategoryListItemResponse(c.Id, c.Name, c.IsActive, c.IsDefault))
             .ToList();
         
         response.Data = data;
