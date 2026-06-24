@@ -56,7 +56,7 @@ public class TransactionCategoryControllerTests
     [Fact]
     public async Task GetById_ValidId_ReturnsOk()
     {
-        var detail = new TransactionCategoryDetailResponse(1, "Food", "Active", DateTime.UtcNow, null);
+        var detail = new TransactionCategoryDetailResponse(1, "Food", "Active", true, DateTime.UtcNow, null);
         var response = new SingleResponse<TransactionCategoryDetailResponse> { Data = detail };
         response.SetHttpStatusCode(200);
         _service.GetById(1, TestUserId).Returns(Task.FromResult(response));
@@ -66,6 +66,7 @@ public class TransactionCategoryControllerTests
         var objectResult = result.Result as ObjectResult;
         objectResult.StatusCode.Should().Be(200);
         objectResult.Value.Should().Be(response);
+        response.Data.IsDefault.Should().BeTrue();
     }
 
     [Fact]
@@ -89,8 +90,8 @@ public class TransactionCategoryControllerTests
         var paginationParams = new PaginationParams();
         var list = new List<TransactionCategoryListItemResponse>
         {
-            new(1, "Food"),
-            new(2, "Bills")
+            new(1, "Food", true, true),
+            new(2, "Bills", false, false)
         };
         var response = new PaginatedResponse<TransactionCategoryListItemResponse> { Data = list };
         response.SetPagination(list.Count, 1, 1, false, false);
@@ -103,7 +104,11 @@ public class TransactionCategoryControllerTests
         var returnedResponse = ok.Value as PaginatedResponse<TransactionCategoryListItemResponse>;
         returnedResponse.Data.Should().HaveCount(2);
         returnedResponse.Data[0].Name.Should().Be("Food");
+        returnedResponse.Data[0].IsActive.Should().BeTrue();
+        returnedResponse.Data[0].IsDefault.Should().BeTrue();
         returnedResponse.Data[1].Name.Should().Be("Bills");
+        returnedResponse.Data[1].IsActive.Should().BeFalse();
+        returnedResponse.Data[1].IsDefault.Should().BeFalse();
     }
 
     [Fact]
@@ -131,7 +136,7 @@ public class TransactionCategoryControllerTests
         {
             Data = new List<TransactionCategoryListItemResponse>
             {
-                new(6, "Transport")
+                new(6, "Transport", true, false)
             }
         };
         response.SetPagination(12, 3, 2, true, true);

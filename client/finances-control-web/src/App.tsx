@@ -3,6 +3,7 @@ import ProtectedLayout from './components/layout/ProtectedLayout'
 import ProtectedRoute from './components/ProtectedRoute'
 import AccountsPage from './pages/Accounts/AccountsPage'
 import BanksPage from './pages/Banks/BanksPage'
+import CategoriesPage from './pages/Categories/CategoriesPage'
 import LoginPage from './pages/Login/LoginPage'
 import PlaceholderPage from './pages/Placeholder/PlaceholderPage'
 import AppToaster from './shared/notifications/AppToaster'
@@ -33,6 +34,10 @@ function App() {
                 title="Transactions"
               />
             }
+          />
+          <Route
+            path="/categories"
+            element={<CategoriesPage />}
           />
           <Route path="/home" element={<Navigate to="/accounts" replace />} />
         </Route>
