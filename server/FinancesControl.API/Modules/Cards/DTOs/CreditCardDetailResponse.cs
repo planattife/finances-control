@@ -8,7 +8,7 @@ public record CreditCardDetailResponse(
     CardType CardType,
     CardNetwork CardNetwork,
     DateTime ExpirationDate,
-    long BankId,
+    CardBankResponse Bank,
     string CardName,
     DateTime NextClosingDay,
     DateTime NextDueDateDay,

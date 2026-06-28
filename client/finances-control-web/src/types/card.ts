@@ -43,7 +43,10 @@ export type Card = {
   cardNumber: string
   cardType: CardType
   cardNetwork: CardNetwork
-  bankId: number
+  bank: {
+    id: number
+    name: string
+  }
   cardName: string | null
 }
 

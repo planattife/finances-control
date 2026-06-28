@@ -8,9 +8,10 @@ public class GetCreditCardByIdQuery
     {
         var sql = @"
             SELECT c.""Id"", c.""CardType"", c.""CardNumber"", c.""ExpirationDate"", c.""IsActive"", 
-                   c.""CardNetwork"", c.""BankId"", c.""AccountId"", c.""CardName"", c.""CreatedAt"", c.""UpdatedAt"",
-                   ccd.""ClosingDay"", ccd.""DueDateDay""
+                   c.""CardNetwork"", c.""BankId"", b.""Name"" AS ""BankName"", c.""AccountId"", 
+                   c.""CardName"", c.""CreatedAt"", c.""UpdatedAt"", ccd.""ClosingDay"", ccd.""DueDateDay""
             FROM ""Cards"" c
+            INNER JOIN ""Banks"" b ON c.""BankId"" = b.""Id""
             LEFT JOIN ""CreditCardDetails"" ccd ON c.""Id"" = ccd.""CardId""
             WHERE c.""Id"" = @Id AND c.""AccountId"" = @AccountId AND c.""CardType"" = @CardType;
         ";

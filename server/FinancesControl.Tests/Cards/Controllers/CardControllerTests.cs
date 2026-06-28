@@ -141,7 +141,7 @@ public class CardControllerTests
             CardType.Debit,
             CardNetwork.Visa,
             DateTime.UtcNow.AddYears(5),
-            1,
+            new CardBankResponse(1, "Test Bank"),
             "My Debit Card",
             "Active",
             DateTime.UtcNow,
@@ -200,7 +200,7 @@ public class CardControllerTests
             CardType.Credit,
             CardNetwork.Mastercard,
             DateTime.UtcNow.AddYears(5),
-            1,
+            new CardBankResponse(1, "Test Bank"),
             "My Credit Card",
             nextClosing,
             nextDue,
@@ -255,8 +255,8 @@ public class CardControllerTests
         var paginationParams = new PaginationParams();
         var cards = new List<CardListItemResponse>
         {
-            new(1, "****1111", CardType.Debit, CardNetwork.Visa, 1, "Debit"),
-            new(2, "****4444", CardType.Credit, CardNetwork.Mastercard, 1, "Credit")
+            new(1, "****1111", CardType.Debit, CardNetwork.Visa, new CardBankResponse(1, "Test Bank"), "Debit"),
+            new(2, "****4444", CardType.Credit, CardNetwork.Mastercard, new CardBankResponse(1, "Test Bank"), "Credit")
         };
         var response = new PaginatedResponse<CardListItemResponse> { Data = cards };
         response.SetPagination(cards.Count, 1, 1, false, false);
@@ -274,6 +274,8 @@ public class CardControllerTests
         returnedResponse.Data.Should().HaveCount(2);
         returnedResponse.Data[0].Id.Should().Be(1);
         returnedResponse.Data[0].CardType.Should().Be(CardType.Debit);
+        returnedResponse.Data[0].Bank.Id.Should().Be(1);
+        returnedResponse.Data[0].Bank.Name.Should().Be("Test Bank");
         returnedResponse.Data[1].Id.Should().Be(2);
         returnedResponse.Data[1].CardType.Should().Be(CardType.Credit);
         _cardService.Received(1).GetAll(AccountId, UserId, paginationParams);
@@ -310,7 +312,7 @@ public class CardControllerTests
         {
             Data = new List<CardListItemResponse>
             {
-                new(6, "****1111", CardType.Debit, CardNetwork.Visa, 1, "Debit")
+                new(6, "****1111", CardType.Debit, CardNetwork.Visa, new CardBankResponse(1, "Test Bank"), "Debit")
             }
         };
         response.SetPagination(12, 3, 2, true, true);
@@ -336,7 +338,7 @@ public class CardControllerTests
         {
             Data = new List<CardListItemResponse>
             {
-                new(6, "****1111", CardType.Debit, CardNetwork.Visa, 1, "Debit")
+                new(6, "****1111", CardType.Debit, CardNetwork.Visa, new CardBankResponse(1, "Test Bank"), "Debit")
             }
         };
         response.SetPagination(12, 3, 2, true, true);

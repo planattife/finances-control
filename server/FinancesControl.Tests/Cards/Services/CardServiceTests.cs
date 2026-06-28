@@ -258,7 +258,7 @@ public class CardServiceTests
         // Arrange
         SetupAccountExists();
         var cardId = 1;
-        var card = new Card("****1111", DateTime.UtcNow.AddYears(5), CardNetwork.Visa, 1, AccountId, CardType.Debit, cardId, "My Card");
+        var card = CreateCard(cardId, "My Card");
         _repository.GetById(cardId, AccountId).Returns(Task.FromResult((Card?)card));
 
         // Act
@@ -273,6 +273,8 @@ public class CardServiceTests
         result.Data.CardType.Should().Be(CardType.Debit);
         result.Data.CardNumber.Should().Be("****1111");
         result.Data.CardName.Should().Be("My Card");
+        result.Data.Bank.Id.Should().Be(1);
+        result.Data.Bank.Name.Should().Be("Test Bank");
     }
 
     [Fact]
@@ -314,7 +316,7 @@ public class CardServiceTests
         // Arrange
         SetupAccountExists();
         var cardId = 1;
-        var card = new Card("****1111", DateTime.UtcNow.AddYears(5), CardNetwork.Visa, 1, AccountId, CardType.Debit, cardId);
+        var card = CreateCard(cardId);
         card.SetIsActive(false);
         _repository.GetById(cardId, AccountId).Returns(Task.FromResult((Card?)card));
 
@@ -338,7 +340,7 @@ public class CardServiceTests
         // Arrange
         SetupAccountExists();
         var cardId = 1;
-        var creditCard = new CreditCard("****4444", DateTime.UtcNow.AddYears(5), CardNetwork.Mastercard, 1, AccountId, 10, 20, CardType.Credit, cardId, "My Credit");
+        var creditCard = CreateCreditCard(cardId, "My Credit");
         _repository.GetById(cardId, AccountId).Returns(Task.FromResult((Card?)creditCard));
 
         // Act
@@ -352,6 +354,8 @@ public class CardServiceTests
         result.Data.Id.Should().Be(cardId);
         result.Data.CardType.Should().Be(CardType.Credit);
         result.Data.CardNumber.Should().Be("****4444");
+        result.Data.Bank.Id.Should().Be(1);
+        result.Data.Bank.Name.Should().Be("Test Bank");
         result.Data.NextClosingDay.Should().NotBe(default(DateTime));
         result.Data.NextDueDateDay.Should().NotBe(default(DateTime));
     }
@@ -395,7 +399,7 @@ public class CardServiceTests
         // Arrange
         SetupAccountExists();
         var cardId = 1;
-        var debitCard = new Card("****1111", DateTime.UtcNow.AddYears(5), CardNetwork.Visa, 1, AccountId, CardType.Debit, cardId);
+        var debitCard = CreateCard(cardId);
         _repository.GetById(cardId, AccountId).Returns(Task.FromResult((Card?)debitCard));
 
         // Act
@@ -414,7 +418,7 @@ public class CardServiceTests
         SetupAccountExists();
         var cardId = 1;
         var closingDay = 15;
-        var creditCard = new CreditCard("****4444", DateTime.UtcNow.AddYears(5), CardNetwork.Mastercard, 1, AccountId, closingDay, 20, CardType.Credit, cardId);
+        var creditCard = CreateCreditCard(cardId, closingDay: closingDay, dueDateDay: 20);
         _repository.GetById(cardId, AccountId).Returns(Task.FromResult((Card?)creditCard));
 
         // Act
@@ -435,7 +439,7 @@ public class CardServiceTests
         SetupAccountExists();
         var cardId = 1;
         var dueDay = 25;
-        var creditCard = new CreditCard("****4444", DateTime.UtcNow.AddYears(5), CardNetwork.Mastercard, 1, AccountId, 10, dueDay, CardType.Credit, cardId);
+        var creditCard = CreateCreditCard(cardId, closingDay: 10, dueDateDay: dueDay);
         _repository.GetById(cardId, AccountId).Returns(Task.FromResult((Card?)creditCard));
 
         // Act
@@ -461,8 +465,8 @@ public class CardServiceTests
         SetupAccountExists();
         var cards = new List<Card>
         {
-            new("****1111", DateTime.UtcNow.AddYears(5), CardNetwork.Visa, 1, AccountId, CardType.Debit, 1),
-            new("****4444", DateTime.UtcNow.AddYears(5), CardNetwork.Mastercard, 1, AccountId, CardType.Debit, 2)
+            CreateCard(1),
+            CreateCard(2, cardNumber: "****4444", cardNetwork: CardNetwork.Mastercard)
         };
         _repository.GetAll(AccountId, paginationParams).Returns(Task.FromResult(cards));
         _repository.CountByAccountId(AccountId).Returns(Task.FromResult(cards.Count));
@@ -479,6 +483,8 @@ public class CardServiceTests
         result.TotalPages.Should().Be(1);
         result.HasNextPage.Should().BeFalse();
         result.HasPrevPage.Should().BeFalse();
+        result.Data[0].Bank.Id.Should().Be(1);
+        result.Data[0].Bank.Name.Should().Be("Test Bank");
     }
 
     [Fact]
@@ -921,7 +927,25 @@ public class CardServiceTests
     private static List<Card> CreateCards(int count, int startId)
     {
         return Enumerable.Range(startId, count)
-            .Select(id => new Card("****1111", DateTime.UtcNow.AddYears(5), CardNetwork.Visa, 1, AccountId, CardType.Debit, id))
+            .Select(id => CreateCard(id))
             .ToList();
+    }
+
+    private static Card CreateCard(
+        long id,
+        string? cardName = null,
+        CardNetwork cardNetwork = CardNetwork.Visa,
+        string cardNumber = "****1111")
+    {
+        return new Card(cardNumber, DateTime.UtcNow.AddYears(5), cardNetwork, 1, AccountId, CardType.Debit, id, cardName, "Test Bank");
+    }
+
+    private static CreditCard CreateCreditCard(
+        long id,
+        string? cardName = null,
+        int closingDay = 10,
+        int dueDateDay = 20)
+    {
+        return new CreditCard("****4444", DateTime.UtcNow.AddYears(5), CardNetwork.Mastercard, 1, AccountId, closingDay, dueDateDay, CardType.Credit, id, cardName, "Test Bank");
     }
 }

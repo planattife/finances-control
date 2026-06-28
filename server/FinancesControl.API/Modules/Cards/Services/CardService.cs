@@ -79,7 +79,7 @@ public class CardService : ICardService
             card.CardType,
             card.CardNetwork,
             card.ExpirationDate,
-            card.BankId,
+            new CardBankResponse(card.BankId, card.BankName),
             card.CardName ?? string.Empty,
             card.IsActive ? "Active" : "Inactive",
             card.CreatedAt,
@@ -112,18 +112,18 @@ public class CardService : ICardService
         var nextDue = DateHelper.GetNextOccurrence(creditCard.DueDateDay);
 
         response.Data = new CreditCardDetailResponse(
-            creditCard.Id,
-            creditCard.CardNumber,
-            creditCard.CardType,
-            creditCard.CardNetwork,
-            creditCard.ExpirationDate,
-            creditCard.BankId,
-            creditCard.CardName ?? string.Empty,
+            card.Id,
+            card.CardNumber,
+            card.CardType,
+            card.CardNetwork,
+            card.ExpirationDate,
+            new CardBankResponse(card.BankId, card.BankName),
+            card.CardName ?? string.Empty,
             nextClosing,
             nextDue,
-            creditCard.IsActive ? "Active" : "Inactive",
-            creditCard.CreatedAt,
-            creditCard.UpdatedAt
+            card.IsActive ? "Active" : "Inactive",
+            card.CreatedAt,
+            card.UpdatedAt
         );
         response.SetHttpStatusCode(200);
         return response;
@@ -148,7 +148,7 @@ public class CardService : ICardService
                 c.CardNumber,
                 c.CardType,
                 c.CardNetwork,
-                c.BankId,
+                new CardBankResponse(c.BankId, c.BankName),
                 c.CardName
             ))
             .ToList();

@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Linq;
 using Dapper;
 using FinancesControl.API.Cards.Repository.SqlCommands;
@@ -154,7 +153,8 @@ public class CardRepository : ICardRepository
             isActive: row.IsActive,
             cardName: row.CardName,
             createdAt: row.CreatedAt,
-            updatedAt: row.UpdatedAt
+            updatedAt: row.UpdatedAt,
+            bankName: row.BankName
         );
     }
 
@@ -172,7 +172,8 @@ public class CardRepository : ICardRepository
             isActive: row.IsActive,
             cardName: row.CardName,
             createdAt: row.CreatedAt,
-            updatedAt: row.UpdatedAt
+            updatedAt: row.UpdatedAt,
+            bankName: row.BankName
         );
     }
 }

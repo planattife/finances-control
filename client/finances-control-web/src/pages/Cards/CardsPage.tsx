@@ -188,7 +188,7 @@ function CardsPage() {
                   <td>{card.cardNumber}</td>
                   <td>{getCardTypeLabel(card.cardType)}</td>
                   <td>{getCardNetworkLabel(card.cardNetwork)}</td>
-                  <td>{`Bank #${card.bankId}`}</td>
+                  <td>{card.bank.name}</td>
                   <td className={styles.actionsCell}>-</td>
                 </tr>
               ))}

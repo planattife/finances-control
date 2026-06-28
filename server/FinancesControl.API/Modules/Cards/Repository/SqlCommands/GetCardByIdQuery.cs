@@ -7,10 +7,12 @@ public class GetCardByIdQuery
     public (string Sql, DynamicParameters Params) Build(long cardId, long accountId)
     {
         var sql = @"
-            SELECT ""Id"", ""CardType"", ""CardNumber"", ""ExpirationDate"", ""IsActive"", 
-                   ""CardNetwork"", ""BankId"", ""AccountId"", ""CardName"", ""CreatedAt"", ""UpdatedAt""
-            FROM ""Cards""
-            WHERE ""Id"" = @Id AND ""AccountId"" = @AccountId;
+            SELECT c.""Id"", c.""CardType"", c.""CardNumber"", c.""ExpirationDate"", c.""IsActive"", 
+                   c.""CardNetwork"", c.""BankId"", b.""Name"" AS ""BankName"", c.""AccountId"", 
+                   c.""CardName"", c.""CreatedAt"", c.""UpdatedAt""
+            FROM ""Cards"" c
+            INNER JOIN ""Banks"" b ON c.""BankId"" = b.""Id""
+            WHERE c.""Id"" = @Id AND c.""AccountId"" = @AccountId;
         ";
 
         var parameters = new DynamicParameters();
