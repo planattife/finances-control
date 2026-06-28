@@ -3,6 +3,7 @@ import ProtectedLayout from './components/layout/ProtectedLayout'
 import ProtectedRoute from './components/ProtectedRoute'
 import AccountsPage from './pages/Accounts/AccountsPage'
 import BanksPage from './pages/Banks/BanksPage'
+import CardsPage from './pages/Cards/CardsPage'
 import CategoriesPage from './pages/Categories/CategoriesPage'
 import LoginPage from './pages/Login/LoginPage'
 import PlaceholderPage from './pages/Placeholder/PlaceholderPage'
@@ -22,10 +23,7 @@ function App() {
         >
           <Route path="/accounts" element={<AccountsPage />} />
           <Route path="/banks" element={<BanksPage />} />
-          <Route
-            path="/cards"
-            element={<PlaceholderPage description="Card management will be available here." title="Cards" />}
-          />
+          <Route path="/cards" element={<CardsPage />} />
           <Route
             path="/transactions"
             element={

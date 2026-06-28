@@ -17,6 +17,7 @@ export function usePaginatedBanks({
   const [response, setResponse] = useState<PagedBankResponse | null>(null)
   const [currentPage, setCurrentPage] = useState(pageNumber ?? initialPage)
   const [isLoading, setIsLoading] = useState(true)
+  const [isLoadingMore, setIsLoadingMore] = useState(false)
   const [error, setError] = useState<unknown>(null)
   const requestedPage = pageNumber ?? initialPage
 
@@ -74,6 +75,31 @@ export function usePaginatedBanks({
     }
   }, [pageSize, requestedPage])
 
+  const loadNextPage = useCallback(async () => {
+    if (isLoading || isLoadingMore || !response?.hasNextPage) {
+      return []
+    }
+
+    setIsLoadingMore(true)
+    setError(null)
+
+    try {
+      const nextResponse = await getBanks({ pageNumber: currentPage + 1, pageSize })
+
+      setBanks((previousBanks) => [...previousBanks, ...nextResponse.data])
+      setCurrentPage(nextResponse.currentPage)
+      setResponse(nextResponse)
+
+      return nextResponse.data
+    } catch (loadError) {
+      setError(loadError)
+
+      return []
+    } finally {
+      setIsLoadingMore(false)
+    }
+  }, [currentPage, isLoading, isLoadingMore, pageSize, response?.hasNextPage])
+
   return {
     banks,
     currentPage,
@@ -82,6 +108,8 @@ export function usePaginatedBanks({
     hasNextPage: response?.hasNextPage ?? false,
     hasPrevPage: response?.hasPrevPage ?? false,
     isLoading,
+    isLoadingMore,
+    loadNextPage,
     reload,
     totalCount: response?.totalCount ?? 0,
     totalPages: response?.totalPages ?? 0,
