@@ -1,5 +1,10 @@
 import { axiosClient } from '../../api/axiosClient'
-import type { CardNetwork, PagedCardResponse } from '../../types/card'
+import type {
+  CardDetailsResponse,
+  CardNetwork,
+  CreditCardDetailsResponse,
+  PagedCardResponse,
+} from '../../types/card'
 
 export type GetCardsParams = {
   pageSize: number
@@ -48,4 +53,26 @@ export async function createCreditCard(
   payload: CreateCreditCardRequest,
 ): Promise<void> {
   await axiosClient.post(`/api/Card/${encodeURIComponent(accountId)}/credit`, payload)
+}
+
+export async function getDebitCardDetails(
+  accountId: number,
+  cardId: number,
+): Promise<CardDetailsResponse> {
+  const response = await axiosClient.get<CardDetailsResponse>(
+    `/api/Card/${encodeURIComponent(accountId)}/${encodeURIComponent(cardId)}`,
+  )
+
+  return response.data
+}
+
+export async function getCreditCardDetails(
+  accountId: number,
+  cardId: number,
+): Promise<CreditCardDetailsResponse> {
+  const response = await axiosClient.get<CreditCardDetailsResponse>(
+    `/api/Card/${encodeURIComponent(accountId)}/credit/${encodeURIComponent(cardId)}`,
+  )
+
+  return response.data
 }

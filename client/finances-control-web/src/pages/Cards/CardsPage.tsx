@@ -1,16 +1,23 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import CreateNewButton from '../../components/CreateNewButton'
+import Modal from '../../components/Modal'
 import {
   getStoredSelectedAccountId,
   SELECTED_ACCOUNT_CHANGED_EVENT,
 } from '../../features/accounts/accountSelectionStorage'
 import { usePaginatedCards } from '../../features/cards/usePaginatedCards'
-import { getCardNetworkLabel, getCardTypeLabel } from '../../types/card'
+import { getCardNetworkLabel, getCardTypeLabel, type CardType } from '../../types/card'
+import CardDetails from './CardDetails'
 import CreateCardModal from './CreateCardModal'
 import styles from './CardsPage.module.css'
 
 const pageSize = 10
+
+type SelectedCard = {
+  id: number
+  cardType: CardType
+}
 
 function getPaginationItems(currentPage: number, totalPages: number) {
   if (totalPages <= 0) {
@@ -40,6 +47,7 @@ function CardsPage() {
     getStoredSelectedAccountId(),
   )
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
+  const [selectedCard, setSelectedCard] = useState<SelectedCard | null>(null)
   const [selectedPage, setSelectedPage] = useState(1)
   const alertedErrorsRef = useRef('')
   const {
@@ -65,6 +73,7 @@ function CardsPage() {
       setSelectedAccountId(selectedAccountEvent.detail.accountId)
       setSelectedPage(1)
       setIsCreateModalOpen(false)
+      setSelectedCard(null)
     }
 
     window.addEventListener(SELECTED_ACCOUNT_CHANGED_EVENT, handleSelectedAccountChange)
@@ -114,6 +123,14 @@ function CardsPage() {
 
   function closeCreateModal() {
     setIsCreateModalOpen(false)
+  }
+
+  function openCardModal(card: SelectedCard) {
+    setSelectedCard(card)
+  }
+
+  function closeCardModal() {
+    setSelectedCard(null)
   }
 
   if (selectedAccountId === null) {
@@ -184,7 +201,15 @@ function CardsPage() {
 
               {!isLoading && !error && cards.map((card) => (
                 <tr key={card.id}>
-                  <td>{card.cardName ?? 'Unnamed card'}</td>
+                  <td>
+                    <button
+                      className={styles.cardNameButton}
+                      onClick={() => openCardModal({ id: card.id, cardType: card.cardType })}
+                      type="button"
+                    >
+                      {card.cardName ?? 'Unnamed card'}
+                    </button>
+                  </td>
                   <td>{card.cardNumber}</td>
                   <td>{getCardTypeLabel(card.cardType)}</td>
                   <td>{getCardNetworkLabel(card.cardNetwork)}</td>
@@ -243,6 +268,21 @@ function CardsPage() {
         onClose={closeCreateModal}
         onCreated={reload}
       />
+
+      <Modal
+        cancelText="Close"
+        isOpen={selectedCard !== null}
+        onClose={closeCardModal}
+        title="Card Details"
+      >
+        {selectedCard !== null && (
+          <CardDetails
+            accountId={selectedAccountId}
+            cardId={selectedCard.id}
+            cardType={selectedCard.cardType}
+          />
+        )}
+      </Modal>
     </section>
   )
 }

@@ -73,6 +73,27 @@
   text-align: center;
 }
 
+.cardNameButton {
+  border: 0;
+  background: transparent;
+  color: var(--color-primary-main);
+  cursor: pointer;
+  font: inherit;
+  font-weight: 800;
+  padding: 0;
+  text-align: left;
+}
+
+.cardNameButton:hover {
+  color: var(--color-primary-hover);
+}
+
+.cardNameButton:focus-visible {
+  border-radius: 4px;
+  outline: 3px solid var(--color-component-focus-ring);
+  outline-offset: 3px;
+}
+
 .actionsHeader,
 .actionsCell {
   width: 120px;

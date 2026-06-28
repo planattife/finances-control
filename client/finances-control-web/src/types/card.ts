@@ -43,11 +43,43 @@ export type Card = {
   cardNumber: string
   cardType: CardType
   cardNetwork: CardNetwork
-  bank: {
-    id: number
-    name: string
-  }
+  bank: CardBank
   cardName: string | null
 }
 
+export type CardBank = {
+  id: number
+  name: string
+}
+
+export type CardDetails = {
+  id: number
+  cardNumber: string
+  cardType: CardType
+  cardNetwork: CardNetwork
+  expirationDate: string
+  bank: CardBank
+  cardName: string | null
+  status: string
+  createdAt: string
+  lastUpdate: string | null
+}
+
+export type CreditCardDetails = CardDetails & {
+  nextClosingDay: string
+  nextDueDateDay: string
+}
+
 export type PagedCardResponse = PagedResponse<Card>
+
+export type CardDetailsResponse = {
+  data: CardDetails
+  errors: string[]
+  httpStatusCode: number
+}
+
+export type CreditCardDetailsResponse = {
+  data: CreditCardDetails
+  errors: string[]
+  httpStatusCode: number
+}
