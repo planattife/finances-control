@@ -5,6 +5,11 @@ import { z } from 'zod'
 import ActionButton from '../../ActionButton'
 import { usePaginatedBanks } from '../../../features/banks/usePaginatedBanks'
 import {
+  getCreditCardDayLimit,
+  getCreditCardDayValidationMessage,
+  isValidCreditCardDay,
+} from '../../../features/cards/creditCardDayValidation'
+import {
   CardNetwork,
   cardNetworkOptions,
   CardType,
@@ -56,18 +61,18 @@ const createCardFormSchema = z
     const closingDay = data.closingDay
     const dueDateDay = data.dueDateDay
 
-    if (!Number.isInteger(closingDay) || closingDay === undefined || closingDay < 1 || closingDay > 30) {
+    if (!isValidCreditCardDay(closingDay)) {
       context.addIssue({
         code: 'custom',
-        message: 'Closing day must be a number from 1 to 30.',
+        message: getCreditCardDayValidationMessage('Closing day'),
         path: ['closingDay'],
       })
     }
 
-    if (!Number.isInteger(dueDateDay) || dueDateDay === undefined || dueDateDay < 1 || dueDateDay > 30) {
+    if (!isValidCreditCardDay(dueDateDay)) {
       context.addIssue({
         code: 'custom',
-        message: 'Due date day must be a number from 1 to 30.',
+        message: getCreditCardDayValidationMessage('Due date day'),
         path: ['dueDateDay'],
       })
     }
@@ -123,6 +128,7 @@ function CreateCardForm({ isLoading = false, onCancel, onSubmit }: CreateCardFor
   const isBusy = isLoading || isSubmitting
   const isBankSelectDisabled =
     isBusy || isLoadingBanks || isLoadingMore || Boolean(banksError) || banks.length === 0
+  const creditCardDayLimit = getCreditCardDayLimit()
   const bankOptions = useMemo(() => banks, [banks])
 
   async function handleBankChange(event: ChangeEvent<HTMLSelectElement>) {
@@ -283,7 +289,7 @@ function CreateCardForm({ isLoading = false, onCancel, onSubmit }: CreateCardFor
               aria-invalid={Boolean(errors.closingDay)}
               className={getInputClassName(Boolean(errors.closingDay))}
               disabled={isBusy}
-              max={30}
+              max={creditCardDayLimit}
               min={1}
               type="number"
               {...register('closingDay')}
@@ -302,7 +308,7 @@ function CreateCardForm({ isLoading = false, onCancel, onSubmit }: CreateCardFor
               aria-invalid={Boolean(errors.dueDateDay)}
               className={getInputClassName(Boolean(errors.dueDateDay))}
               disabled={isBusy}
-              max={30}
+              max={creditCardDayLimit}
               min={1}
               type="number"
               {...register('dueDateDay')}

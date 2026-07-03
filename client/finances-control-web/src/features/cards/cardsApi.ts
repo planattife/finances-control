@@ -24,6 +24,11 @@ export type CreateCreditCardRequest = CreateDebitCardRequest & {
   dueDateDay: number
 }
 
+export type UpdateCreditCardDatesRequest = {
+  closingDay: number
+  dueDateDay: number
+}
+
 export async function getCards(
   accountId: number,
   { pageNumber, pageSize }: GetCardsParams,
@@ -75,4 +80,43 @@ export async function getCreditCardDetails(
   )
 
   return response.data
+}
+
+export async function activateCard(accountId: number, cardId: number): Promise<void> {
+  await axiosClient.post(
+    `/api/Card/${encodeURIComponent(accountId)}/${encodeURIComponent(cardId)}/activate`,
+  )
+}
+
+export async function deactivateCard(accountId: number, cardId: number): Promise<void> {
+  await axiosClient.post(
+    `/api/Card/${encodeURIComponent(accountId)}/${encodeURIComponent(cardId)}/deactivate`,
+  )
+}
+
+export async function updateCardName(
+  accountId: number,
+  cardId: number,
+  cardName: string,
+): Promise<void> {
+  await axiosClient.put(
+    `/api/Card/${encodeURIComponent(accountId)}/${encodeURIComponent(cardId)}`,
+    null,
+    {
+      params: {
+        cardName,
+      },
+    },
+  )
+}
+
+export async function updateCreditCardDates(
+  accountId: number,
+  cardId: number,
+  payload: UpdateCreditCardDatesRequest,
+): Promise<void> {
+  await axiosClient.put(
+    `/api/Card/${encodeURIComponent(accountId)}/${encodeURIComponent(cardId)}/credit-card-dates`,
+    payload,
+  )
 }

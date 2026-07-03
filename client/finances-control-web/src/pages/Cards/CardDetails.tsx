@@ -1,6 +1,8 @@
 import { Pencil } from 'lucide-react'
 import ActionButton from '../../components/ActionButton'
+import { useChangeCardStatus } from '../../features/cards/useChangeCardStatus'
 import { useCardDetails } from '../../features/cards/useCardDetails'
+import { showPromise } from '../../shared/notifications/toastService'
 import {
   CardType,
   getCardNetworkLabel,
@@ -14,6 +16,8 @@ interface CardDetailsProps {
   accountId: number
   cardId: number
   cardType: CardTypeValue
+  onEdit?: (cardId: number, cardType: CardTypeValue) => void
+  onStatusChanged?: () => Promise<void> | void
 }
 
 const brDateFormatter = new Intl.DateTimeFormat('pt-BR', {
@@ -65,15 +69,36 @@ function isCreditCardDetails(
   return cardDetails?.cardType === CardType.Credit
 }
 
-function CardDetails({ accountId, cardId, cardType }: CardDetailsProps) {
+function CardDetails({ accountId, cardId, cardType, onEdit, onStatusChanged }: CardDetailsProps) {
   const {
     cardDetails,
     error: cardDetailsError,
     errors: cardDetailsErrors,
     isLoading: isCardDetailsLoading,
+    reload: reloadCardDetails,
   } = useCardDetails(accountId, cardId, cardType)
+  const { changeCardStatus, isLoading: isChangingCardStatus } = useChangeCardStatus()
   const isActive = cardDetails?.status.toLowerCase() === 'active'
-  const statusActionText = isActive ? 'Inactivate' : 'Activate'
+  const nextStatus = isActive ? 'inactive' : 'active'
+  const nextStatusActionLabel = nextStatus === 'active' ? 'Activating' : 'Inactivating'
+  const nextStatusSuccessLabel = nextStatus === 'active' ? 'activated' : 'inactivated'
+  const statusActionText = isChangingCardStatus
+    ? `${isActive ? 'Inactivating' : 'Activating'}...`
+    : isActive ? 'Inactivate' : 'Activate'
+
+  async function handleStatusChange() {
+    try {
+      await showPromise(changeCardStatus({ accountId, cardId, nextStatus }), {
+        loading: `${nextStatusActionLabel} card...`,
+        success: `Card ${nextStatusSuccessLabel} successfully`,
+        error: 'Could not change card status',
+      })
+      await reloadCardDetails()
+      await onStatusChanged?.()
+    } catch {
+      // The promise toast displays the failure state and the details remain unchanged.
+    }
+  }
 
   if (isCardDetailsLoading) {
     return <p className={styles.stateMessage}>Loading card details...</p>
@@ -89,10 +114,14 @@ function CardDetails({ accountId, cardId, cardType }: CardDetailsProps) {
         <p className={styles.stateMessage}>{cardDetailsErrors.join('\n')}</p>
       )}
       <div aria-label="Card actions" className={styles.actions}>
-        <ActionButton dangerHover={isActive} disabled>
+        <ActionButton
+          dangerHover={isActive}
+          disabled={isChangingCardStatus}
+          onClick={handleStatusChange}
+        >
           {statusActionText}
         </ActionButton>
-        <ActionButton disabled icon={<Pencil aria-hidden="true" />}>
+        <ActionButton icon={<Pencil aria-hidden="true" />} onClick={() => onEdit?.(cardId, cardType)}>
           Edit
         </ActionButton>
       </div>
@@ -100,6 +129,16 @@ function CardDetails({ accountId, cardId, cardType }: CardDetailsProps) {
         <div className={styles.infoItem}>
           <dt className={styles.infoLabel}>Card Name</dt>
           <dd className={styles.infoValue}>{cardDetails.cardName ?? 'Unnamed card'}</dd>
+        </div>
+        <div className={styles.infoItem}>
+          <dt className={styles.infoLabel}>Status</dt>
+          <span
+            className={`${styles.statusBadge} ${
+              isActive ? styles.statusActive : styles.statusInactive
+            }`}
+          >
+            {isActive ? 'Active' : 'Inactive'}
+          </span>
         </div>
         <div className={styles.infoItem}>
           <dt className={styles.infoLabel}>Card Number</dt>
@@ -140,16 +179,6 @@ function CardDetails({ accountId, cardId, cardType }: CardDetailsProps) {
         <div className={styles.infoItem}>
           <dt className={styles.infoLabel}>Last Update</dt>
           <dd className={styles.infoValue}>{formatDateTime(cardDetails.lastUpdate)}</dd>
-        </div>
-        <div className={styles.infoItem}>
-          <dt className={styles.infoLabel}>Status</dt>
-          <span
-            className={`${styles.statusBadge} ${
-              isActive ? styles.statusActive : styles.statusInactive
-            }`}
-          >
-            {isActive ? 'Active' : 'Inactive'}
-          </span>
         </div>
       </dl>
     </section>

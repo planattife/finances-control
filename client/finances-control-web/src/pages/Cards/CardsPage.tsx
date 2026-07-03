@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { Pencil } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import CreateNewButton from '../../components/CreateNewButton'
+import IconButton from '../../components/IconButton'
 import Modal from '../../components/Modal'
 import {
   getStoredSelectedAccountId,
@@ -10,6 +12,7 @@ import { usePaginatedCards } from '../../features/cards/usePaginatedCards'
 import { getCardNetworkLabel, getCardTypeLabel, type CardType } from '../../types/card'
 import CardDetails from './CardDetails'
 import CreateCardModal from './CreateCardModal'
+import UpdateCardModal from './UpdateCardModal'
 import styles from './CardsPage.module.css'
 
 const pageSize = 10
@@ -47,6 +50,7 @@ function CardsPage() {
     getStoredSelectedAccountId(),
   )
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
+  const [editingCard, setEditingCard] = useState<SelectedCard | null>(null)
   const [selectedCard, setSelectedCard] = useState<SelectedCard | null>(null)
   const [selectedPage, setSelectedPage] = useState(1)
   const alertedErrorsRef = useRef('')
@@ -73,6 +77,7 @@ function CardsPage() {
       setSelectedAccountId(selectedAccountEvent.detail.accountId)
       setSelectedPage(1)
       setIsCreateModalOpen(false)
+      setEditingCard(null)
       setSelectedCard(null)
     }
 
@@ -131,6 +136,19 @@ function CardsPage() {
 
   function closeCardModal() {
     setSelectedCard(null)
+  }
+
+  function openEditModal(card: SelectedCard) {
+    setEditingCard(card)
+  }
+
+  function openEditModalFromDetails(cardId: number, cardType: CardType) {
+    closeCardModal()
+    openEditModal({ id: cardId, cardType })
+  }
+
+  function closeEditModal() {
+    setEditingCard(null)
   }
 
   if (selectedAccountId === null) {
@@ -214,7 +232,16 @@ function CardsPage() {
                   <td>{getCardTypeLabel(card.cardType)}</td>
                   <td>{getCardNetworkLabel(card.cardNetwork)}</td>
                   <td>{card.bank.name}</td>
-                  <td className={styles.actionsCell}>-</td>
+                  <td className={styles.actionsCell}>
+                    <div className={styles.actions}>
+                      <IconButton
+                        label={`Edit ${card.cardName ?? 'card'}`}
+                        onClick={() => openEditModal({ id: card.id, cardType: card.cardType })}
+                      >
+                        <Pencil aria-hidden="true" />
+                      </IconButton>
+                    </div>
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -269,6 +296,18 @@ function CardsPage() {
         onCreated={reload}
       />
 
+      {editingCard !== null && (
+        <UpdateCardModal
+          accountId={selectedAccountId}
+          cardId={editingCard.id}
+          cardType={editingCard.cardType}
+          isOpen={editingCard !== null}
+          key={`${editingCard.cardType}-${editingCard.id}`}
+          onClose={closeEditModal}
+          onUpdated={reload}
+        />
+      )}
+
       <Modal
         cancelText="Close"
         isOpen={selectedCard !== null}
@@ -280,6 +319,8 @@ function CardsPage() {
             accountId={selectedAccountId}
             cardId={selectedCard.id}
             cardType={selectedCard.cardType}
+            onEdit={openEditModalFromDetails}
+            onStatusChanged={reload}
           />
         )}
       </Modal>
