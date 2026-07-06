@@ -45,6 +45,7 @@ export type Card = {
   cardNetwork: CardNetwork
   bank: CardBank
   cardName: string | null
+  status: string
 }
 
 export type CardBank = {

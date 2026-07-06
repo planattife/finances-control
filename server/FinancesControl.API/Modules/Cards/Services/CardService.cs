@@ -149,7 +149,8 @@ public class CardService : ICardService
                 c.CardType,
                 c.CardNetwork,
                 new CardBankResponse(c.BankId, c.BankName),
-                c.CardName
+                c.CardName,
+                c.IsActive ? "Active" : "Inactive"
             ))
             .ToList();
         

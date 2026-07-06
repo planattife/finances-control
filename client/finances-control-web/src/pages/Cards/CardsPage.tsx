@@ -187,6 +187,9 @@ function CardsPage() {
                 <th scope="col">Type</th>
                 <th scope="col">Network</th>
                 <th scope="col">Bank</th>
+                <th className={styles.statusCell} scope="col">
+                  Status
+                </th>
                 <th className={styles.actionsHeader} scope="col">
                   Actions
                 </th>
@@ -195,7 +198,7 @@ function CardsPage() {
             <tbody>
               {isLoading && (
                 <tr>
-                  <td className={styles.stateCell} colSpan={6}>
+                  <td className={styles.stateCell} colSpan={7}>
                     Loading cards...
                   </td>
                 </tr>
@@ -203,7 +206,7 @@ function CardsPage() {
 
               {!isLoading && Boolean(error) && (
                 <tr>
-                  <td className={styles.stateCell} colSpan={6}>
+                  <td className={styles.stateCell} colSpan={7}>
                     Could not load cards.
                   </td>
                 </tr>
@@ -211,7 +214,7 @@ function CardsPage() {
 
               {!isLoading && !error && cards.length === 0 && (
                 <tr>
-                  <td className={styles.stateCell} colSpan={6}>
+                  <td className={styles.stateCell} colSpan={7}>
                     No cards found.
                   </td>
                 </tr>
@@ -232,6 +235,15 @@ function CardsPage() {
                   <td>{getCardTypeLabel(card.cardType)}</td>
                   <td>{getCardNetworkLabel(card.cardNetwork)}</td>
                   <td>{card.bank.name}</td>
+                  <td className={styles.statusCell}>
+                    <input
+                      aria-label={`${card.cardName ?? 'Unnamed card'} active status`}
+                      checked={card.status.toLowerCase() === 'active'}
+                      className={styles.checkbox}
+                      readOnly
+                      type="checkbox"
+                    />
+                  </td>
                   <td className={styles.actionsCell}>
                     <div className={styles.actions}>
                       <IconButton

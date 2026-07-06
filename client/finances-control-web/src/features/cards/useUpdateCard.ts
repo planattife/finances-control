@@ -32,13 +32,11 @@ export function useUpdateCard() {
 
     try {
       if (payload.cardType === CardType.Credit) {
-        await Promise.all([
-          updateCardName(payload.accountId, payload.cardId, payload.cardName),
-          updateCreditCardDates(payload.accountId, payload.cardId, {
-            closingDay: payload.closingDay,
-            dueDateDay: payload.dueDateDay,
-          }),
-        ])
+        await updateCardName(payload.accountId, payload.cardId, payload.cardName)
+        await updateCreditCardDates(payload.accountId, payload.cardId, {
+          closingDay: payload.closingDay,
+          dueDateDay: payload.dueDateDay,
+        })
         return
       }
 

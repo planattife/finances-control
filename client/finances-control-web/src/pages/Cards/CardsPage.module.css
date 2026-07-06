@@ -100,6 +100,18 @@
   text-align: center;
 }
 
+.statusCell {
+  width: 130px;
+}
+
+.checkbox {
+  width: 17px;
+  height: 17px;
+  margin: 0;
+  accent-color: var(--color-primary-main);
+  cursor: default;
+}
+
 .actions {
   display: inline-flex;
   align-items: center;
