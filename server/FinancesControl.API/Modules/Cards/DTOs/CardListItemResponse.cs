@@ -7,6 +7,7 @@ public record CardListItemResponse(
     string CardNumber,
     CardType CardType,
     CardNetwork CardNetwork,
-    long BankId,
-    string? CardName
+    CardBankResponse Bank,
+    string? CardName,
+    string Status
 );

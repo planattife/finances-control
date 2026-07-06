@@ -8,11 +8,13 @@ public class GetAllCardsQuery
     public (string Sql, DynamicParameters Params) Build(long accountId, PaginationParams paginationParams)
     {
         var sql = @"
-            SELECT ""Id"", ""CardType"", ""CardNumber"", ""ExpirationDate"", ""IsActive"", 
-                   ""CardNetwork"", ""BankId"", ""AccountId"", ""CardName"", ""CreatedAt"", ""UpdatedAt""
-            FROM ""Cards""
-            WHERE ""AccountId"" = @AccountId
-            ORDER BY ""CreatedAt"" DESC
+            SELECT c.""Id"", c.""CardType"", c.""CardNumber"", c.""ExpirationDate"", c.""IsActive"", 
+                   c.""CardNetwork"", c.""BankId"", b.""Name"" AS ""BankName"", c.""AccountId"", 
+                   c.""CardName"", c.""CreatedAt"", c.""UpdatedAt""
+            FROM ""Cards"" c
+            INNER JOIN ""Banks"" b ON c.""BankId"" = b.""Id""
+            WHERE c.""AccountId"" = @AccountId
+            ORDER BY c.""CreatedAt"" DESC
             LIMIT @PageSize OFFSET @Offset;
         ";
 

@@ -50,7 +50,7 @@ public class TransactionServiceTests
                 cardType,
                 CardNetwork.Visa,
                 DateTime.UtcNow.AddYears(1),
-                1,
+                new CardBankResponse(1, "Test Bank"),
                 "Test Card",
                 status,
                 DateTime.UtcNow,
