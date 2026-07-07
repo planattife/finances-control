@@ -8,12 +8,13 @@ public class GetAllTransactionsQuery
     public (string Sql, DynamicParameters Params) Build(long accountId, PaginationParams paginationParams)
     {
         var sql = @"
-            SELECT ""Id"", ""TransactionDate"", ""Amount"", ""PaymentMethod"", ""TransactionType"", 
-                   ""CategoryId"", ""AccountId"", ""IsActive"", ""BankId"", ""CardId"", 
-                   ""CreatedAt"", ""UpdatedAt"", ""Description""
-            FROM ""Transactions""
-            WHERE ""AccountId"" = @AccountId
-            ORDER BY ""CreatedAt"" DESC
+            SELECT t.""Id"", t.""TransactionDate"", t.""Amount"", t.""PaymentMethod"", t.""TransactionType"", 
+                   t.""CategoryId"", c.""Name"" AS ""CategoryName"", t.""AccountId"", t.""IsActive"", 
+                   t.""BankId"", t.""CardId"", t.""CreatedAt"", t.""UpdatedAt"", t.""Description""
+            FROM ""Transactions"" t
+            INNER JOIN ""TransactionCategories"" c ON t.""CategoryId"" = c.""Id""
+            WHERE t.""AccountId"" = @AccountId
+            ORDER BY t.""CreatedAt"" DESC
             LIMIT @PageSize OFFSET @Offset;
         ";
 

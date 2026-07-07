@@ -7,11 +7,12 @@ public class GetTransactionByIdQuery
     public (string Sql, DynamicParameters Params) Build(long transactionId, long accountId)
     {
         var sql = @"
-            SELECT ""Id"", ""TransactionDate"", ""Amount"", ""PaymentMethod"", ""TransactionType"", 
-                   ""CategoryId"", ""AccountId"", ""IsActive"", ""BankId"", ""CardId"", 
-                   ""CreatedAt"", ""UpdatedAt"", ""Description""
-            FROM ""Transactions""
-            WHERE ""Id"" = @Id AND ""AccountId"" = @AccountId;
+            SELECT t.""Id"", t.""TransactionDate"", t.""Amount"", t.""PaymentMethod"", t.""TransactionType"", 
+                   t.""CategoryId"", c.""Name"" AS ""CategoryName"", t.""AccountId"", t.""IsActive"", 
+                   t.""BankId"", t.""CardId"", t.""CreatedAt"", t.""UpdatedAt"", t.""Description""
+            FROM ""Transactions"" t
+            INNER JOIN ""TransactionCategories"" c ON t.""CategoryId"" = c.""Id""
+            WHERE t.""Id"" = @Id AND t.""AccountId"" = @AccountId;
         ";
 
         var parameters = new DynamicParameters();

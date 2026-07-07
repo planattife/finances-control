@@ -6,7 +6,7 @@ import BanksPage from './pages/Banks/BanksPage'
 import CardsPage from './pages/Cards/CardsPage'
 import CategoriesPage from './pages/Categories/CategoriesPage'
 import LoginPage from './pages/Login/LoginPage'
-import PlaceholderPage from './pages/Placeholder/PlaceholderPage'
+import TransactionsPage from './pages/Transactions/TransactionsPage'
 import AppToaster from './shared/notifications/AppToaster'
 
 function App() {
@@ -24,15 +24,7 @@ function App() {
           <Route path="/accounts" element={<AccountsPage />} />
           <Route path="/banks" element={<BanksPage />} />
           <Route path="/cards" element={<CardsPage />} />
-          <Route
-            path="/transactions"
-            element={
-              <PlaceholderPage
-                description="Transaction management will be available here."
-                title="Transactions"
-              />
-            }
-          />
+          <Route path="/transactions" element={<TransactionsPage />} />
           <Route
             path="/categories"
             element={<CategoriesPage />}

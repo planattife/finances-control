@@ -7,7 +7,7 @@ public class TransactionDetailResponse
     public string PaymentMethod { get; set; }
     public string TransactionType { get; set; }
     public DateTime TransactionDate { get; set; }
-    public long CategoryId { get; set; }
+    public TransactionCategoryResponse Category { get; set; } = new();
     public long? CardId { get; set; }
     public long? BankId { get; set; }
     public string? Description { get; set; }

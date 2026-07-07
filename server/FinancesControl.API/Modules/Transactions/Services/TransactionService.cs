@@ -151,7 +151,11 @@ public class TransactionService : ITransactionService
 			PaymentMethod = t.PaymentMethod.ToString(),
 			TransactionType = t.TransactionType.ToString(),
 			TransactionDate = t.TransactionDate,
-			CategoryId = t.CategoryId,
+			Category = new TransactionCategoryResponse
+			{
+				CategoryId = t.CategoryId,
+				CategoryName = t.CategoryName
+			},
 			Description = t.Description,
 			Status = t.IsActive ? "Active" : "Inactive",
 			CreatedAt = t.CreatedAt,
@@ -192,7 +196,11 @@ public class TransactionService : ITransactionService
 				PaymentMethod = t.PaymentMethod.ToString(),
 				TransactionType = t.TransactionType.ToString(),
 				TransactionDate = t.TransactionDate,
-				CategoryId = t.CategoryId,
+				Category = new TransactionCategoryResponse
+				{
+					CategoryId = t.CategoryId,
+					CategoryName = t.CategoryName
+				},
 				Status = t.IsActive ? "Active" : "Inactive"
 			})
 			.ToList();

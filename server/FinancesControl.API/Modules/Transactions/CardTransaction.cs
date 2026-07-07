@@ -12,9 +12,9 @@ public class CardTransaction : Transaction
     }
 
     protected CardTransaction(long id, decimal amount, PaymentMethod paymentMethod, TransactionType transactionType,
-        DateTime transactionDate, long categoryId, long accountId, long cardId, bool isActive,
+        DateTime transactionDate, long categoryId, string categoryName, long accountId, long cardId, bool isActive,
         DateTime createdAt, DateTime? updatedAt, string? description = null)
-        : base(id, amount, paymentMethod, transactionType, transactionDate, categoryId, accountId, isActive, createdAt, updatedAt, description)
+        : base(id, amount, paymentMethod, transactionType, transactionDate, categoryId, categoryName, accountId, isActive, createdAt, updatedAt, description)
     {
         CardId = cardId;
     }
@@ -22,10 +22,10 @@ public class CardTransaction : Transaction
     public long CardId { get; private set; }
 
     internal static CardTransaction FromDatabase(long id, decimal amount, PaymentMethod paymentMethod,
-        TransactionType transactionType, DateTime transactionDate, long categoryId, long accountId, long cardId,
+        TransactionType transactionType, DateTime transactionDate, long categoryId, string categoryName, long accountId, long cardId,
         bool isActive, DateTime createdAt, DateTime? updatedAt, string? description = null)
     {
         return new CardTransaction(id, amount, paymentMethod, transactionType, transactionDate, categoryId,
-            accountId, cardId, isActive, createdAt, updatedAt, description);
+            categoryName, accountId, cardId, isActive, createdAt, updatedAt, description);
     }
 }

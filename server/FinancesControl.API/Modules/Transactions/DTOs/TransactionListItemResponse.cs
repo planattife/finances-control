@@ -1,5 +1,4 @@
 using System;
-using FinancesControl.API.Enums;
 
 namespace FinancesControl.API.Transactions.DTOs;
 
@@ -10,6 +9,6 @@ public class TransactionListItemResponse
     public string PaymentMethod { get; set; }
     public string TransactionType { get; set; }
     public DateTime TransactionDate { get; set; }
-    public long CategoryId { get; set; }
+    public TransactionCategoryResponse Category { get; set; } = new();
     public string Status { get; set; }
 }

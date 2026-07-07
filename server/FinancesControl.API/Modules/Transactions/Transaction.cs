@@ -6,7 +6,7 @@ namespace FinancesControl.API.Models;
 
 public class Transaction : BaseModel
 {
-    public Transaction(decimal amount, PaymentMethod paymentMethod, TransactionType transactionType, DateTime transactionDate, long categoryId, long accountId, long id, string? description = null) : base(id)
+    public Transaction(decimal amount, PaymentMethod paymentMethod, TransactionType transactionType, DateTime transactionDate, long categoryId, long accountId, long id, string? description = null, string categoryName = "") : base(id)
     {
         ValidateAmount(amount);
         ValidateCategoryId(categoryId);
@@ -16,13 +16,14 @@ public class Transaction : BaseModel
         TransactionType = transactionType;
         TransactionDate = transactionDate;
         CategoryId = categoryId;
+        CategoryName = categoryName;
         AccountId = accountId;
         Description = description;
         IsActive = true;
     }
 
     protected Transaction(long id, decimal amount, PaymentMethod paymentMethod, TransactionType transactionType, 
-        DateTime transactionDate, long categoryId, long accountId, bool isActive,
+        DateTime transactionDate, long categoryId, string categoryName, long accountId, bool isActive,
         DateTime createdAt, DateTime? updatedAt, string? description = null)
         : base(id, createdAt, updatedAt)
     {
@@ -31,6 +32,7 @@ public class Transaction : BaseModel
         TransactionType = transactionType;
         TransactionDate = transactionDate;
         CategoryId = categoryId;
+        CategoryName = categoryName;
         AccountId = accountId;
         IsActive = isActive;
         Description = description;
@@ -41,6 +43,7 @@ public class Transaction : BaseModel
     public PaymentMethod PaymentMethod { get; private set; }
     public TransactionType TransactionType { get; private set; }
     public long CategoryId { get; private set; }
+    public string CategoryName { get; private set; }
     public string? Description { get; private set; }
     public long AccountId { get; private set; }
     public bool IsActive { get; private set; }
@@ -95,10 +98,10 @@ public class Transaction : BaseModel
     }
 
     internal static Transaction FromDatabase(long id, decimal amount, PaymentMethod paymentMethod, 
-        TransactionType transactionType, DateTime transactionDate, long categoryId, long accountId, 
+        TransactionType transactionType, DateTime transactionDate, long categoryId, string categoryName, long accountId, 
         bool isActive, DateTime createdAt, DateTime? updatedAt, string? description = null)
     {
         return new Transaction(id, amount, paymentMethod, transactionType, transactionDate, categoryId, 
-            accountId, isActive, createdAt, updatedAt, description);
+            categoryName, accountId, isActive, createdAt, updatedAt, description);
     }
 }

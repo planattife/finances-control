@@ -12,9 +12,9 @@ public class GeneralTransaction : Transaction
     }
 
     protected GeneralTransaction(long id, decimal amount, PaymentMethod paymentMethod, TransactionType transactionType,
-        DateTime transactionDate, long categoryId, long accountId, long bankId, bool isActive,
+        DateTime transactionDate, long categoryId, string categoryName, long accountId, long bankId, bool isActive,
         DateTime createdAt, DateTime? updatedAt, string? description = null)
-        : base(id, amount, paymentMethod, transactionType, transactionDate, categoryId, accountId, isActive, createdAt, updatedAt, description)
+        : base(id, amount, paymentMethod, transactionType, transactionDate, categoryId, categoryName, accountId, isActive, createdAt, updatedAt, description)
     {
         BankId = bankId;
     }
@@ -22,10 +22,10 @@ public class GeneralTransaction : Transaction
     public long BankId { get; private set; }
 
     internal static GeneralTransaction FromDatabase(long id, decimal amount, PaymentMethod paymentMethod,
-        TransactionType transactionType, DateTime transactionDate, long categoryId, long accountId, long bankId,
+        TransactionType transactionType, DateTime transactionDate, long categoryId, string categoryName, long accountId, long bankId,
         bool isActive, DateTime createdAt, DateTime? updatedAt, string? description = null)
     {
         return new GeneralTransaction(id, amount, paymentMethod, transactionType, transactionDate, categoryId,
-            accountId, bankId, isActive, createdAt, updatedAt, description);
+            categoryName, accountId, bankId, isActive, createdAt, updatedAt, description);
     }
 }

@@ -128,7 +128,7 @@ public class TransactionControllerTests
             PaymentMethod = "Cash", 
             TransactionType = "Expense", 
             TransactionDate = DateTime.UtcNow, 
-            CategoryId = 1, 
+            Category = new TransactionCategoryResponse { CategoryId = 1, CategoryName = "Food" }, 
             Status = "Active", 
             CreatedAt = DateTime.UtcNow, 
             UpdatedAt = DateTime.UtcNow 
@@ -163,8 +163,8 @@ public class TransactionControllerTests
         var paginationParams = new PaginationParams();
         var list = new List<TransactionListItemResponse>
         {
-            new() { Id = 1, Amount = 100, PaymentMethod = "Cash", TransactionType = "Expense", TransactionDate = DateTime.UtcNow, CategoryId = 1, Status = "Active" },
-            new() { Id = 2, Amount = 200, PaymentMethod = "Credit", TransactionType = "Income", TransactionDate = DateTime.UtcNow, CategoryId = 2, Status = "Inactive" }
+            new() { Id = 1, Amount = 100, PaymentMethod = "Cash", TransactionType = "Expense", TransactionDate = DateTime.UtcNow, Category = new TransactionCategoryResponse { CategoryId = 1, CategoryName = "Food" }, Status = "Active" },
+            new() { Id = 2, Amount = 200, PaymentMethod = "Credit", TransactionType = "Income", TransactionDate = DateTime.UtcNow, Category = new TransactionCategoryResponse { CategoryId = 2, CategoryName = "Salary" }, Status = "Inactive" }
         };
         var response = new PaginatedResponse<TransactionListItemResponse> { Data = list };
         response.SetHttpStatusCode(200);
@@ -200,7 +200,7 @@ public class TransactionControllerTests
         {
             Data = new List<TransactionListItemResponse>
             {
-                new() { Id = 6, Amount = 100, PaymentMethod = "Cash", TransactionType = "Expense", TransactionDate = DateTime.UtcNow, CategoryId = 1, Status = "Active" }
+                new() { Id = 6, Amount = 100, PaymentMethod = "Cash", TransactionType = "Expense", TransactionDate = DateTime.UtcNow, Category = new TransactionCategoryResponse { CategoryId = 1, CategoryName = "Food" }, Status = "Active" }
             }
         };
         response.SetPagination(12, 3, 2, true, true);
@@ -223,7 +223,7 @@ public class TransactionControllerTests
         {
             Data = new List<TransactionListItemResponse>
             {
-                new() { Id = 6, Amount = 100, PaymentMethod = "Cash", TransactionType = "Expense", TransactionDate = DateTime.UtcNow, CategoryId = 1, Status = "Active" }
+                new() { Id = 6, Amount = 100, PaymentMethod = "Cash", TransactionType = "Expense", TransactionDate = DateTime.UtcNow, Category = new TransactionCategoryResponse { CategoryId = 1, CategoryName = "Food" }, Status = "Active" }
             }
         };
         response.SetPagination(12, 3, 2, true, true);
@@ -363,7 +363,7 @@ public class TransactionControllerTests
             PaymentMethod = "Cash", 
             TransactionType = "Expense", 
             TransactionDate = DateTime.UtcNow, 
-            CategoryId = 1, 
+            Category = new TransactionCategoryResponse { CategoryId = 1, CategoryName = "Food" }, 
             Status = "Active", 
             CreatedAt = DateTime.UtcNow, 
             UpdatedAt = DateTime.UtcNow,
