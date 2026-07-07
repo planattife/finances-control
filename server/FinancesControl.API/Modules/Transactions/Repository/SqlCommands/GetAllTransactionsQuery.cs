@@ -14,6 +14,7 @@ public class GetAllTransactionsQuery
             FROM ""Transactions"" t
             INNER JOIN ""TransactionCategories"" c ON t.""CategoryId"" = c.""Id""
             WHERE t.""AccountId"" = @AccountId
+              AND t.""IsActive"" = TRUE
             ORDER BY t.""CreatedAt"" DESC
             LIMIT @PageSize OFFSET @Offset;
         ";

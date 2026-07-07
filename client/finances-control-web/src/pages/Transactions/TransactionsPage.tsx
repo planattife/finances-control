@@ -1,16 +1,25 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { Pencil, Trash2 } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import CreateNewButton from '../../components/CreateNewButton'
+import IconButton from '../../components/IconButton'
+import Modal from '../../components/Modal'
 import {
   getStoredSelectedAccountId,
   SELECTED_ACCOUNT_CHANGED_EVENT,
 } from '../../features/accounts/accountSelectionStorage'
+import { useDeleteTransaction } from '../../features/transactions/useDeleteTransaction'
 import { usePaginatedTransactions } from '../../features/transactions/usePaginatedTransactions'
+import { showPromise } from '../../shared/notifications/toastService'
 import {
   getPaymentMethodLabel,
   getTransactionTypeLabel,
   type Transaction,
 } from '../../types/transaction'
+import CreateTransactionModal from './CreateTransactionModal'
+import DeleteTransactionConfirmationModal from './DeleteTransactionConfirmationModal'
+import TransactionDetails from './TransactionDetails'
+import UpdateTransactionModal from './UpdateTransactionModal'
 import styles from './TransactionsPage.module.css'
 
 const pageSize = 10
@@ -54,7 +63,19 @@ function formatTransactionDate(transactionDate: string) {
   return dateFormatter.format(date)
 }
 
-function TransactionRow({ transaction }: { transaction: Transaction }) {
+function TransactionRow({
+  isDeleting,
+  onDeleteRequest,
+  onEdit,
+  onClick,
+  transaction,
+}: {
+  isDeleting: boolean
+  onDeleteRequest: (transactionId: number) => void
+  onEdit: (transactionId: number) => void
+  onClick: (transactionId: number) => void
+  transaction: Transaction
+}) {
   const transactionTypeClassName = [
     styles.transactionTypeBadge,
     transaction.transactionType === 'Expense' ? styles.transactionTypeExpense : '',
@@ -64,7 +85,17 @@ function TransactionRow({ transaction }: { transaction: Transaction }) {
     .join(' ')
 
   return (
-    <tr>
+    <tr
+      className={styles.clickableRow}
+      onClick={() => onClick(transaction.id)}
+      tabIndex={0}
+      onKeyDown={(event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault()
+          onClick(transaction.id)
+        }
+      }}
+    >
       <td>{formatTransactionDate(transaction.transactionDate)}</td>
       <td className={styles.amountCell}>{currencyFormatter.format(transaction.amount)}</td>
       <td>{getPaymentMethodLabel(transaction.paymentMethod)}</td>
@@ -74,6 +105,30 @@ function TransactionRow({ transaction }: { transaction: Transaction }) {
         </span>
       </td>
       <td>{transaction.category?.categoryName ?? 'Unknown'}</td>
+      <td className={styles.actionsCell}>
+        <div className={styles.actions}>
+          <IconButton
+            className={styles.dangerIconButton}
+            disabled={isDeleting}
+            label={`Delete transaction ${transaction.id}`}
+            onClick={(event) => {
+              event.stopPropagation()
+              onDeleteRequest(transaction.id)
+            }}
+          >
+            <Trash2 aria-hidden="true" />
+          </IconButton>
+          <IconButton
+            label={`Edit transaction ${transaction.id}`}
+            onClick={(event) => {
+              event.stopPropagation()
+              onEdit(transaction.id)
+            }}
+          >
+            <Pencil aria-hidden="true" />
+          </IconButton>
+        </div>
+      </td>
     </tr>
   )
 }
@@ -82,7 +137,11 @@ function TransactionsPage() {
   const [selectedAccountId, setSelectedAccountId] = useState<number | null>(() =>
     getStoredSelectedAccountId(),
   )
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
   const [selectedPage, setSelectedPage] = useState(1)
+  const [selectedTransactionId, setSelectedTransactionId] = useState<number | null>(null)
+  const [editingTransactionId, setEditingTransactionId] = useState<number | null>(null)
+  const [transactionPendingDeleteId, setTransactionPendingDeleteId] = useState<number | null>(null)
   const alertedErrorsRef = useRef('')
   const {
     currentPage,
@@ -91,6 +150,7 @@ function TransactionsPage() {
     hasNextPage,
     hasPrevPage,
     isLoading,
+    reload,
     totalPages,
     transactions,
   } = usePaginatedTransactions({
@@ -98,6 +158,7 @@ function TransactionsPage() {
     pageNumber: selectedPage,
     pageSize,
   })
+  const { deleteTransaction, isLoading: isDeletingTransaction } = useDeleteTransaction()
   const paginationItems = useMemo(
     () => getPaginationItems(currentPage, totalPages),
     [currentPage, totalPages],
@@ -109,6 +170,10 @@ function TransactionsPage() {
 
       setSelectedAccountId(selectedAccountEvent.detail.accountId)
       setSelectedPage(1)
+      setIsCreateModalOpen(false)
+      setSelectedTransactionId(null)
+      setEditingTransactionId(null)
+      setTransactionPendingDeleteId(null)
     }
 
     window.addEventListener(SELECTED_ACCOUNT_CHANGED_EVENT, handleSelectedAccountChange)
@@ -152,6 +217,72 @@ function TransactionsPage() {
     }
   }
 
+  function openCreateModal() {
+    setIsCreateModalOpen(true)
+  }
+
+  function closeCreateModal() {
+    setIsCreateModalOpen(false)
+  }
+
+  function openTransactionModal(transactionId: number) {
+    setSelectedTransactionId(transactionId)
+  }
+
+  function closeTransactionModal() {
+    setSelectedTransactionId(null)
+  }
+
+  function openEditModal(transactionId: number) {
+    setEditingTransactionId(transactionId)
+  }
+
+  function openEditModalFromDetails(transactionId: number) {
+    closeTransactionModal()
+    openEditModal(transactionId)
+  }
+
+  function closeEditModal() {
+    setEditingTransactionId(null)
+  }
+
+  function openDeleteConfirmation(transactionId: number) {
+    setTransactionPendingDeleteId(transactionId)
+  }
+
+  function closeDeleteConfirmation() {
+    if (isDeletingTransaction) {
+      return
+    }
+
+    setTransactionPendingDeleteId(null)
+  }
+
+  async function confirmDeleteTransaction() {
+    if (selectedAccountId === null || transactionPendingDeleteId === null || isDeletingTransaction) {
+      return
+    }
+
+    const transactionId = transactionPendingDeleteId
+
+    try {
+      await showPromise(deleteTransaction({ accountId: selectedAccountId, transactionId }), {
+        loading: 'Deleting transaction...',
+        success: 'Transaction deleted successfully',
+        error: 'Could not delete transaction',
+      })
+
+      if (selectedTransactionId === transactionId) {
+        closeTransactionModal()
+      }
+
+      setTransactionPendingDeleteId(null)
+      await reload()
+    } catch {
+      // The promise toast displays the failure state and the list remains unchanged.
+    }
+  }
+
   if (selectedAccountId === null) {
     return (
       <section className={styles.page}>
@@ -171,7 +302,7 @@ function TransactionsPage() {
   return (
     <section className={styles.page}>
       <div className={styles.header}>
-        <CreateNewButton disabled />
+        <CreateNewButton onClick={openCreateModal} />
       </div>
 
       <div className={styles.card}>
@@ -188,12 +319,15 @@ function TransactionsPage() {
                 <th scope="col">Payment Method</th>
                 <th scope="col">Transaction Type</th>
                 <th scope="col">Category</th>
+                <th className={styles.actionsHeader} scope="col">
+                  Actions
+                </th>
               </tr>
             </thead>
             <tbody>
               {isLoading && (
                 <tr>
-                  <td className={styles.stateCell} colSpan={5}>
+                  <td className={styles.stateCell} colSpan={6}>
                     Loading transactions...
                   </td>
                 </tr>
@@ -201,7 +335,7 @@ function TransactionsPage() {
 
               {!isLoading && Boolean(error) && (
                 <tr>
-                  <td className={styles.stateCell} colSpan={5}>
+                  <td className={styles.stateCell} colSpan={6}>
                     Could not load transactions.
                   </td>
                 </tr>
@@ -209,7 +343,7 @@ function TransactionsPage() {
 
               {!isLoading && !error && transactions.length === 0 && (
                 <tr>
-                  <td className={styles.stateCell} colSpan={5}>
+                  <td className={styles.stateCell} colSpan={6}>
                     No transactions found.
                   </td>
                 </tr>
@@ -218,7 +352,14 @@ function TransactionsPage() {
               {!isLoading &&
                 !error &&
                 transactions.map((transaction) => (
-                  <TransactionRow key={transaction.id} transaction={transaction} />
+                  <TransactionRow
+                    key={transaction.id}
+                    isDeleting={isDeletingTransaction}
+                    onDeleteRequest={openDeleteConfirmation}
+                    onEdit={openEditModal}
+                    onClick={openTransactionModal}
+                    transaction={transaction}
+                  />
                 ))}
             </tbody>
           </table>
@@ -264,6 +405,48 @@ function TransactionsPage() {
           </button>
         </nav>
       </div>
+
+      <Modal
+        cancelText="Close"
+        isOpen={selectedTransactionId !== null}
+        onClose={closeTransactionModal}
+        title="Transaction Details"
+      >
+        {selectedAccountId !== null && selectedTransactionId !== null && (
+          <TransactionDetails
+            accountId={selectedAccountId}
+            isDeleting={isDeletingTransaction}
+            onDeleteRequest={openDeleteConfirmation}
+            onEdit={openEditModalFromDetails}
+            transactionId={selectedTransactionId}
+          />
+        )}
+      </Modal>
+
+      {editingTransactionId !== null && (
+        <UpdateTransactionModal
+          accountId={selectedAccountId}
+          isOpen={editingTransactionId !== null}
+          key={editingTransactionId}
+          onClose={closeEditModal}
+          onUpdated={reload}
+          transactionId={editingTransactionId}
+        />
+      )}
+
+      <CreateTransactionModal
+        accountId={selectedAccountId}
+        isOpen={isCreateModalOpen}
+        onClose={closeCreateModal}
+        onCreated={reload}
+      />
+
+      <DeleteTransactionConfirmationModal
+        isDeleting={isDeletingTransaction}
+        isOpen={transactionPendingDeleteId !== null}
+        onCancel={closeDeleteConfirmation}
+        onConfirm={confirmDeleteTransaction}
+      />
     </section>
   )
 }

@@ -9,7 +9,8 @@ public class CountTransactionsByAccountQuery
         var sql = @"
             SELECT COUNT(*)
             FROM ""Transactions""
-            WHERE ""AccountId"" = @AccountId;
+            WHERE ""AccountId"" = @AccountId
+              AND ""IsActive"" = TRUE;
         ";
 
         var parameters = new DynamicParameters();

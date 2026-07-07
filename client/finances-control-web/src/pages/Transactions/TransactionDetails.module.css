@@ -1,0 +1,87 @@
+.details {
+  display: grid;
+  gap: 20px;
+  width: 100%;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  width: 100%;
+}
+
+.stateMessage {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: 0.9375rem;
+  font-weight: 700;
+  line-height: 1.4;
+  text-align: center;
+}
+
+.details > .stateMessage {
+  text-align: left;
+}
+
+.infoGrid {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin: 0;
+  width: 100%;
+}
+
+.infoItem {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+.descriptionItem {
+  grid-column: 1 / -1;
+}
+
+.descriptionItem .infoValue {
+  align-items: flex-start;
+  min-height: 88px;
+}
+
+.infoLabel {
+  color: var(--color-primary-main);
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0;
+  line-height: 1.3;
+}
+
+.infoValue {
+  align-items: center;
+  background: var(--color-background-surface-alt);
+  border: 1px solid var(--color-border-default);
+  border-radius: 8px;
+  color: var(--color-text-body);
+  display: flex;
+  min-height: 40px;
+  margin: 0;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  padding: 9px 12px;
+}
+
+@media (max-width: 520px) {
+  .actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .actions button {
+    width: 100%;
+  }
+
+  .infoGrid {
+    grid-template-columns: 1fr;
+  }
+}
