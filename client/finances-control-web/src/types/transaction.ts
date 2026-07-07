@@ -15,6 +15,16 @@ export type TransactionCategory = {
   categoryName: string
 }
 
+export type TransactionBank = {
+  bankId: number
+  bankName: string
+}
+
+export type TransactionCard = {
+  cardId: number
+  cardName: string
+}
+
 export type Transaction = {
   id: number
   amount: number
@@ -26,6 +36,20 @@ export type Transaction = {
 }
 
 export type PagedTransactionResponse = PagedResponse<Transaction>
+
+export type TransactionDetails = Transaction & {
+  bank: TransactionBank | null
+  card: TransactionCard | null
+  description: string | null
+  createdAt: string
+  updatedAt: string | null
+}
+
+export type TransactionDetailsResponse = {
+  data: TransactionDetails
+  errors: string[]
+  httpStatusCode: number
+}
 
 const paymentMethodLabels: Record<PaymentMethod, string> = {
   Credit: 'Credit',

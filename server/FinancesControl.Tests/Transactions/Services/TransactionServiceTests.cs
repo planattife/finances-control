@@ -315,7 +315,41 @@ public class TransactionServiceTests
         result.Data.Amount.Should().Be(100);
         result.Data.Category.CategoryId.Should().Be(1);
         result.Data.Category.CategoryName.Should().Be("Food");
+        result.Data.Card.Should().BeNull();
+        result.Data.Bank.Should().BeNull();
         result.Data.Status.Should().Be("Active");
+    }
+
+    [Fact]
+    public async Task GetById_CardTransaction_ReturnsCardObject()
+    {
+        SetupAccountExists();
+        var model = new CardTransaction(100, PaymentMethod.Credit, TransactionType.Expense, DateTime.UtcNow, 1, 10, AccountId, 5, cardName: "Rewards Card");
+        _repository.GetById(5, AccountId).Returns(Task.FromResult((Transaction?)model));
+
+        var result = await _service.GetById(5, AccountId, TestUserId);
+
+        result.Data.Should().NotBeNull();
+        result.Data.Card.Should().NotBeNull();
+        result.Data.Card.CardId.Should().Be(10);
+        result.Data.Card.CardName.Should().Be("Rewards Card");
+        result.Data.Bank.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task GetById_GeneralTransaction_ReturnsBankObject()
+    {
+        SetupAccountExists();
+        var model = new GeneralTransaction(100, PaymentMethod.Pix, TransactionType.Expense, DateTime.UtcNow, 1, 20, AccountId, 5, bankName: "Main Bank");
+        _repository.GetById(5, AccountId).Returns(Task.FromResult((Transaction?)model));
+
+        var result = await _service.GetById(5, AccountId, TestUserId);
+
+        result.Data.Should().NotBeNull();
+        result.Data.Bank.Should().NotBeNull();
+        result.Data.Bank.BankId.Should().Be(20);
+        result.Data.Bank.BankName.Should().Be("Main Bank");
+        result.Data.Card.Should().BeNull();
     }
 
     [Fact]

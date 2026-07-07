@@ -162,9 +162,21 @@ public class TransactionService : ITransactionService
 			UpdatedAt = t.UpdatedAt ?? null
 		};
 		if (t is CardTransaction ct)
-			detail.CardId = ct.CardId;
+		{
+			detail.Card = new TransactionCardResponse
+			{
+				CardId = ct.CardId,
+				CardName = ct.CardName ?? string.Empty
+			};
+		}
 		if (t is GeneralTransaction gt)
-			detail.BankId = gt.BankId;
+		{
+			detail.Bank = new TransactionBankResponse
+			{
+				BankId = gt.BankId,
+				BankName = gt.BankName ?? string.Empty
+			};
+		}
 
 		response.Data = detail;
 		response.SetHttpStatusCode(200);
