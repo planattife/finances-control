@@ -151,16 +151,32 @@ public class TransactionService : ITransactionService
 			PaymentMethod = t.PaymentMethod.ToString(),
 			TransactionType = t.TransactionType.ToString(),
 			TransactionDate = t.TransactionDate,
-			CategoryId = t.CategoryId,
+			Category = new TransactionCategoryResponse
+			{
+				CategoryId = t.CategoryId,
+				CategoryName = t.CategoryName
+			},
 			Description = t.Description,
 			Status = t.IsActive ? "Active" : "Inactive",
 			CreatedAt = t.CreatedAt,
 			UpdatedAt = t.UpdatedAt ?? null
 		};
 		if (t is CardTransaction ct)
-			detail.CardId = ct.CardId;
+		{
+			detail.Card = new TransactionCardResponse
+			{
+				CardId = ct.CardId,
+				CardName = ct.CardName ?? string.Empty
+			};
+		}
 		if (t is GeneralTransaction gt)
-			detail.BankId = gt.BankId;
+		{
+			detail.Bank = new TransactionBankResponse
+			{
+				BankId = gt.BankId,
+				BankName = gt.BankName ?? string.Empty
+			};
+		}
 
 		response.Data = detail;
 		response.SetHttpStatusCode(200);
@@ -192,7 +208,11 @@ public class TransactionService : ITransactionService
 				PaymentMethod = t.PaymentMethod.ToString(),
 				TransactionType = t.TransactionType.ToString(),
 				TransactionDate = t.TransactionDate,
-				CategoryId = t.CategoryId,
+				Category = new TransactionCategoryResponse
+				{
+					CategoryId = t.CategoryId,
+					CategoryName = t.CategoryName
+				},
 				Status = t.IsActive ? "Active" : "Inactive"
 			})
 			.ToList();

@@ -306,14 +306,50 @@ public class TransactionServiceTests
     public async Task GetById_Exists_ReturnsDetail()
     {
         SetupAccountExists();
-        var model = new Transaction(100, PaymentMethod.Cash, TransactionType.Expense, DateTime.UtcNow, 1, AccountId, 5);
+        var model = new Transaction(100, PaymentMethod.Cash, TransactionType.Expense, DateTime.UtcNow, 1, AccountId, 5, categoryName: "Food");
         _repository.GetById(5, AccountId).Returns(Task.FromResult((Transaction?)model));
         var result = await _service.GetById(5, AccountId, TestUserId);
         result.Should().NotBeNull();
         result.Data.Should().NotBeNull();
         result.Data.Id.Should().Be(5);
         result.Data.Amount.Should().Be(100);
+        result.Data.Category.CategoryId.Should().Be(1);
+        result.Data.Category.CategoryName.Should().Be("Food");
+        result.Data.Card.Should().BeNull();
+        result.Data.Bank.Should().BeNull();
         result.Data.Status.Should().Be("Active");
+    }
+
+    [Fact]
+    public async Task GetById_CardTransaction_ReturnsCardObject()
+    {
+        SetupAccountExists();
+        var model = new CardTransaction(100, PaymentMethod.Credit, TransactionType.Expense, DateTime.UtcNow, 1, 10, AccountId, 5, cardName: "Rewards Card");
+        _repository.GetById(5, AccountId).Returns(Task.FromResult((Transaction?)model));
+
+        var result = await _service.GetById(5, AccountId, TestUserId);
+
+        result.Data.Should().NotBeNull();
+        result.Data.Card.Should().NotBeNull();
+        result.Data.Card.CardId.Should().Be(10);
+        result.Data.Card.CardName.Should().Be("Rewards Card");
+        result.Data.Bank.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task GetById_GeneralTransaction_ReturnsBankObject()
+    {
+        SetupAccountExists();
+        var model = new GeneralTransaction(100, PaymentMethod.Pix, TransactionType.Expense, DateTime.UtcNow, 1, 20, AccountId, 5, bankName: "Main Bank");
+        _repository.GetById(5, AccountId).Returns(Task.FromResult((Transaction?)model));
+
+        var result = await _service.GetById(5, AccountId, TestUserId);
+
+        result.Data.Should().NotBeNull();
+        result.Data.Bank.Should().NotBeNull();
+        result.Data.Bank.BankId.Should().Be(20);
+        result.Data.Bank.BankName.Should().Be("Main Bank");
+        result.Data.Card.Should().BeNull();
     }
 
     [Fact]
@@ -322,8 +358,8 @@ public class TransactionServiceTests
         var paginationParams = new PaginationParams();
         var transactions = new List<Transaction>
         {
-            new Transaction(100, PaymentMethod.Cash, TransactionType.Expense, DateTime.UtcNow, 1, AccountId, 1),
-            new Transaction(200, PaymentMethod.Cash, TransactionType.Expense, DateTime.UtcNow, 1, AccountId, 2),
+            new Transaction(100, PaymentMethod.Cash, TransactionType.Expense, DateTime.UtcNow, 1, AccountId, 1, categoryName: "Food"),
+            new Transaction(200, PaymentMethod.Cash, TransactionType.Expense, DateTime.UtcNow, 2, AccountId, 2, categoryName: "Transport"),
         };
         SetupAccountExists();
         _repository.GetAll(AccountId, paginationParams).Returns(Task.FromResult(transactions));
@@ -332,7 +368,11 @@ public class TransactionServiceTests
         var result = await _service.GetAll(AccountId, TestUserId, paginationParams);
         result.Data.Should().HaveCount(2);
         result.Data[0].Amount.Should().Be(100);
+        result.Data[0].Category.CategoryId.Should().Be(1);
+        result.Data[0].Category.CategoryName.Should().Be("Food");
         result.Data[1].Amount.Should().Be(200);
+        result.Data[1].Category.CategoryId.Should().Be(2);
+        result.Data[1].Category.CategoryName.Should().Be("Transport");
         result.TotalCount.Should().Be(2);
         result.CurrentPage.Should().Be(1);
         result.TotalPages.Should().Be(1);
@@ -589,7 +629,7 @@ public class TransactionServiceTests
     private static List<Transaction> CreateTransactions(int count, int startId)
     {
         return Enumerable.Range(startId, count)
-            .Select(id => new Transaction(100 + id, PaymentMethod.Cash, TransactionType.Expense, DateTime.UtcNow, 1, AccountId, id))
+            .Select(id => new Transaction(100 + id, PaymentMethod.Cash, TransactionType.Expense, DateTime.UtcNow, 1, AccountId, id, categoryName: $"Category {id}"))
             .ToList();
     }
 }

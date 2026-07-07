@@ -95,10 +95,13 @@ public class TransactionRepository : ITransactionRepository
 		var transactionType = (TransactionType)row.TransactionType;
 		var transactionDate = (DateTime)row.TransactionDate;
 		var categoryId = (long)row.CategoryId;
+		var categoryName = (string)row.CategoryName;
 		var accountId = (long)row.AccountId;
 		var isActive = (bool)row.IsActive;
 		var cardId = row.CardId;
+		var cardName = GetOptionalString(row, "CardName");
 		var bankId = row.BankId;
+		var bankName = GetOptionalString(row, "BankName");
 		var createdAt = (DateTime)row.CreatedAt;
 		var updatedAt = (DateTime?)row.UpdatedAt;
 		var description = (string?)row.Description;
@@ -107,17 +110,27 @@ public class TransactionRepository : ITransactionRepository
 		if (cardId != null && cardId > 0)
 		{
 			return CardTransaction.FromDatabase(id, amount, paymentMethod, transactionType,
-				transactionDate, categoryId, accountId, (long)cardId, isActive, createdAt, updatedAt, description);
+				transactionDate, categoryId, categoryName, accountId, (long)cardId, cardName, isActive, createdAt, updatedAt, description);
 		}
 
 		if (bankId != null && bankId > 0)
 		{
 			return GeneralTransaction.FromDatabase(id, amount, paymentMethod, transactionType,
-				transactionDate, categoryId, accountId, (long)bankId, isActive, createdAt, updatedAt, description);
+				transactionDate, categoryId, categoryName, accountId, (long)bankId, bankName, isActive, createdAt, updatedAt, description);
 		}
 
 		// Default to basic Transaction (for Cash payments)
 		return Transaction.FromDatabase(id, amount, paymentMethod, transactionType,
-			transactionDate, categoryId, accountId, isActive, createdAt, updatedAt, description);
+			transactionDate, categoryId, categoryName, accountId, isActive, createdAt, updatedAt, description);
+	}
+
+	private static string? GetOptionalString(dynamic row, string columnName)
+	{
+		if (row is IDictionary<string, object> values && values.TryGetValue(columnName, out var value))
+		{
+			return value as string;
+		}
+
+		return null;
 	}
 }
