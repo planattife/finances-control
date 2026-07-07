@@ -491,6 +491,8 @@ public class TransactionServiceTests
         _repository.Update(t).Returns(Task.FromResult(true));
         var result = await _service.Delete(5, AccountId, TestUserId);
         result.Should().BeTrue();
+        t.IsActive.Should().BeFalse();
+        await _repository.Received(1).Update(Arg.Is<Transaction>(transaction => !transaction.IsActive));
     }
 
     [Fact]

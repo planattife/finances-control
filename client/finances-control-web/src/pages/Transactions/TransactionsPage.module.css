@@ -68,6 +68,20 @@
   border-bottom: 0;
 }
 
+.clickableRow {
+  cursor: pointer;
+  transition: background-color 160ms ease;
+}
+
+.clickableRow:hover {
+  background: var(--color-component-hover-background);
+}
+
+.clickableRow:focus-visible {
+  outline: 3px solid var(--color-component-focus-ring);
+  outline-offset: -3px;
+}
+
 .stateCell {
   color: var(--color-text-muted);
   text-align: center;
@@ -75,6 +89,25 @@
 
 .amountCell {
   white-space: nowrap;
+}
+
+.actionsHeader,
+.actionsCell {
+  width: 150px;
+  text-align: center;
+}
+
+.actions {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.dangerIconButton:hover:not(:disabled),
+.dangerIconButton:focus-visible:not(:disabled) {
+  color: var(--color-state-error);
+  background: color-mix(in srgb, var(--color-state-error) 10%, var(--color-background-surface));
 }
 
 .transactionTypeBadge {
