@@ -2,10 +2,33 @@
 
 ## Project overview
 
-- This repository is a financial control system.
+- This repository is a financial control system: a financial control app where users create accounts that work like wallets or workspaces to separate transactions, cards, and financial activity.
 - Frontend: React/TypeScript app in `/client/finances-control-web`.
 - Backend: .NET API in `/server/FinancesControl.API`.
 - The `/docs` folder is the source of truth for project conventions. Read the relevant document before changing related code.
+
+## Business context
+
+This product helps users organize personal finances by separating their money movements into accounts. Each account acts like a wallet or financial workspace, keeping its own transactions, cards, and activity grouped apart from the others.
+
+Users can register where their money is held or moved through, classify financial activity with categories, and record transactions in a way that keeps daily spending, income, and card usage understandable over time.
+
+## Stack
+
+- Languages: C#, TypeScript, SQL.
+- Backend: ASP.NET Core Web API, .NET 8, Dapper, Entity Framework Core Identity, PostgreSQL/Npgsql, Swagger/Swashbuckle.
+- Frontend: React, Vite, React Router, Axios.
+- Forms, validation, and UI helpers: React Hook Form, Zod, Sonner, Lucide React.
+- Tests: xUnit, FluentAssertions, NSubstitute, coverlet, Microsoft.NET.Test.Sdk.
+- Tooling: ESLint, TypeScript compiler, Vite build.
+
+## Business entities
+
+- Account: the main wallet or financial workspace. It separates a user's financial activity so transactions, cards, and related information can be managed independently from other accounts.
+- Banks: financial institutions or bank accounts owned by the user. Banks can be used for direct bank transactions and can also issue or hold cards.
+- Cards: debit or credit payment instruments tied to an account and a bank. Credit cards also include statement closing and due-day concepts for managing card cycles.
+- Transaction Categories: labels used to organize transactions by purpose, such as grouping spending or income. Categories can include shared defaults and user-owned categories.
+- Transactions: financial movements recorded inside an account. Each transaction is categorized and is linked either to a bank for direct movements or to a card for card-based spending.
 
 ## Documentation map
 
