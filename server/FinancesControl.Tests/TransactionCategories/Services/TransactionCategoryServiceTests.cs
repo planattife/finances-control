@@ -206,4 +206,26 @@ public class TransactionCategoryServiceTests
         result.Should().BeFalse();
         _repository.DidNotReceive().Update(Arg.Any<FinancesControl.API.Models.TransactionCategory>());
     }
+
+    [Fact]
+    public async Task ExistsAsync_PassesUserIdToRepository_ReturnsTrue()
+    {
+        _repository.ExistsAsync(1, TestUserId).Returns(Task.FromResult(true));
+
+        var result = await _service.ExistsAsync(1, TestUserId);
+
+        result.Should().BeTrue();
+        await _repository.Received(1).ExistsAsync(1, TestUserId);
+    }
+
+    [Fact]
+    public async Task ExistsAsync_WhenRepositoryReturnsFalse_ReturnsFalse()
+    {
+        _repository.ExistsAsync(1, TestUserId).Returns(Task.FromResult(false));
+
+        var result = await _service.ExistsAsync(1, TestUserId);
+
+        result.Should().BeFalse();
+        await _repository.Received(1).ExistsAsync(1, TestUserId);
+    }
 }

@@ -100,8 +100,8 @@ public class TransactionCategoryService : ITransactionCategoryService
         return await _repository.Update(cat);
     }
 
-    public async Task<bool> ExistsAsync(long categoryId)
+    public async Task<bool> ExistsAsync(long categoryId, string? userId)
     {
-        return await _repository.ExistsAsync(categoryId);
+        return await _repository.ExistsAsync(categoryId, userId);
     }
 }

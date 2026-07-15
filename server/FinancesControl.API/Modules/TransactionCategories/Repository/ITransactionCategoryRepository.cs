@@ -10,5 +10,5 @@ public interface ITransactionCategoryRepository
     Task<List<TransactionCategory>> GetAll(string? userId, PaginationParams paginationParams);
     Task<int> CountByUserId(string? userId);
     Task<bool> Update(TransactionCategory category);
-    Task<bool> ExistsAsync(long categoryId);
+    Task<bool> ExistsAsync(long categoryId, string? userId);
 } 

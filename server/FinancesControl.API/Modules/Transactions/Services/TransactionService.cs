@@ -78,7 +78,7 @@ public class TransactionService : ITransactionService
         if (request.CategoryId <= 0)
             throw new DomainValidationException("CategoryId must be greater than 0.");
 
-        if (!await _categoryService.ExistsAsync(request.CategoryId))
+        if (!await _categoryService.ExistsAsync(request.CategoryId, authenticatedUserId))
             throw new ResourceNotFoundException($"Transaction category with ID {request.CategoryId} does not exist.");
 
         // Validate Card exists (if applicable)
@@ -237,7 +237,6 @@ public class TransactionService : ITransactionService
 		{
 			return false;
 		}
-
 		var transaction = await _repository.GetById(transactionId, accountId);
 		if (transaction == null) return false;
 		transaction.Deactivate();
@@ -254,6 +253,7 @@ public class TransactionService : ITransactionService
 		{
 			return false;
 		}
+		var authenticatedUserId = userId!;
 		
 		var transaction = await _repository.GetById(transactionId, accountId);
 		if (transaction == null) return false;
@@ -265,7 +265,7 @@ public class TransactionService : ITransactionService
 
 		if (request.NewCategoryId.HasValue && request.NewCategoryId > 0)
 		{
-			if (!await _categoryService.ExistsAsync(request.NewCategoryId.Value))
+			if (!await _categoryService.ExistsAsync(request.NewCategoryId.Value, authenticatedUserId))
 				throw new ResourceNotFoundException($"Transaction category with ID {request.NewCategoryId.Value} does not exist.");
 			transaction.ChangeCategory(request.NewCategoryId.Value);
 		}

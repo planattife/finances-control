@@ -71,11 +71,11 @@ public class TransactionCategoryRepository : ITransactionCategoryRepository
         return rowsAffected > 0;
     }
 
-    public async Task<bool> ExistsAsync(long categoryId)
+    public async Task<bool> ExistsAsync(long categoryId, string? userId)
     {
         using var connection = _connectionFactory.CreateConnection();
         var query = new TransactionCategoryExistsQuery();
-        var (sql, parameters) = query.Build(categoryId);
+        var (sql, parameters) = query.Build(categoryId, userId);
         
         return await connection.QuerySingleOrDefaultAsync<bool>(sql, parameters);
     }
