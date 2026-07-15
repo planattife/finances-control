@@ -13,6 +13,7 @@ Transform "$ARGUMENTS" into a battle-tested implementation plan through systemat
 **Execution Order**: CODEBASE FIRST, RESEARCH SECOND. Solutions must fit existing patterns before introducing new ones.
 
 **Agent Strategy**: Use specialized agents for intelligence gathering:
+
 - `codebase-explorer` — finds WHERE code lives and extracts implementation patterns
 - `codebase-analyst` — analyzes HOW integration points work and traces data flow
 - `web-researcher` — strategic web research with citations and gap analysis
@@ -24,11 +25,13 @@ Launch codebase agents in parallel first, then research agent second.
 Project rules: follow the loaded AGENTS.md context; also read CLAUDE.md if the project has one.
 
 **Directory Discovery** (run these to understand project structure):
+
 - List root contents: `ls -la`
 - Find main source directories: `ls -la */ 2>/dev/null | head -50`
 - Identify project type from config files (package.json, pyproject.toml, Cargo.toml, go.mod, etc.)
 
 **IMPORTANT**: Do NOT assume `src/` exists. Common alternatives include:
+
 - `app/` (Next.js, Rails, Laravel)
 - `lib/` (Ruby gems, Elixir)
 - `packages/` (monorepos)
@@ -53,13 +56,13 @@ Before planning, check intent:
 
 **Determine input type:**
 
-| Input Pattern | Type | Action |
-|---------------|------|--------|
-| Ends with `.prd.md` | PRD file | Parse PRD, select next phase |
-| Ends with `.md` and contains "Implementation Phases" | PRD file | Parse PRD, select next phase |
-| File path that exists | Document | Read and extract feature description |
-| Free-form text | Description | Use directly as feature input |
-| Empty/blank | Conversation | Use conversation context as input |
+| Input Pattern                                        | Type         | Action                               |
+| ---------------------------------------------------- | ------------ | ------------------------------------ |
+| Ends with `.prd.md`                                  | PRD file     | Parse PRD, select next phase         |
+| Ends with `.md` and contains "Implementation Phases" | PRD file     | Parse PRD, select next phase         |
+| File path that exists                                | Document     | Read and extract feature description |
+| Free-form text                                       | Description  | Use directly as feature input        |
+| Empty/blank                                          | Conversation | Use conversation context as input    |
 
 ### If PRD File Detected:
 
@@ -71,6 +74,7 @@ Before planning, check intent:
    - If multiple candidates with same dependencies, note parallelism opportunity
 
 5. **Extract phase context:**
+
    ```
    PHASE: {phase number and name}
    GOAL: {from phase details}
@@ -80,6 +84,7 @@ Before planning, check intent:
    ```
 
 6. **Report selection to user:**
+
    ```
    PRD: {prd file path}
    Selected Phase: #{number} - {name}
@@ -95,6 +100,7 @@ Before planning, check intent:
 - Proceed directly to Phase 1 with the input as feature description
 
 **PHASE_0_CHECKPOINT:**
+
 - [ ] Input type determined
 - [ ] If PRD: next phase selected and dependencies verified
 - [ ] Feature description ready for Phase 1
@@ -239,16 +245,16 @@ NOT_BUILDING (explicit scope limits):
 
 ## Phase 6: GENERATE - Implementation Plan File
 
-**OUTPUT_PATH**: `.claude/PRPs/plans/{kebab-case-feature-name}.plan.md`
+**OUTPUT_PATH**: `PRPs/plans/{kebab-case-feature-name}.plan.md`
 
-Create directory if needed: `mkdir -p .claude/PRPs/plans`
+Create directory if needed: `mkdir -p PRPs/plans`
 
 **PLAN_STRUCTURE**: Read `templates/plan-template.md` now (mandatory) — it is the exact plan document to fill and save. Keep every section heading; fill every `{placeholder}` with real, project-specific content (the template's remaining snippets and table entries are illustrative examples from one TypeScript project, not content to keep). Before writing the plan's Step-by-Step Tasks section, read `references/task-block-format.md` (mandatory) for the task-block field detail and worked examples; before filling its Validation Commands section, read `references/validation-commands.md` (mandatory) for the per-language commands to embed.
 
 </process>
 
 <output>
-**OUTPUT_FILE**: `.claude/PRPs/plans/{kebab-case-feature-name}.plan.md`
+**OUTPUT_FILE**: `PRPs/plans/{kebab-case-feature-name}.plan.md`
 
 **If input was from PRD file**, also update the PRD:
 

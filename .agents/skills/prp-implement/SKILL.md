@@ -27,15 +27,15 @@ Execute the plan end-to-end with rigorous self-validation. You are autonomous.
 
 Check for these files to determine the project's toolchain:
 
-| File Found | Package Manager | Runner |
-|------------|-----------------|--------|
-| `bun.lockb` | bun | `bun` / `bun run` |
-| `pnpm-lock.yaml` | pnpm | `pnpm` / `pnpm run` |
-| `yarn.lock` | yarn | `yarn` / `yarn run` |
-| `package-lock.json` | npm | `npm run` |
-| `pyproject.toml` | uv/pip | `uv run` / `python` |
-| `Cargo.toml` | cargo | `cargo` |
-| `go.mod` | go | `go` |
+| File Found          | Package Manager | Runner              |
+| ------------------- | --------------- | ------------------- |
+| `bun.lockb`         | bun             | `bun` / `bun run`   |
+| `pnpm-lock.yaml`    | pnpm            | `pnpm` / `pnpm run` |
+| `yarn.lock`         | yarn            | `yarn` / `yarn run` |
+| `package-lock.json` | npm             | `npm run`           |
+| `pyproject.toml`    | uv/pip          | `uv run` / `python` |
+| `Cargo.toml`        | cargo           | `cargo`             |
+| `go.mod`            | go              | `go`                |
 
 **Store the detected runner** - use it for all subsequent commands.
 
@@ -59,6 +59,7 @@ Determine the base branch for branching and syncing:
 ### 0.3 Identify Validation Scripts
 
 Check `package.json` (or equivalent) for available scripts:
+
 - Type checking: `type-check`, `typecheck`, `tsc`
 - Linting: `lint`, `lint:fix`
 - Testing: `test`, `test:unit`, `test:integration`
@@ -117,12 +118,12 @@ git worktree list
 
 ### 2.2 Branch Decision
 
-| Current State              | Action                                               |
-| -------------------------- | ---------------------------------------------------- |
-| In worktree                | Use it (log: "Using worktree")                       |
-| On {base-branch}, clean    | Create branch: `git checkout -b feature/{plan-slug}` |
-| On {base-branch}, dirty    | STOP: "Stash or commit changes first"                |
-| On feature branch          | Use it (log: "Using existing branch")                |
+| Current State           | Action                                               |
+| ----------------------- | ---------------------------------------------------- |
+| In worktree             | Use it (log: "Using worktree")                       |
+| On {base-branch}, clean | Create branch: `git checkout -b feature/{plan-slug}` |
+| On {base-branch}, dirty | STOP: "Stash or commit changes first"                |
+| On feature branch       | Use it (log: "Using existing branch")                |
 
 ### 2.3 Sync with Remote
 
@@ -160,6 +161,7 @@ git pull --rebase origin {base-branch} 2>/dev/null || true
 **After EVERY file change, run the type-check command from the plan's Validation Commands section.**
 
 Common patterns:
+
 - `{runner} run type-check` (JS/TS projects)
 - `mypy .` (Python)
 - `cargo check` (Rust)
@@ -206,6 +208,7 @@ If you must deviate from the plan:
 **Run the type-check and lint commands from the plan's Validation Commands section.**
 
 Common patterns:
+
 - JS/TS: `{runner} run type-check && {runner} run lint`
 - Python: `ruff check . && mypy .`
 - Rust: `cargo check && cargo clippy`
@@ -232,6 +235,7 @@ If lint errors:
 **Write tests**, then run the test command from the plan.
 
 Common patterns:
+
 - JS/TS: `{runner} test` or `{runner} run test`
 - Python: `pytest` or `uv run pytest`
 - Rust: `cargo test`
@@ -250,6 +254,7 @@ Common patterns:
 **Run the build command from the plan's Validation Commands section.**
 
 Common patterns:
+
 - JS/TS: `{runner} run build`
 - Python: N/A (interpreted) or `uv build`
 - Rust: `cargo build --release`
@@ -262,6 +267,7 @@ Common patterns:
 **If the plan involves API/server changes, use the integration test commands from the plan.**
 
 Example pattern:
+
 ```bash
 # Start server in background (command varies by project)
 {runner} run dev &
@@ -294,12 +300,12 @@ Run any edge case tests specified in the plan.
 ### 5.1 Create Report Directory
 
 ```bash
-mkdir -p .claude/PRPs/reports
+mkdir -p PRPs/reports
 ```
 
 ### 5.2 Generate Report
 
-**Path**: `.claude/PRPs/reports/{plan-name}-report.md`
+**Path**: `PRPs/reports/{plan-name}-report.md`
 
 ```markdown
 # Implementation Report
@@ -393,6 +399,7 @@ Compare the original investigation's assessment with what actually happened:
 ### 5.3 Update Source PRD (if applicable)
 
 **Check if plan was generated from a PRD:**
+
 - Look in the plan file for `Source PRD:` reference
 - Or check if plan filename matches a phase pattern
 
@@ -418,13 +425,13 @@ Older plans without these sections: skip this step.
 ### 5.5 Archive Plan
 
 ```bash
-mkdir -p .claude/PRPs/plans/completed
-mv $ARGUMENTS .claude/PRPs/plans/completed/
+mkdir -p PRPs/plans/completed
+mv $ARGUMENTS PRPs/plans/completed/
 ```
 
 **PHASE_5_CHECKPOINT:**
 
-- [ ] Report created at `.claude/PRPs/reports/`
+- [ ] Report created at `PRPs/reports/`
 - [ ] PRD updated (if applicable) - phase marked complete
 - [ ] Plan Lifecycle/Amendments updated (if the plan uses them)
 - [ ] Plan moved to completed folder
@@ -463,17 +470,19 @@ mv $ARGUMENTS .claude/PRPs/plans/completed/
 
 ### Artifacts
 
-- Report: `.claude/PRPs/reports/{name}-report.md`
-- Plan archived to: `.claude/PRPs/plans/completed/`
+- Report: `PRPs/reports/{name}-report.md`
+- Plan archived to: `PRPs/plans/completed/`
 
 {If from PRD:}
+
 ### PRD Progress
 
 **PRD**: `{prd-file-path}`
 **Phase Completed**: #{number} - {phase name}
 
-| # | Phase | Status |
-|---|-------|--------|
+| #   | Phase | Status |
+| --- | ----- | ------ |
+
 {Updated phases table showing progress}
 
 **Next Phase**: {next pending phase, or "All phases complete!"}
@@ -486,7 +495,7 @@ To continue: `$prp-plan {prd-path}`
 1. Review the report (especially if deviations noted)
 2. Create PR: `gh pr create` or `$prp-pr`
 3. Merge when approved
-{If more phases: "4. Continue with next phase: `$prp-plan {prd-path}`"}
+   {If more phases: "4. Continue with next phase: `$prp-plan {prd-path}`"}
 ```
 
 ---
