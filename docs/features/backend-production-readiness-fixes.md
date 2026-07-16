@@ -8,7 +8,7 @@ Validation performed:
 
 ## Security
 
-- [ ] **Scope transaction category ownership in transaction validation**
+- [x] **Scope transaction category ownership in transaction validation**
 
   - **Where:** `TransactionService.ValidateForeignKeys`, `TransactionService.Update`, `TransactionCategoryService.ExistsAsync`, `TransactionCategoryRepository.ExistsAsync`, `TransactionCategoryExistsQuery`
 
@@ -16,7 +16,7 @@ Validation performed:
 
   - **Hint:** Change category existence checks to accept `userId` and return true only for default categories or categories owned by that user. Update tests for cross-user category rejection.
 
-- [ ] **Harden Identity options for production**
+- [x] **Harden Identity options for production**
 
   - **Where:** `Program.cs`, `AddIdentityApiEndpoints<IdentityUser>()`
 
