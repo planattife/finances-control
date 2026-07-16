@@ -7,6 +7,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="FinancesControl.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Update="Database/Tests/">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </None>
