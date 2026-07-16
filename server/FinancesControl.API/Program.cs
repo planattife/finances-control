@@ -60,7 +60,7 @@ builder.Services.AddScoped<AppDbConnectionFactory>();
 
 builder.Services.AddAuthorization();
 
-builder.Services.AddIdentityApiEndpoints<IdentityUser>()
+builder.Services.AddIdentityApiEndpoints<IdentityUser>(IdentityOptionsConfiguration.Configure)
     .AddEntityFrameworkStores<FinancesDbContext>();
 
 // Account Services
