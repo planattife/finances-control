@@ -14,6 +14,7 @@ using Swashbuckle.AspNetCore.Filters;
 using FinancesControl.API.Transactions.Repository;
 using FinancesControl.API.Transactions.Services;
 using FinancesControl.API.Common;
+using FinancesControl.API.Common.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
 const string FrontendCorsPolicy = "FrontendCorsPolicy";
@@ -63,6 +64,9 @@ builder.Services.AddAuthorization();
 builder.Services.AddIdentityApiEndpoints<IdentityUser>(IdentityOptionsConfiguration.Configure)
     .AddEntityFrameworkStores<FinancesDbContext>();
 
+builder.Services.AddRateLimiter(options =>
+    ApiRateLimitingConfiguration.Configure(options, new ApiRateLimitOptions()));
+
 // Account Services
 builder.Services.AddScoped<IAccountService, AccountService>();
 builder.Services.AddScoped<IAccountRepository, AccountRepository>();
@@ -95,13 +99,15 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.MapRestrictedIdentityApi<IdentityUser>();
+app.MapRestrictedIdentityApi<IdentityUser>()
+    .RequireRateLimiting(RateLimitPolicyNames.Auth);
 
 app.UseHttpsRedirection();
 
 app.UseCors(FrontendCorsPolicy);
 
 app.UseAuthentication();
+app.UseRateLimiter();
 app.UseAuthorization();
 
 app.MapControllers();

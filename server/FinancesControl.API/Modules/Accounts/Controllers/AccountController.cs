@@ -2,8 +2,10 @@ using System.Security.Claims;
 using FinancesControl.API.Accounts.DTOs;
 using FinancesControl.API.Accounts.Services;
 using FinancesControl.API.Common;
+using FinancesControl.API.Common.RateLimiting;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace FinancesControl.API.Accounts.Controllers
 {
@@ -20,6 +22,7 @@ namespace FinancesControl.API.Accounts.Controllers
         }
 
         [HttpPost]
+        [EnableRateLimiting(RateLimitPolicyNames.FinanceWrite)]
         public async Task<IActionResult> CreateAccount(CreateAccountRequest request)
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
@@ -60,6 +63,7 @@ namespace FinancesControl.API.Accounts.Controllers
         }
 
         [HttpPut("{accountId}")]
+        [EnableRateLimiting(RateLimitPolicyNames.FinanceWrite)]
         public async Task<IActionResult> Update(long accountId, UpdateAccountRequest request)
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
@@ -72,6 +76,7 @@ namespace FinancesControl.API.Accounts.Controllers
         }
 
         [HttpPost("{accountId}/activate")]
+        [EnableRateLimiting(RateLimitPolicyNames.FinanceWrite)]
         public async Task<IActionResult> Activate(long accountId)
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
@@ -84,6 +89,7 @@ namespace FinancesControl.API.Accounts.Controllers
         }
 
         [HttpPost("{accountId}/deactivate")]
+        [EnableRateLimiting(RateLimitPolicyNames.FinanceWrite)]
         public async Task<IActionResult> Deactivate(long accountId)
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
