@@ -2,8 +2,10 @@ using System.Security.Claims;
 using FinancesControl.API.Transactions.DTOs;
 using FinancesControl.API.Transactions.Services;
 using FinancesControl.API.Common;
+using FinancesControl.API.Common.RateLimiting;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace FinancesControl.API.Transactions.Controllers
 {
@@ -25,6 +27,7 @@ namespace FinancesControl.API.Transactions.Controllers
 		}
 
 		[HttpPost("{accountId}")]
+		[EnableRateLimiting(RateLimitPolicyNames.FinanceWrite)]
 		public async Task<IActionResult> Create(long accountId, CreateTransactionRequest request)
 		{
 			var userId = GetUserId();
@@ -49,6 +52,7 @@ namespace FinancesControl.API.Transactions.Controllers
 		}
 
 		[HttpDelete("{accountId}/{transactionId}")]
+		[EnableRateLimiting(RateLimitPolicyNames.FinanceWrite)]
 		public async Task<IActionResult> Delete(long accountId, long transactionId)
 		{
 			var userId = GetUserId();
@@ -58,6 +62,7 @@ namespace FinancesControl.API.Transactions.Controllers
 		}
 
 		[HttpPatch("{accountId}/{transactionId}")]
+		[EnableRateLimiting(RateLimitPolicyNames.FinanceWrite)]
 		public async Task<IActionResult> Update(long accountId, long transactionId, UpdateTransactionRequest request)
 		{
 			var userId = GetUserId();
