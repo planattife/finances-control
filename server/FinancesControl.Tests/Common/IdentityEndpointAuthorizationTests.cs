@@ -28,7 +28,6 @@ public class IdentityEndpointAuthorizationTests
     }
 
     [Theory]
-    [InlineData("/register")]
     [InlineData("/refresh")]
     [InlineData("/forgotPassword")]
     [InlineData("/resetPassword")]
@@ -43,6 +42,32 @@ public class IdentityEndpointAuthorizationTests
         var response = await client.PostAsJsonAsync(endpoint, new { });
 
         response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+    }
+
+    [Fact]
+    public async Task Register_WithAnonymousRequestInTestingEnvironment_ReturnsUnauthorized()
+    {
+        using var factory = CreateFactory("Testing");
+        using var client = factory.CreateClient();
+
+        var response = await client.PostAsJsonAsync(
+            "/register",
+            new { email = CreateUniqueEmail(), password = TestPassword });
+
+        response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+    }
+
+    [Fact]
+    public async Task Register_WithAnonymousRequestInDevelopmentEnvironment_ReachesIdentityRegisterEndpoint()
+    {
+        using var factory = CreateFactory("Development");
+        using var client = factory.CreateClient();
+
+        var response = await client.PostAsJsonAsync(
+            "/register",
+            new { email = CreateUniqueEmail(), password = TestPassword });
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
     }
 
     [Fact]
@@ -104,14 +129,14 @@ public class IdentityEndpointAuthorizationTests
         response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
     }
 
-    private static WebApplicationFactory<Program> CreateFactory()
+    private static WebApplicationFactory<Program> CreateFactory(string environment = "Testing")
     {
         var databaseName = $"FinancesControlIdentityTests-{Guid.NewGuid()}";
 
         return new WebApplicationFactory<Program>()
             .WithWebHostBuilder(builder =>
             {
-                builder.UseEnvironment("Testing");
+                builder.UseEnvironment(environment);
                 builder.ConfigureServices(services =>
                 {
                     services.RemoveAll<DbContextOptions<FinancesDbContext>>();
@@ -120,6 +145,9 @@ public class IdentityEndpointAuthorizationTests
                 });
             });
     }
+
+    private static string CreateUniqueEmail()
+        => $"identity-endpoints-{Guid.NewGuid():N}@test.local";
 
     private static async Task SeedUser(WebApplicationFactory<Program> factory)
     {

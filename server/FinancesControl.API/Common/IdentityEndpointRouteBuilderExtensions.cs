@@ -8,10 +8,13 @@ namespace FinancesControl.API.Common;
 public static class IdentityEndpointRouteBuilderExtensions
 {
     private const string LoginPath = "/login";
+    private const string RegisterPath = "/register";
     private const string ManageInfoPath = "/manage/info";
     private const string RestrictedIdentityEndpointRole = "FinancesControl.UnsupportedIdentityEndpoint";
 
-    public static IEndpointConventionBuilder MapRestrictedIdentityApi<TUser>(this IEndpointRouteBuilder endpoints)
+    public static IEndpointConventionBuilder MapRestrictedIdentityApi<TUser>(
+        this IEndpointRouteBuilder endpoints,
+        bool allowDevelopmentRegistration = false)
         where TUser : class, new()
     {
         var builder = endpoints.MapIdentityApi<TUser>();
@@ -24,7 +27,7 @@ public static class IdentityEndpointRouteBuilderExtensions
             var routePattern = routeEndpointBuilder.RoutePattern.RawText;
             var httpMethods = endpointBuilder.Metadata.OfType<HttpMethodMetadata>().FirstOrDefault()?.HttpMethods;
 
-            if (IsAllowedIdentityEndpoint(routePattern, httpMethods))
+            if (IsAllowedIdentityEndpoint(routePattern, httpMethods, allowDevelopmentRegistration))
                 return;
 
             endpointBuilder.Metadata.Add(new AuthorizeAttribute { Roles = RestrictedIdentityEndpointRole });
@@ -33,7 +36,10 @@ public static class IdentityEndpointRouteBuilderExtensions
         return builder;
     }
 
-    internal static bool IsAllowedIdentityEndpoint(string? routePattern, IReadOnlyList<string>? httpMethods)
+    internal static bool IsAllowedIdentityEndpoint(
+        string? routePattern,
+        IReadOnlyList<string>? httpMethods,
+        bool allowDevelopmentRegistration = false)
     {
         if (string.IsNullOrWhiteSpace(routePattern) || httpMethods is null)
             return false;
@@ -41,6 +47,9 @@ public static class IdentityEndpointRouteBuilderExtensions
         var normalizedRoutePattern = NormalizeRoutePattern(routePattern);
 
         return IsHttpMethod(httpMethods, HttpMethods.Post) && normalizedRoutePattern == LoginPath
+            || allowDevelopmentRegistration
+                && IsHttpMethod(httpMethods, HttpMethods.Post)
+                && normalizedRoutePattern == RegisterPath
             || IsHttpMethod(httpMethods, HttpMethods.Get) && normalizedRoutePattern == ManageInfoPath;
     }
 
