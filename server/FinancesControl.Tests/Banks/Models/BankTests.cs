@@ -15,10 +15,10 @@ public class BankTests
     [InlineData(null)]
     [InlineData("")]
     [InlineData("   ")]
-    public void Constructor_WithInvalidName_ThrowsArgumentException(string invalidName)
+    public void Constructor_WithInvalidName_ThrowsArgumentException(string? invalidName)
     {
         // Act & Assert
-        Assert.Throws<DomainValidationException>(() => new Bank(invalidName, BankAccountType.Check, 1, "123"));
+        Assert.Throws<DomainValidationException>(() => new Bank(invalidName!, BankAccountType.Check, 1, "123"));
     }
 
     [Fact]

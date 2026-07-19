@@ -58,10 +58,10 @@ public class TransactionControllerTests
         var result = await _controller.Create(AccountId, request);
 
         result.Should().BeOfType<CreatedAtActionResult>();
-        var created = result as CreatedAtActionResult;
+        var created = (result as CreatedAtActionResult)!;
         created.ActionName.Should().Be(nameof(_controller.GetById));
-        created.RouteValues["accountId"].Should().Be(AccountId);
-        created.RouteValues["transactionId"].Should().Be(transactionId);
+        created.RouteValues!["accountId"].Should().Be(AccountId);
+        created.RouteValues!["transactionId"].Should().Be(transactionId);
     }
 
     [Fact]
@@ -139,7 +139,7 @@ public class TransactionControllerTests
 
         var result = await _controller.GetById(AccountId, 1);
         result.Result.Should().BeOfType<ObjectResult>();
-        var ok = result.Result as ObjectResult;
+        var ok = (result.Result as ObjectResult)!;
         ok.StatusCode.Should().Be(200);
         ok.Value.Should().Be(response);
     }
@@ -152,7 +152,7 @@ public class TransactionControllerTests
         _service.GetById(999, AccountId, TestUserId).Returns(Task.FromResult(response));
         var result = await _controller.GetById(AccountId, 999);
         result.Result.Should().BeOfType<ObjectResult>();
-        var notFound = result.Result as ObjectResult;
+        var notFound = (result.Result as ObjectResult)!;
         notFound.StatusCode.Should().Be(404);
         notFound.Value.Should().Be(response);
     }
@@ -170,9 +170,9 @@ public class TransactionControllerTests
         response.SetHttpStatusCode(200);
         _service.GetAll(AccountId, TestUserId, paginationParams).Returns(Task.FromResult(response));
         var result = await _controller.Get(AccountId, paginationParams);
-        var ok = result.Result as OkObjectResult;
-        var returnedResponse = ok.Value as PaginatedResponse<TransactionListItemResponse>;
-        returnedResponse.Data.Should().HaveCount(2);
+        var ok = (result.Result as OkObjectResult)!;
+        var returnedResponse = (ok.Value as PaginatedResponse<TransactionListItemResponse>)!;
+        returnedResponse.Data!.Should().HaveCount(2);
         returnedResponse.Data[0].Id.Should().Be(1);
         returnedResponse.Data[1].Id.Should().Be(2);
     }
@@ -185,11 +185,11 @@ public class TransactionControllerTests
         response.SetHttpStatusCode(200);
         _service.GetAll(AccountId, TestUserId, paginationParams).Returns(Task.FromResult(response));
         var result = await _controller.Get(AccountId, paginationParams);
-        var ok = result.Result as OkObjectResult;
+        var ok = (result.Result as OkObjectResult)!;
         ok.Should().NotBeNull();
-        var returnedResponse = ok.Value as PaginatedResponse<TransactionListItemResponse>;
+        var returnedResponse = (ok.Value as PaginatedResponse<TransactionListItemResponse>)!;
         returnedResponse.Should().NotBeNull();
-        returnedResponse.Data.Should().BeEmpty();
+        returnedResponse!.Data!.Should().BeEmpty();
     }
 
     [Fact]
@@ -209,9 +209,9 @@ public class TransactionControllerTests
 
         var result = await _controller.Get(AccountId, paginationParams);
 
-        var ok = result.Result as OkObjectResult;
+        var ok = (result.Result as OkObjectResult)!;
         ok.Should().NotBeNull();
-        ok.Value.Should().Be(response);
+        ok!.Value.Should().Be(response);
         await _service.Received(1).GetAll(AccountId, TestUserId, paginationParams);
     }
 
@@ -232,11 +232,11 @@ public class TransactionControllerTests
 
         var result = await _controller.Get(AccountId, paginationParams);
 
-        var ok = result.Result as OkObjectResult;
+        var ok = (result.Result as OkObjectResult)!;
         ok.Should().NotBeNull();
-        var returnedResponse = ok.Value as PaginatedResponse<TransactionListItemResponse>;
+        var returnedResponse = (ok.Value as PaginatedResponse<TransactionListItemResponse>)!;
         returnedResponse.Should().NotBeNull();
-        returnedResponse.TotalCount.Should().Be(12);
+        returnedResponse!.TotalCount.Should().Be(12);
         returnedResponse.TotalPages.Should().Be(3);
         returnedResponse.CurrentPage.Should().Be(2);
         returnedResponse.HasNextPage.Should().BeTrue();
@@ -347,10 +347,10 @@ public class TransactionControllerTests
         var result = await _controller.Create(AccountId, request);
 
         result.Should().BeOfType<CreatedAtActionResult>();
-        var created = result as CreatedAtActionResult;
+        var created = (result as CreatedAtActionResult)!;
         created.ActionName.Should().Be(nameof(_controller.GetById));
-        created.RouteValues["accountId"].Should().Be(AccountId);
-        created.RouteValues["transactionId"].Should().Be(transactionId);
+        created.RouteValues!["accountId"].Should().Be(AccountId);
+        created.RouteValues!["transactionId"].Should().Be(transactionId);
     }
 
     [Fact]
@@ -375,8 +375,8 @@ public class TransactionControllerTests
 
         var result = await _controller.GetById(AccountId, 1);
         result.Result.Should().BeOfType<ObjectResult>();
-        var ok = result.Result as ObjectResult;
-        var response = ok.Value as SingleResponse<TransactionDetailResponse>;
-        response.Data.Description.Should().Be("Test transaction");
+        var ok = (result.Result as ObjectResult)!;
+        var response = (ok.Value as SingleResponse<TransactionDetailResponse>)!;
+        response.Data!.Description.Should().Be("Test transaction");
     }
 }

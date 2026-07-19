@@ -13,10 +13,10 @@ public class AccountTests
     [InlineData(null)]
     [InlineData("")]
     [InlineData("   ")]
-    public void Constructor_WithInvalidName_ThrowsArgumentException(string invalidName)
+    public void Constructor_WithInvalidName_ThrowsArgumentException(string? invalidName)
     {
         // Act & Assert
-        Assert.Throws<DomainValidationException>(() => new Account(1, invalidName, "user-123"));
+        Assert.Throws<DomainValidationException>(() => new Account(1, invalidName!, "user-123"));
     }
 
     [Fact]
@@ -58,13 +58,13 @@ public class AccountTests
     [InlineData(null)]
     [InlineData("")]
     [InlineData("   ")]
-    public void Rename_WithInvalidName_ThrowsArgumentException(string invalidName)
+    public void Rename_WithInvalidName_ThrowsArgumentException(string? invalidName)
     {
         // Arrange
         var account = new Account(1, "Original Name", "user-123");
 
         // Act & Assert
-        Assert.Throws<DomainValidationException>(() => account.Rename(invalidName));
+        Assert.Throws<DomainValidationException>(() => account.Rename(invalidName!));
     }
 
     [Fact]

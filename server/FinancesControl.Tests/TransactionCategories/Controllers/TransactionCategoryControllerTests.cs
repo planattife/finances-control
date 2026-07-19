@@ -48,9 +48,9 @@ public class TransactionCategoryControllerTests
         var result = await _controller.Create(request);
 
         result.Should().BeOfType<CreatedAtActionResult>();
-        var created = result as CreatedAtActionResult;
+        var created = (result as CreatedAtActionResult)!;
         created.ActionName.Should().Be(nameof(_controller.GetById));
-        created.RouteValues["categoryId"].Should().Be(transactionCategoryId);
+        created.RouteValues!["categoryId"].Should().Be(transactionCategoryId);
     }
 
     [Fact]
@@ -63,10 +63,10 @@ public class TransactionCategoryControllerTests
 
         var result = await _controller.GetById(1);
         result.Result.Should().BeOfType<ObjectResult>();
-        var objectResult = result.Result as ObjectResult;
+        var objectResult = (result.Result as ObjectResult)!;
         objectResult.StatusCode.Should().Be(200);
         objectResult.Value.Should().Be(response);
-        response.Data.IsDefault.Should().BeTrue();
+        response.Data!.IsDefault.Should().BeTrue();
     }
 
     [Fact]
@@ -79,7 +79,7 @@ public class TransactionCategoryControllerTests
 
         var result = await _controller.GetById(999);
         result.Result.Should().BeOfType<ObjectResult>();
-        var objectResult = result.Result as ObjectResult;
+        var objectResult = (result.Result as ObjectResult)!;
         objectResult.StatusCode.Should().Be(404);
         objectResult.Value.Should().Be(response);
     }
@@ -99,10 +99,10 @@ public class TransactionCategoryControllerTests
         _service.GetAll(TestUserId, paginationParams).Returns(Task.FromResult(response));
 
         var result = await _controller.Get(paginationParams);
-        var ok = result.Result as OkObjectResult;
+        var ok = (result.Result as OkObjectResult)!;
         ok.Value.Should().Be(response);
-        var returnedResponse = ok.Value as PaginatedResponse<TransactionCategoryListItemResponse>;
-        returnedResponse.Data.Should().HaveCount(2);
+        var returnedResponse = (ok.Value as PaginatedResponse<TransactionCategoryListItemResponse>)!;
+        returnedResponse.Data!.Should().HaveCount(2);
         returnedResponse.Data[0].Name.Should().Be("Food");
         returnedResponse.Data[0].IsActive.Should().BeTrue();
         returnedResponse.Data[0].IsDefault.Should().BeTrue();
@@ -145,8 +145,8 @@ public class TransactionCategoryControllerTests
 
         var result = await _controller.Get(paginationParams);
 
-        var ok = result.Result as OkObjectResult;
-        var returnedResponse = ok.Value as PaginatedResponse<TransactionCategoryListItemResponse>;
+        var ok = (result.Result as OkObjectResult)!;
+        var returnedResponse = (ok.Value as PaginatedResponse<TransactionCategoryListItemResponse>)!;
         returnedResponse.TotalCount.Should().Be(12);
         returnedResponse.TotalPages.Should().Be(3);
         returnedResponse.CurrentPage.Should().Be(2);

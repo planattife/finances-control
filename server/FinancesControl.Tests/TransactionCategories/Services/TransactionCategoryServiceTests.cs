@@ -31,7 +31,7 @@ public class TransactionCategoryServiceTests
         var result = await _service.CreateCategory(request, TestUserId);
 
         result.Should().Be(1);
-        _repository.Received(1).Add(Arg.Any<FinancesControl.API.Models.TransactionCategory>());
+        await _repository.Received(1).Add(Arg.Any<FinancesControl.API.Models.TransactionCategory>());
     }
 
     [Fact]
@@ -40,7 +40,7 @@ public class TransactionCategoryServiceTests
         _repository.GetById(999, TestUserId).Returns(Task.FromResult((FinancesControl.API.Models.TransactionCategory?)null));
         var result = await _service.GetById(999, TestUserId);
         result.Should().NotBeNull();
-        result.HttpStatusCode.Should().Be(404);
+        result!.HttpStatusCode.Should().Be(404);
         result.Errors.Should().Contain("Category not found.");
     }
 
@@ -51,12 +51,12 @@ public class TransactionCategoryServiceTests
         _repository.GetById(5, TestUserId).Returns(Task.FromResult((TransactionCategory?)model));
         var result = await _service.GetById(5, TestUserId);
         result.Should().NotBeNull();
-        result.HttpStatusCode.Should().Be(200);
+        result!.HttpStatusCode.Should().Be(200);
         result.Errors.Should().BeEmpty();
-        result.Data.Should().NotBeNull();
-        result.Data.Id.Should().Be(5);
-        result.Data.Name.Should().Be("Bills");
-        result.Data.Status.Should().Be("Active");
+        result.Data!.Should().NotBeNull();
+        result.Data!.Id.Should().Be(5);
+        result.Data!.Name.Should().Be("Bills");
+        result.Data!.Status.Should().Be("Active");
     }
 
     [Fact]
@@ -74,8 +74,8 @@ public class TransactionCategoryServiceTests
         var result = await _service.GetAll(TestUserId, paginationParams);
 
         result.Should().NotBeNull();
-        result.HttpStatusCode.Should().Be(200);
-        result.Data.Should().HaveCount(2);
+        result!.HttpStatusCode.Should().Be(200);
+        result.Data!.Should().HaveCount(2);
         result.TotalCount.Should().Be(2);
         result.TotalPages.Should().Be(1);
         result.CurrentPage.Should().Be(1);
@@ -92,7 +92,7 @@ public class TransactionCategoryServiceTests
 
         var result = await _service.GetAll(TestUserId, paginationParams);
 
-        result.Data.Should().BeEmpty();
+        result.Data!.Should().BeEmpty();
         result.TotalCount.Should().Be(0);
         result.TotalPages.Should().Be(0);
         result.CurrentPage.Should().Be(1);
@@ -157,7 +157,7 @@ public class TransactionCategoryServiceTests
         var result = await _service.Rename(3, request, TestUserId);
 
         result.Should().BeTrue();
-        _repository.Received(1).Update(Arg.Is<FinancesControl.API.Models.TransactionCategory>(c => c.Name == "New"));
+        await _repository.Received(1).Update(Arg.Is<FinancesControl.API.Models.TransactionCategory>(c => c.Name == "New"));
     }
 
     [Fact]
@@ -181,7 +181,7 @@ public class TransactionCategoryServiceTests
         var result = await _service.Activate(4, TestUserId);
 
         result.Should().BeFalse();
-        _repository.DidNotReceive().Update(Arg.Any<FinancesControl.API.Models.TransactionCategory>());
+        await _repository.DidNotReceive().Update(Arg.Any<FinancesControl.API.Models.TransactionCategory>());
     }
 
     [Fact]
@@ -204,7 +204,7 @@ public class TransactionCategoryServiceTests
         var result = await _service.Deactivate(5, TestUserId);
 
         result.Should().BeFalse();
-        _repository.DidNotReceive().Update(Arg.Any<FinancesControl.API.Models.TransactionCategory>());
+        await _repository.DidNotReceive().Update(Arg.Any<FinancesControl.API.Models.TransactionCategory>());
     }
 
     [Fact]

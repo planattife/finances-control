@@ -39,20 +39,20 @@ public class AccountControllerTests
 
         // Assert
         result.Should().BeOfType<CreatedAtActionResult>();
-        var createdResult = result as CreatedAtActionResult;
+        var createdResult = (result as CreatedAtActionResult)!;
         createdResult!.ActionName.Should().Be(nameof(_controller.GetById));
         createdResult.RouteValues!["accountId"].Should().Be(accountId);
-        _accountService.Received(1).CreateAccount(request, Arg.Any<string>());
+        await _accountService.Received(1).CreateAccount(request, Arg.Any<string>());
     }
 
     [Theory]
     [InlineData("")]
     [InlineData("   ")]
     [InlineData(null)]
-    public async Task CreateAccount_WithInvalidName_ReturnsBadRequest(string invalidName)
+    public async Task CreateAccount_WithInvalidName_ReturnsBadRequest(string? invalidName)
     {
         // Arrange
-        var request = new CreateAccountRequest(invalidName);
+        var request = new CreateAccountRequest(invalidName!);
 
         // Act
         var result = await _controller.CreateAccount(request);
@@ -63,7 +63,7 @@ public class AccountControllerTests
     }
 
     [Fact]
-    public async Task CreateAccount_WithNameTooShort_ReturnsBadRequest()
+    public void CreateAccount_WithNameTooShort_ReturnsBadRequest()
     {
         // Arrange
         var request = new CreateAccountRequest("A"); // Less than MinLength(2)
@@ -102,10 +102,10 @@ public class AccountControllerTests
 
         // Assert
         result.Result.Should().BeOfType<ObjectResult>();
-        var objectResult = result.Result as ObjectResult;
+        var objectResult = (result.Result as ObjectResult)!;
         objectResult.StatusCode.Should().Be(200);
         objectResult.Value.Should().Be(response);
-        _accountService.Received(1).GetById(accountId, userId);
+        await _accountService.Received(1).GetById(accountId, userId);
     }
 
     [Fact]
@@ -125,9 +125,9 @@ public class AccountControllerTests
 
         // Assert
         result.Result.Should().BeOfType<ObjectResult>();
-        var objectResult = result.Result as ObjectResult;
+        var objectResult = (result.Result as ObjectResult)!;
         objectResult.StatusCode.Should().Be(404);
-        _accountService.Received(1).GetById(accountId, userId);
+        await _accountService.Received(1).GetById(accountId, userId);
     }
 
     [Fact]
@@ -149,9 +149,9 @@ public class AccountControllerTests
         // Assert
         // Returns 404 (not found) instead of 403 (forbidden) to avoid exposing account existence
         result.Result.Should().BeOfType<ObjectResult>();
-        var objectResult = result.Result as ObjectResult;
+        var objectResult = (result.Result as ObjectResult)!;
         objectResult.StatusCode.Should().Be(404);
-        _accountService.Received(1).GetById(accountId, userId);
+        await _accountService.Received(1).GetById(accountId, userId);
     }
 
     #endregion
@@ -176,10 +176,10 @@ public class AccountControllerTests
 
         // Assert
         result.Result.Should().BeOfType<ObjectResult>();
-        var objectResult = result.Result as ObjectResult;
+        var objectResult = (result.Result as ObjectResult)!;
         objectResult.StatusCode.Should().Be(200);
         objectResult.Value.Should().Be(response);
-        _accountService.Received(1).GetAccountKpi(accountId, userId);
+        await _accountService.Received(1).GetAccountKpi(accountId, userId);
     }
 
     [Fact]
@@ -199,10 +199,10 @@ public class AccountControllerTests
 
         // Assert
         result.Result.Should().BeOfType<ObjectResult>();
-        var objectResult = result.Result as ObjectResult;
+        var objectResult = (result.Result as ObjectResult)!;
         objectResult.StatusCode.Should().Be(404);
         objectResult.Value.Should().Be(response);
-        _accountService.Received(1).GetAccountKpi(accountId, userId);
+        await _accountService.Received(1).GetAccountKpi(accountId, userId);
     }
 
     [Fact]
@@ -257,15 +257,15 @@ public class AccountControllerTests
 
         // Assert
         result.Result.Should().BeOfType<OkObjectResult>();
-        var okResult = result.Result as OkObjectResult;
+        var okResult = (result.Result as OkObjectResult)!;
         okResult.StatusCode.Should().Be(200);
-        var returnedResponse = okResult.Value as PaginatedResponse<AccountListItemResponse>;
-        returnedResponse.Data.Should().HaveCount(2);
+        var returnedResponse = (okResult.Value as PaginatedResponse<AccountListItemResponse>)!;
+        returnedResponse.Data!.Should().HaveCount(2);
         returnedResponse.Data[0].Id.Should().Be(1);
         returnedResponse.Data[0].Name.Should().Be("Account 1");
         returnedResponse.Data[1].Id.Should().Be(2);
         returnedResponse.Data[1].Name.Should().Be("Account 2");
-        _accountService.Received(1).GetAll(userId, paginationParams);
+        await _accountService.Received(1).GetAll(userId, paginationParams);
     }
 
     [Fact]
@@ -290,10 +290,10 @@ public class AccountControllerTests
 
         // Assert
         result.Result.Should().BeOfType<OkObjectResult>();
-        var okResult = result.Result as OkObjectResult;
+        var okResult = (result.Result as OkObjectResult)!;
         okResult.StatusCode.Should().Be(200);
-        var returnedResponse = okResult.Value as PaginatedResponse<AccountListItemResponse>;
-        returnedResponse.Data.Should().BeEmpty();
+        var returnedResponse = (okResult.Value as PaginatedResponse<AccountListItemResponse>)!;
+        returnedResponse.Data!.Should().BeEmpty();
     }
 
     [Fact]
@@ -321,14 +321,14 @@ public class AccountControllerTests
 
         // Assert
         result.Result.Should().BeOfType<OkObjectResult>();
-        var okResult = result.Result as OkObjectResult;
-        var returnedResponse = okResult.Value as PaginatedResponse<AccountListItemResponse>;
+        var okResult = (result.Result as OkObjectResult)!;
+        var returnedResponse = (okResult.Value as PaginatedResponse<AccountListItemResponse>)!;
         returnedResponse.TotalCount.Should().Be(12);
         returnedResponse.TotalPages.Should().Be(3);
         returnedResponse.CurrentPage.Should().Be(2);
         returnedResponse.HasNextPage.Should().BeTrue();
         returnedResponse.HasPrevPage.Should().BeTrue();
-        _accountService.Received(1).GetAll(userId, paginationParams);
+        await _accountService.Received(1).GetAll(userId, paginationParams);
     }
 
     #endregion
@@ -349,7 +349,7 @@ public class AccountControllerTests
 
         // Assert
         result.Should().BeOfType<NoContentResult>();
-        _accountService.Received(1).Update(accountId, request, userId);
+        await _accountService.Received(1).Update(accountId, request, userId);
     }
 
     [Fact]
@@ -366,7 +366,7 @@ public class AccountControllerTests
 
         // Assert
         result.Should().BeOfType<NotFoundResult>();
-        _accountService.Received(1).Update(accountId, request, userId);
+        await _accountService.Received(1).Update(accountId, request, userId);
     }
 
     #endregion
@@ -386,7 +386,7 @@ public class AccountControllerTests
 
         // Assert
         result.Should().BeOfType<NoContentResult>();
-        _accountService.Received(1).Activate(accountId, userId);
+        await _accountService.Received(1).Activate(accountId, userId);
     }
 
     [Fact]
@@ -402,7 +402,7 @@ public class AccountControllerTests
 
         // Assert
         result.Should().BeOfType<NotFoundResult>();
-        _accountService.Received(1).Activate(accountId, userId);
+        await _accountService.Received(1).Activate(accountId, userId);
     }
 
     #endregion
@@ -422,7 +422,7 @@ public class AccountControllerTests
 
         // Assert
         result.Should().BeOfType<NoContentResult>();
-        _accountService.Received(1).Deactivate(accountId, userId);
+        await _accountService.Received(1).Deactivate(accountId, userId);
     }
 
     [Fact]
@@ -438,7 +438,7 @@ public class AccountControllerTests
 
         // Assert
         result.Should().BeOfType<NotFoundResult>();
-        _accountService.Received(1).Deactivate(accountId, userId);
+        await _accountService.Received(1).Deactivate(accountId, userId);
     }
 
     #endregion

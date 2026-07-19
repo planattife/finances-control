@@ -41,11 +41,11 @@ public class CardControllerTests
 
         // Assert
         result.Should().BeOfType<CreatedAtActionResult>();
-        var createdResult = result as CreatedAtActionResult;
+        var createdResult = (result as CreatedAtActionResult)!;
         createdResult.ActionName.Should().Be(nameof(_controller.GetById));
-        createdResult.RouteValues["accountId"].Should().Be(AccountId);
-        createdResult.RouteValues["cardId"].Should().Be(cardId);
-        _cardService.Received(1).CreateDebitCard(request, AccountId, UserId);
+        createdResult.RouteValues!["accountId"].Should().Be(AccountId);
+        createdResult.RouteValues!["cardId"].Should().Be(cardId);
+        await _cardService.Received(1).CreateDebitCard(request, AccountId, UserId);
     }
 
     [Fact]
@@ -60,7 +60,7 @@ public class CardControllerTests
 
         // Assert
         result.Should().BeOfType<CreatedAtActionResult>();
-        _cardService.Received(1).CreateDebitCard(request, AccountId, UserId);
+        await _cardService.Received(1).CreateDebitCard(request, AccountId, UserId);
     }
 
     [Fact]
@@ -92,11 +92,11 @@ public class CardControllerTests
 
         // Assert
         result.Should().BeOfType<CreatedAtActionResult>();
-        var createdResult = result as CreatedAtActionResult;
+        var createdResult = (result as CreatedAtActionResult)!;
         createdResult.ActionName.Should().Be(nameof(_controller.GetCreditById));
-        createdResult.RouteValues["accountId"].Should().Be(AccountId);
-        createdResult.RouteValues["cardId"].Should().Be(cardId);
-        _cardService.Received(1).CreateCreditCard(request, AccountId, UserId);
+        createdResult.RouteValues!["accountId"].Should().Be(AccountId);
+        createdResult.RouteValues!["cardId"].Should().Be(cardId);
+        await _cardService.Received(1).CreateCreditCard(request, AccountId, UserId);
     }
 
     [Fact]
@@ -111,7 +111,7 @@ public class CardControllerTests
 
         // Assert
         result.Should().BeOfType<CreatedAtActionResult>();
-        _cardService.Received(1).CreateCreditCard(request, AccountId, UserId);
+        await _cardService.Received(1).CreateCreditCard(request, AccountId, UserId);
     }
 
     [Fact]
@@ -156,10 +156,10 @@ public class CardControllerTests
 
         // Assert
         result.Result.Should().BeOfType<ObjectResult>();
-        var objectResult = result.Result as ObjectResult;
+        var objectResult = (result.Result as ObjectResult)!;
         objectResult.StatusCode.Should().Be(200);
         objectResult.Value.Should().Be(response);
-        _cardService.Received(1).GetById(cardId, AccountId, UserId);
+        await _cardService.Received(1).GetById(cardId, AccountId, UserId);
     }
 
     [Fact]
@@ -177,10 +177,10 @@ public class CardControllerTests
 
         // Assert
         result.Result.Should().BeOfType<ObjectResult>();
-        var objectResult = result.Result as ObjectResult;
+        var objectResult = (result.Result as ObjectResult)!;
         objectResult.StatusCode.Should().Be(404);
         objectResult.Value.Should().Be(response);
-        _cardService.Received(1).GetById(cardId, AccountId, UserId);
+        await _cardService.Received(1).GetById(cardId, AccountId, UserId);
     }
 
     #endregion
@@ -217,10 +217,10 @@ public class CardControllerTests
 
         // Assert
         result.Result.Should().BeOfType<ObjectResult>();
-        var objectResult = result.Result as ObjectResult;
+        var objectResult = (result.Result as ObjectResult)!;
         objectResult.StatusCode.Should().Be(200);
         objectResult.Value.Should().Be(response);
-        _cardService.Received(1).GetCreditById(cardId, AccountId, UserId);
+        await _cardService.Received(1).GetCreditById(cardId, AccountId, UserId);
     }
 
     [Fact]
@@ -238,10 +238,10 @@ public class CardControllerTests
 
         // Assert
         result.Result.Should().BeOfType<ObjectResult>();
-        var objectResult = result.Result as ObjectResult;
+        var objectResult = (result.Result as ObjectResult)!;
         objectResult.StatusCode.Should().Be(404);
         objectResult.Value.Should().Be(response);
-        _cardService.Received(1).GetCreditById(cardId, AccountId, UserId);
+        await _cardService.Received(1).GetCreditById(cardId, AccountId, UserId);
     }
 
     #endregion
@@ -268,19 +268,19 @@ public class CardControllerTests
 
         // Assert
         result.Result.Should().BeOfType<OkObjectResult>();
-        var okResult = result.Result as OkObjectResult;
+        var okResult = (result.Result as OkObjectResult)!;
         okResult.StatusCode.Should().Be(200);
-        var returnedResponse = okResult.Value as PaginatedResponse<CardListItemResponse>;
-        returnedResponse.Data.Should().HaveCount(2);
+        var returnedResponse = (okResult.Value as PaginatedResponse<CardListItemResponse>)!;
+        returnedResponse.Data!.Should().HaveCount(2);
         returnedResponse.Data[0].Id.Should().Be(1);
         returnedResponse.Data[0].CardType.Should().Be(CardType.Debit);
-        returnedResponse.Data[0].Bank.Id.Should().Be(1);
-        returnedResponse.Data[0].Bank.Name.Should().Be("Test Bank");
+        returnedResponse.Data[0].Bank!.Id.Should().Be(1);
+        returnedResponse.Data[0].Bank!.Name.Should().Be("Test Bank");
         returnedResponse.Data[0].Status.Should().Be("Active");
         returnedResponse.Data[1].Id.Should().Be(2);
         returnedResponse.Data[1].CardType.Should().Be(CardType.Credit);
         returnedResponse.Data[1].Status.Should().Be("Inactive");
-        _cardService.Received(1).GetAll(AccountId, UserId, paginationParams);
+        await _cardService.Received(1).GetAll(AccountId, UserId, paginationParams);
     }
 
     [Fact]
@@ -299,10 +299,10 @@ public class CardControllerTests
 
         // Assert
         result.Result.Should().BeOfType<OkObjectResult>();
-        var okResult = result.Result as OkObjectResult;
+        var okResult = (result.Result as OkObjectResult)!;
         okResult.StatusCode.Should().Be(200);
-        var returnedResponse = okResult.Value as PaginatedResponse<CardListItemResponse>;
-        returnedResponse.Data.Should().BeEmpty();
+        var returnedResponse = (okResult.Value as PaginatedResponse<CardListItemResponse>)!;
+        returnedResponse.Data!.Should().BeEmpty();
     }
 
     [Fact]
@@ -325,9 +325,9 @@ public class CardControllerTests
         var result = await _controller.Get(AccountId, paginationParams);
 
         // Assert
-        var okResult = result.Result as OkObjectResult;
+        var okResult = (result.Result as OkObjectResult)!;
         okResult.Should().NotBeNull();
-        okResult.Value.Should().Be(response);
+        okResult!.Value.Should().Be(response);
         await _cardService.Received(1).GetAll(AccountId, UserId, paginationParams);
     }
 
@@ -351,11 +351,11 @@ public class CardControllerTests
         var result = await _controller.Get(AccountId, paginationParams);
 
         // Assert
-        var okResult = result.Result as OkObjectResult;
+        var okResult = (result.Result as OkObjectResult)!;
         okResult.Should().NotBeNull();
-        var returnedResponse = okResult.Value as PaginatedResponse<CardListItemResponse>;
+        var returnedResponse = (okResult.Value as PaginatedResponse<CardListItemResponse>)!;
         returnedResponse.Should().NotBeNull();
-        returnedResponse.TotalCount.Should().Be(12);
+        returnedResponse!.TotalCount.Should().Be(12);
         returnedResponse.TotalPages.Should().Be(3);
         returnedResponse.CurrentPage.Should().Be(2);
         returnedResponse.HasNextPage.Should().BeTrue();
@@ -379,7 +379,7 @@ public class CardControllerTests
 
         // Assert
         result.Should().BeOfType<NoContentResult>();
-        _cardService.Received(1).UpdateCardName(cardId, AccountId, UserId, newName);
+        await _cardService.Received(1).UpdateCardName(cardId, AccountId, UserId, newName);
     }
 
     [Fact]
@@ -395,7 +395,7 @@ public class CardControllerTests
 
         // Assert
         result.Should().BeOfType<NotFoundResult>();
-        _cardService.Received(1).UpdateCardName(cardId, AccountId, UserId, newName);
+        await _cardService.Received(1).UpdateCardName(cardId, AccountId, UserId, newName);
     }
 
     #endregion
@@ -415,7 +415,7 @@ public class CardControllerTests
 
         // Assert
         result.Should().BeOfType<NoContentResult>();
-        _cardService.Received(1).UpdateCreditCardDates(cardId, AccountId, UserId, request);
+        await _cardService.Received(1).UpdateCreditCardDates(cardId, AccountId, UserId, request);
     }
 
     [Fact]
@@ -431,7 +431,7 @@ public class CardControllerTests
 
         // Assert
         result.Should().BeOfType<NotFoundResult>();
-        _cardService.Received(1).UpdateCreditCardDates(cardId, AccountId, UserId, request);
+        await _cardService.Received(1).UpdateCreditCardDates(cardId, AccountId, UserId, request);
     }
 
     #endregion
@@ -450,7 +450,7 @@ public class CardControllerTests
 
         // Assert
         result.Should().BeOfType<NoContentResult>();
-        _cardService.Received(1).Activate(cardId, AccountId, UserId);
+        await _cardService.Received(1).Activate(cardId, AccountId, UserId);
     }
 
     [Fact]
@@ -465,7 +465,7 @@ public class CardControllerTests
 
         // Assert
         result.Should().BeOfType<NotFoundResult>();
-        _cardService.Received(1).Activate(cardId, AccountId, UserId);
+        await _cardService.Received(1).Activate(cardId, AccountId, UserId);
     }
 
     #endregion
@@ -484,7 +484,7 @@ public class CardControllerTests
 
         // Assert
         result.Should().BeOfType<NoContentResult>();
-        _cardService.Received(1).Deactivate(cardId, AccountId, UserId);
+        await _cardService.Received(1).Deactivate(cardId, AccountId, UserId);
     }
 
     [Fact]
@@ -499,7 +499,7 @@ public class CardControllerTests
 
         // Assert
         result.Should().BeOfType<NotFoundResult>();
-        _cardService.Received(1).Deactivate(cardId, AccountId, UserId);
+        await _cardService.Received(1).Deactivate(cardId, AccountId, UserId);
     }
 
     #endregion
