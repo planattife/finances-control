@@ -1,3 +1,4 @@
+using FinancesControl.API.Common.Antiforgery;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -17,6 +18,7 @@ namespace FinancesControl.API.Auth.Controllers
         }
 
         [HttpPost("logout")]
+        [ValidateAntiforgeryToken]
         public async Task<IActionResult> Logout()
         {
             await _signInManager.SignOutAsync();

@@ -14,7 +14,9 @@ using Swashbuckle.AspNetCore.Filters;
 using FinancesControl.API.Transactions.Repository;
 using FinancesControl.API.Transactions.Services;
 using FinancesControl.API.Common;
+using FinancesControl.API.Common.Antiforgery;
 using FinancesControl.API.Common.RateLimiting;
+using Microsoft.AspNetCore.Antiforgery;
 
 var builder = WebApplication.CreateBuilder(args);
 var productionConfiguration = ProductionConfigurationValidator.Validate(builder.Configuration, builder.Environment);
@@ -61,6 +63,8 @@ builder.Services.AddAuthorization();
 builder.Services.AddIdentityApiEndpoints<IdentityUser>(IdentityOptionsConfiguration.Configure)
     .AddEntityFrameworkStores<FinancesDbContext>();
 
+builder.Services.AddAntiforgery(ApiAntiforgeryConfiguration.Configure);
+
 builder.Services.AddRateLimiter(options =>
     ApiRateLimitingConfiguration.Configure(options, new ApiRateLimitOptions()));
 
@@ -99,6 +103,18 @@ if (app.Environment.IsDevelopment())
 app.MapRestrictedIdentityApi<IdentityUser>(allowDevelopmentRegistration: app.Environment.IsDevelopment())
     .RequireRateLimiting(RateLimitPolicyNames.Auth);
 
+app.MapGet("/antiforgery/token", (HttpContext httpContext, IAntiforgery antiforgery) =>
+{
+    var tokens = antiforgery.GetAndStoreTokens(httpContext);
+    httpContext.Response.Cookies.Append(
+        ApiAntiforgeryConfiguration.TokenCookieName,
+        tokens.RequestToken!,
+        ApiAntiforgeryConfiguration.CreateRequestTokenCookieOptions());
+
+    return Results.NoContent();
+})
+    .RequireAuthorization();
+
 if (!app.Environment.IsEnvironment("Testing"))
 {
     app.UseHttpsRedirection();
@@ -109,6 +125,7 @@ app.UseCors(FrontendCorsPolicy);
 app.UseAuthentication();
 app.UseRateLimiter();
 app.UseAuthorization();
+app.UseAntiforgery();
 
 app.MapControllers();
 

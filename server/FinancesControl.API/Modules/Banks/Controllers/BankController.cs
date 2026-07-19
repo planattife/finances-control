@@ -2,6 +2,7 @@ using System.Security.Claims;
 using FinancesControl.API.Banks.DTOs;
 using FinancesControl.API.Banks.Services;
 using FinancesControl.API.Common;
+using FinancesControl.API.Common.Antiforgery;
 using FinancesControl.API.Common.RateLimiting;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -29,6 +30,7 @@ namespace FinancesControl.API.Banks.Controllers
 
         [HttpPost]
         [EnableRateLimiting(RateLimitPolicyNames.FinanceWrite)]
+        [ValidateAntiforgeryToken]
         public async Task<IActionResult> CreateBank(CreateBankRequest request)
         {
             var id = await _bankService.CreateBank(request);
@@ -53,6 +55,7 @@ namespace FinancesControl.API.Banks.Controllers
 
         [HttpPut("{bankId}")]
         [EnableRateLimiting(RateLimitPolicyNames.FinanceWrite)]
+        [ValidateAntiforgeryToken]
         public async Task<IActionResult> Update(long bankId, UpdateBankRequest request)
         {
             var userId = GetCurrentUserId();
@@ -64,6 +67,7 @@ namespace FinancesControl.API.Banks.Controllers
 
         [HttpPost("{bankId}/activate")]
         [EnableRateLimiting(RateLimitPolicyNames.FinanceWrite)]
+        [ValidateAntiforgeryToken]
         public async Task<IActionResult> Activate(long bankId)
         {
             var userId = GetCurrentUserId();
@@ -75,6 +79,7 @@ namespace FinancesControl.API.Banks.Controllers
 
         [HttpPost("{bankId}/deactivate")]
         [EnableRateLimiting(RateLimitPolicyNames.FinanceWrite)]
+        [ValidateAntiforgeryToken]
         public async Task<IActionResult> Deactivate(long bankId)
         {
             var userId = GetCurrentUserId();

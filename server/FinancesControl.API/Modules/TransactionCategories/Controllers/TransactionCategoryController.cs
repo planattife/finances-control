@@ -2,6 +2,7 @@ using System.Security.Claims;
 using FinancesControl.API.TransactionCategories.DTOs;
 using FinancesControl.API.TransactionCategories.Services;
 using FinancesControl.API.Common;
+using FinancesControl.API.Common.Antiforgery;
 using FinancesControl.API.Common.RateLimiting;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -28,6 +29,7 @@ namespace FinancesControl.API.TransactionCategories.Controllers
 
         [HttpPost]
         [EnableRateLimiting(RateLimitPolicyNames.FinanceWrite)]
+        [ValidateAntiforgeryToken]
         public async Task<IActionResult> Create(CreateTransactionCategoryRequest request)
         {
             var userId = GetUserId();
@@ -53,6 +55,7 @@ namespace FinancesControl.API.TransactionCategories.Controllers
 
         [HttpPatch("{categoryId}")]
         [EnableRateLimiting(RateLimitPolicyNames.FinanceWrite)]
+        [ValidateAntiforgeryToken]
         public async Task<IActionResult> Rename(long categoryId, RenameTransactionCategoryRequest request)
         {
             var userId = GetUserId();
@@ -63,6 +66,7 @@ namespace FinancesControl.API.TransactionCategories.Controllers
 
         [HttpPost("{categoryId}/activate")]
         [EnableRateLimiting(RateLimitPolicyNames.FinanceWrite)]
+        [ValidateAntiforgeryToken]
         public async Task<IActionResult> Activate(long categoryId)
         {
             var userId = GetUserId();
@@ -73,6 +77,7 @@ namespace FinancesControl.API.TransactionCategories.Controllers
 
         [HttpPost("{categoryId}/deactivate")]
         [EnableRateLimiting(RateLimitPolicyNames.FinanceWrite)]
+        [ValidateAntiforgeryToken]
         public async Task<IActionResult> Deactivate(long categoryId)
         {
             var userId = GetUserId();

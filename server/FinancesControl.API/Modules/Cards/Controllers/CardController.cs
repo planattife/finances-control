@@ -2,6 +2,7 @@ using System.Security.Claims;
 using FinancesControl.API.Cards.DTOs;
 using FinancesControl.API.Cards.Services;
 using FinancesControl.API.Common;
+using FinancesControl.API.Common.Antiforgery;
 using FinancesControl.API.Common.RateLimiting;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -31,6 +32,7 @@ namespace FinancesControl.API.Cards.Controllers
 
         [HttpPost("{accountId}/debit")]
         [EnableRateLimiting(RateLimitPolicyNames.FinanceWrite)]
+        [ValidateAntiforgeryToken]
         public async Task<IActionResult> CreateDebitCard(long accountId, CreateDebitCardRequest request)
         {
             var userId = GetCurrentUserId();
@@ -40,6 +42,7 @@ namespace FinancesControl.API.Cards.Controllers
 
         [HttpPost("{accountId}/credit")]
         [EnableRateLimiting(RateLimitPolicyNames.FinanceWrite)]
+        [ValidateAntiforgeryToken]
         public async Task<IActionResult> CreateCreditCard(long accountId, CreateCreditCardRequest request)
         {
             var userId = GetCurrentUserId();
@@ -73,6 +76,7 @@ namespace FinancesControl.API.Cards.Controllers
 
         [HttpPut("{accountId}/{cardId}")]
         [EnableRateLimiting(RateLimitPolicyNames.FinanceWrite)]
+        [ValidateAntiforgeryToken]
         public async Task<IActionResult> UpdateCardName(long accountId, long cardId, [FromQuery] string cardName)
         {
             var userId = GetCurrentUserId();
@@ -84,6 +88,7 @@ namespace FinancesControl.API.Cards.Controllers
 
         [HttpPut("{accountId}/{cardId}/credit-card-dates")]
         [EnableRateLimiting(RateLimitPolicyNames.FinanceWrite)]
+        [ValidateAntiforgeryToken]
         public async Task<IActionResult> UpdateCreditCardDates(long accountId, long cardId, UpdateCreditCardRequest request)
         {
             var userId = GetCurrentUserId();
@@ -95,6 +100,7 @@ namespace FinancesControl.API.Cards.Controllers
 
         [HttpPost("{accountId}/{cardId}/activate")]
         [EnableRateLimiting(RateLimitPolicyNames.FinanceWrite)]
+        [ValidateAntiforgeryToken]
         public async Task<IActionResult> Activate(long accountId, long cardId)
         {
             var userId = GetCurrentUserId();
@@ -106,6 +112,7 @@ namespace FinancesControl.API.Cards.Controllers
 
         [HttpPost("{accountId}/{cardId}/deactivate")]
         [EnableRateLimiting(RateLimitPolicyNames.FinanceWrite)]
+        [ValidateAntiforgeryToken]
         public async Task<IActionResult> Deactivate(long accountId, long cardId)
         {
             var userId = GetCurrentUserId();
