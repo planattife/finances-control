@@ -42,13 +42,19 @@ Validation performed:
 
 ## Configuration
 
-- [ ] **Add production configuration requirements**
+- [x] **Add production configuration requirements**
 
   - **Where:** `appsettings.json`, deployment configuration, `Program.cs`
 
   - **Impact:** `DefaultConnection` and `Cors:AllowedOrigins` are not defined in committed config, and `AllowedHosts` is `"*"`. Missing or permissive production config can cause startup failure or broad host/CORS exposure.
 
   - **Hint:** Keep secrets outside source control, document required environment variables, fail fast when required config is missing, and set production `AllowedHosts`/CORS origins explicitly.
+
+  - **Required production configuration:** set `ASPNETCORE_ENVIRONMENT=Production`, `ConnectionStrings__DefaultConnection`, `Cors__AllowedOrigins__0` (and `Cors__AllowedOrigins__1`, etc. for additional allowed frontend origins), and `AllowedHosts`.
+
+  - **Secret handling:** provide connection strings through environment variables, deployment secrets, or a secret store. Do not commit real production credentials in `appsettings.json`.
+
+  - **Host/CORS format:** `AllowedHosts` must use concrete host names without scheme or port, such as `api.example.com` or semicolon-delimited values. CORS origins must include scheme plus host and optional port, such as `https://app.example.com`, and must not end with `/`.
 
 ## Database
 
