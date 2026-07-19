@@ -17,6 +17,7 @@ using FinancesControl.API.Common;
 using FinancesControl.API.Common.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
+var productionConfiguration = ProductionConfigurationValidator.Validate(builder.Configuration, builder.Environment);
 const string FrontendCorsPolicy = "FrontendCorsPolicy";
 
 // Add services to the container.
@@ -27,12 +28,8 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy(FrontendCorsPolicy, policy =>
     {
-        var allowedOrigins = builder.Configuration
-            .GetSection("Cors:AllowedOrigins")
-            .Get<string[]>() ?? [];
-
         policy
-            .WithOrigins(allowedOrigins)
+            .WithOrigins(productionConfiguration.CorsAllowedOrigins)
             .AllowAnyHeader()
             .AllowAnyMethod()
             .AllowCredentials();
@@ -53,7 +50,7 @@ builder.Services.AddSwaggerGen(options =>
 });
 
 builder.Services.AddDbContext<FinancesDbContext>(options => 
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"))
+    options.UseNpgsql(productionConfiguration.DefaultConnection)
 );
 
 // Database connection factory for Dapper
