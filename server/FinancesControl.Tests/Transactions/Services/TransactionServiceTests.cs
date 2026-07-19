@@ -175,7 +175,7 @@ public class TransactionServiceTests
         
         var result = await _service.CreateTransaction(request, AccountId, TestUserId);
         result.Should().Be(1);
-        _repository.Received(1).Add(Arg.Any<Transaction>());
+        await _repository.Received(1).Add(Arg.Any<Transaction>());
     }
 
     [Fact]
@@ -275,7 +275,7 @@ public class TransactionServiceTests
         
         var result = await _service.CreateTransaction(request, AccountId, TestUserId);
         result.Should().Be(1);
-        _repository.Received(1).Add(Arg.Any<CardTransaction>());
+        await _repository.Received(1).Add(Arg.Any<CardTransaction>());
     }
 
     [Fact]
@@ -291,7 +291,7 @@ public class TransactionServiceTests
         
         var result = await _service.CreateTransaction(request, AccountId, TestUserId);
         result.Should().Be(1);
-        _repository.Received(1).Add(Arg.Any<CardTransaction>());
+        await _repository.Received(1).Add(Arg.Any<CardTransaction>());
     }
 
 
@@ -301,7 +301,7 @@ public class TransactionServiceTests
         SetupAccountExists();
         _repository.GetById(999, AccountId).Returns(Task.FromResult((Transaction?)null));
         var result = await _service.GetById(999, AccountId, TestUserId);
-        result.Data.Should().BeNull();
+        result.Data!.Should().BeNull();
         result.HttpStatusCode.Should().Be(404);
     }
 
@@ -313,7 +313,7 @@ public class TransactionServiceTests
         SetupAccountExists();
         _repository.GetById(5, AccountId).Returns(Task.FromResult((Transaction?)t));
         var result = await _service.GetById(5, AccountId, TestUserId);
-        result.Data.Status.Should().Be("Inactive");
+        result.Data!.Status.Should().Be("Inactive");
     }
 
     [Fact]
@@ -324,14 +324,14 @@ public class TransactionServiceTests
         _repository.GetById(5, AccountId).Returns(Task.FromResult((Transaction?)model));
         var result = await _service.GetById(5, AccountId, TestUserId);
         result.Should().NotBeNull();
-        result.Data.Should().NotBeNull();
-        result.Data.Id.Should().Be(5);
-        result.Data.Amount.Should().Be(100);
-        result.Data.Category.CategoryId.Should().Be(1);
-        result.Data.Category.CategoryName.Should().Be("Food");
-        result.Data.Card.Should().BeNull();
-        result.Data.Bank.Should().BeNull();
-        result.Data.Status.Should().Be("Active");
+        result!.Data!.Should().NotBeNull();
+        result.Data!.Id.Should().Be(5);
+        result.Data!.Amount.Should().Be(100);
+        result.Data!.Category.CategoryId.Should().Be(1);
+        result.Data!.Category.CategoryName.Should().Be("Food");
+        result.Data!.Card.Should().BeNull();
+        result.Data!.Bank.Should().BeNull();
+        result.Data!.Status.Should().Be("Active");
     }
 
     [Fact]
@@ -343,11 +343,11 @@ public class TransactionServiceTests
 
         var result = await _service.GetById(5, AccountId, TestUserId);
 
-        result.Data.Should().NotBeNull();
-        result.Data.Card.Should().NotBeNull();
-        result.Data.Card.CardId.Should().Be(10);
-        result.Data.Card.CardName.Should().Be("Rewards Card");
-        result.Data.Bank.Should().BeNull();
+        result.Data!.Should().NotBeNull();
+        result.Data!.Card.Should().NotBeNull();
+        result.Data!.Card!.CardId.Should().Be(10);
+        result.Data!.Card!.CardName.Should().Be("Rewards Card");
+        result.Data!.Bank.Should().BeNull();
     }
 
     [Fact]
@@ -359,11 +359,11 @@ public class TransactionServiceTests
 
         var result = await _service.GetById(5, AccountId, TestUserId);
 
-        result.Data.Should().NotBeNull();
-        result.Data.Bank.Should().NotBeNull();
-        result.Data.Bank.BankId.Should().Be(20);
-        result.Data.Bank.BankName.Should().Be("Main Bank");
-        result.Data.Card.Should().BeNull();
+        result.Data!.Should().NotBeNull();
+        result.Data!.Bank.Should().NotBeNull();
+        result.Data!.Bank!.BankId.Should().Be(20);
+        result.Data!.Bank!.BankName.Should().Be("Main Bank");
+        result.Data!.Card.Should().BeNull();
     }
 
     [Fact]
@@ -380,7 +380,7 @@ public class TransactionServiceTests
         _repository.CountByAccountId(AccountId).Returns(Task.FromResult(transactions.Count));
         
         var result = await _service.GetAll(AccountId, TestUserId, paginationParams);
-        result.Data.Should().HaveCount(2);
+        result.Data!.Should().HaveCount(2);
         result.Data[0].Amount.Should().Be(100);
         result.Data[0].Category.CategoryId.Should().Be(1);
         result.Data[0].Category.CategoryName.Should().Be("Food");
@@ -403,7 +403,7 @@ public class TransactionServiceTests
         _repository.CountByAccountId(AccountId).Returns(Task.FromResult(0));
         
         var result = await _service.GetAll(AccountId, TestUserId, paginationParams);
-        result.Data.Should().BeEmpty();
+        result.Data!.Should().BeEmpty();
         result.TotalCount.Should().Be(0);
         result.TotalPages.Should().Be(0);
     }
@@ -421,7 +421,7 @@ public class TransactionServiceTests
 
         await _repository.Received(1).GetAll(AccountId, paginationParams);
         await _repository.Received(1).CountByAccountId(AccountId);
-        result.Data.Should().HaveCount(5);
+        result.Data!.Should().HaveCount(5);
         result.Data[0].Id.Should().Be(6);
         result.Data[4].Id.Should().Be(10);
     }
@@ -441,7 +441,7 @@ public class TransactionServiceTests
         result.CurrentPage.Should().Be(2);
         result.HasNextPage.Should().BeTrue();
         result.HasPrevPage.Should().BeTrue();
-        result.Data.Should().HaveCount(5);
+        result.Data!.Should().HaveCount(5);
     }
 
     [Fact]
@@ -458,7 +458,7 @@ public class TransactionServiceTests
         result.CurrentPage.Should().Be(3);
         result.HasNextPage.Should().BeFalse();
         result.HasPrevPage.Should().BeTrue();
-        result.Data.Should().HaveCount(2);
+        result.Data!.Should().HaveCount(2);
     }
 
     [Fact]
@@ -474,7 +474,7 @@ public class TransactionServiceTests
         result.CurrentPage.Should().Be(1);
         result.HasNextPage.Should().BeTrue();
         result.HasPrevPage.Should().BeFalse();
-        result.Data.Should().HaveCount(5);
+        result.Data!.Should().HaveCount(5);
     }
 
     [Fact]
@@ -643,7 +643,7 @@ public class TransactionServiceTests
         
         var result = await _service.CreateTransaction(request, AccountId, TestUserId);
         result.Should().Be(1);
-        _repository.Received(1).Add(Arg.Is<Transaction>(t => t.Description == "Test purchase"));
+        await _repository.Received(1).Add(Arg.Is<Transaction>(t => t.Description == "Test purchase"));
     }
 
     [Fact]
@@ -654,8 +654,8 @@ public class TransactionServiceTests
         _repository.GetById(5, AccountId).Returns(Task.FromResult((Transaction?)t));
         var result = await _service.GetById(5, AccountId, TestUserId);
         result.Should().NotBeNull();
-        result.Data.Should().NotBeNull();
-        result.Data.Description.Should().Be("Test description");
+        result!.Data!.Should().NotBeNull();
+        result.Data!.Description.Should().Be("Test description");
     }
 
     private static List<Transaction> CreateTransactions(int count, int startId)

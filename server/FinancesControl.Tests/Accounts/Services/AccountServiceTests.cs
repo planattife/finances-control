@@ -36,7 +36,7 @@ public class AccountServiceTests
 
         // Assert
         result.Should().Be(1);
-        _repository.Received(1).Add(Arg.Any<Account>());
+        await _repository.Received(1).Add(Arg.Any<Account>());
     }
 
     [Fact]
@@ -58,7 +58,7 @@ public class AccountServiceTests
 
         // Assert
         capturedAccount.Should().NotBeNull();
-        capturedAccount.IsActive.Should().BeTrue();
+        capturedAccount!.IsActive.Should().BeTrue();
     }
 
     #endregion
@@ -79,10 +79,10 @@ public class AccountServiceTests
 
         // Assert
         result.Should().NotBeNull();
-        result.Data.Should().NotBeNull();
-        result.Data.Id.Should().Be(accountId);
-        result.Data.Name.Should().Be("Test Account");
-        result.Data.Status.Should().Be("Active");
+        result!.Data!.Should().NotBeNull();
+        result.Data!.Id.Should().Be(accountId);
+        result.Data!.Name.Should().Be("Test Account");
+        result.Data!.Status.Should().Be("Active");
     }
 
     [Fact]
@@ -98,7 +98,7 @@ public class AccountServiceTests
 
         // Assert
         result.Should().NotBeNull();
-        result.Data.Should().BeNull();
+        result!.Data!.Should().BeNull();
         result.HttpStatusCode.Should().Be(404);
         result.Errors.Should().Contain("Account not found.");
     }
@@ -118,7 +118,7 @@ public class AccountServiceTests
 
         // Assert
         result.Should().NotBeNull();
-        result.Data.Should().BeNull();
+        result!.Data!.Should().BeNull();
         result.HttpStatusCode.Should().Be(404);
         result.Errors.Should().Contain("Account not found.");
     }
@@ -138,8 +138,8 @@ public class AccountServiceTests
 
         // Assert
         result.Should().NotBeNull();
-        result.Data.Should().NotBeNull();
-        result.Data.Status.Should().Be("Inactive");
+        result!.Data!.Should().NotBeNull();
+        result.Data!.Status.Should().Be("Inactive");
     }
 
     #endregion
@@ -160,10 +160,10 @@ public class AccountServiceTests
 
         // Assert
         result.Should().NotBeNull();
-        result.Data.Should().NotBeNull();
-        result.Data.AccountId.Should().Be(accountId);
-        result.Data.CardsCount.Should().Be(2);
-        result.Data.TransactionsCount.Should().Be(5);
+        result!.Data!.Should().NotBeNull();
+        result.Data!.AccountId.Should().Be(accountId);
+        result.Data!.CardsCount.Should().Be(2);
+        result.Data!.TransactionsCount.Should().Be(5);
         result.HttpStatusCode.Should().Be(200);
     }
 
@@ -180,7 +180,7 @@ public class AccountServiceTests
 
         // Assert
         result.Should().NotBeNull();
-        result.Data.Should().BeNull();
+        result!.Data!.Should().BeNull();
         result.HttpStatusCode.Should().Be(404);
         result.Errors.Should().Contain("Account not found.");
     }
@@ -214,9 +214,9 @@ public class AccountServiceTests
         var result = await _service.GetAccountKpi(accountId, userId);
 
         // Assert
-        result.Data.Should().NotBeNull();
-        result.Data.CardsCount.Should().Be(0);
-        result.Data.TransactionsCount.Should().Be(0);
+        result.Data!.Should().NotBeNull();
+        result.Data!.CardsCount.Should().Be(0);
+        result.Data!.TransactionsCount.Should().Be(0);
     }
 
     #endregion
@@ -243,7 +243,7 @@ public class AccountServiceTests
 
         // Assert
         result.Should().NotBeNull();
-        result.Data.Should().HaveCount(3);
+        result!.Data!.Should().HaveCount(3);
     }
 
     [Fact]
@@ -260,7 +260,7 @@ public class AccountServiceTests
 
         // Assert
         result.Should().NotBeNull();
-        result.Data.Should().BeEmpty();
+        result!.Data!.Should().BeEmpty();
     }
 
     [Fact]
@@ -364,7 +364,7 @@ public class AccountServiceTests
         // Assert
         result.Should().BeTrue();
         account.Name.Should().Be("New Name");
-        _repository.Received(1).Update(account);
+        await _repository.Received(1).Update(account);
     }
 
     [Fact]
@@ -381,7 +381,7 @@ public class AccountServiceTests
 
         // Assert
         result.Should().BeFalse();
-        _repository.DidNotReceive().Update(Arg.Any<Account>());
+        await _repository.DidNotReceive().Update(Arg.Any<Account>());
     }
 
     [Fact]
@@ -390,7 +390,6 @@ public class AccountServiceTests
         // Arrange - Account belongs to different user
         var accountId = 1;
         var userId = "user-123";
-        var otherUserId = "user-456";
         var request = new UpdateAccountRequest("New Name");
         _repository.GetById(accountId, userId).Returns(Task.FromResult((Account?)null));
 
@@ -399,7 +398,7 @@ public class AccountServiceTests
 
         // Assert
         result.Should().BeFalse();
-        _repository.DidNotReceive().Update(Arg.Any<Account>());
+        await _repository.DidNotReceive().Update(Arg.Any<Account>());
     }
 
     [Fact]
@@ -443,7 +442,7 @@ public class AccountServiceTests
         // Assert
         result.Should().BeTrue();
         account.IsActive.Should().BeTrue();
-        _repository.Received(1).Update(account);
+        await _repository.Received(1).Update(account);
     }
 
     [Fact]
@@ -459,7 +458,7 @@ public class AccountServiceTests
 
         // Assert
         result.Should().BeFalse();
-        _repository.DidNotReceive().Update(Arg.Any<Account>());
+        await _repository.DidNotReceive().Update(Arg.Any<Account>());
     }
 
     [Fact]
@@ -475,7 +474,7 @@ public class AccountServiceTests
 
         // Assert
         result.Should().BeFalse();
-        _repository.DidNotReceive().Update(Arg.Any<Account>());
+        await _repository.DidNotReceive().Update(Arg.Any<Account>());
     }
 
     #endregion
@@ -498,7 +497,7 @@ public class AccountServiceTests
         // Assert
         result.Should().BeTrue();
         account.IsActive.Should().BeFalse();
-        _repository.Received(1).Update(account);
+        await _repository.Received(1).Update(account);
     }
 
     [Fact]
@@ -514,7 +513,7 @@ public class AccountServiceTests
 
         // Assert
         result.Should().BeFalse();
-        _repository.DidNotReceive().Update(Arg.Any<Account>());
+        await _repository.DidNotReceive().Update(Arg.Any<Account>());
     }
 
     [Fact]
@@ -530,7 +529,7 @@ public class AccountServiceTests
 
         // Assert
         result.Should().BeFalse();
-        _repository.DidNotReceive().Update(Arg.Any<Account>());
+        await _repository.DidNotReceive().Update(Arg.Any<Account>());
     }
 
     #endregion

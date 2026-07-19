@@ -14,9 +14,9 @@ public class TransactionCategoryTests
     [InlineData(null)]
     [InlineData("")]
     [InlineData("   ")]
-    public void Constructor_InvalidName_Throws(string name)
+    public void Constructor_InvalidName_Throws(string? name)
     {
-        Assert.Throws<DomainValidationException>(() => new TransactionCategory(name, 1, TestUserId));
+        Assert.Throws<DomainValidationException>(() => new TransactionCategory(name!, 1, TestUserId));
     }
 
     [Fact]

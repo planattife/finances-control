@@ -2,7 +2,7 @@ namespace FinancesControl.API.Common
 {
     public class PaginatedResponse<T> : BaseResponse
     {
-        public List<T> Data { get; set; }
+        public List<T> Data { get; set; } = new();
         public int TotalCount { get; set; }
         public int TotalPages { get; set; }
         public int CurrentPage { get; set; }

@@ -69,8 +69,8 @@ public class CardServiceTests
 
         // Assert
         result.Should().Be(1);
-        _repository.Received(1).Add(Arg.Any<Card>());
-        _bankService.Received(1).ValidateBankForUser(1, UserId);
+        await _repository.Received(1).Add(Arg.Any<Card>());
+        await _bankService.Received(1).ValidateBankForUser(1, UserId);
     }
 
     [Fact]
@@ -106,8 +106,8 @@ public class CardServiceTests
 
         // Assert
         capturedCard.Should().NotBeNull();
-        capturedCard.IsActive.Should().BeTrue();
-        capturedCard.AccountId.Should().Be(AccountId);
+        capturedCard!.IsActive.Should().BeTrue();
+        capturedCard!.AccountId.Should().Be(AccountId);
     }
 
     [Fact]
@@ -131,7 +131,7 @@ public class CardServiceTests
 
         // Assert
         capturedCard.Should().NotBeNull();
-        capturedCard.CardName.Should().Be("My Debit Card");
+        capturedCard!.CardName.Should().Be("My Debit Card");
     }
 
     [Fact]
@@ -167,8 +167,8 @@ public class CardServiceTests
 
         // Assert
         result.Should().Be(1);
-        _repository.Received(1).Add(Arg.Any<Card>());
-        _bankService.Received(1).ValidateBankForUser(1, UserId);
+        await _repository.Received(1).Add(Arg.Any<Card>());
+        await _bankService.Received(1).ValidateBankForUser(1, UserId);
     }
 
     [Fact]
@@ -204,9 +204,10 @@ public class CardServiceTests
 
         // Assert
         capturedCard.Should().BeOfType<CreditCard>();
-        (capturedCard as CreditCard).ClosingDay.Should().Be(10);
-        (capturedCard as CreditCard).DueDateDay.Should().Be(20);
-        capturedCard.AccountId.Should().Be(AccountId);
+        var capturedCreditCard = (capturedCard as CreditCard)!;
+        capturedCreditCard.ClosingDay.Should().Be(10);
+        capturedCreditCard.DueDateDay.Should().Be(20);
+        capturedCreditCard.AccountId.Should().Be(AccountId);
     }
 
     [Fact]
@@ -230,7 +231,7 @@ public class CardServiceTests
 
         // Assert
         capturedCard.Should().NotBeNull();
-        capturedCard.CardName.Should().Be("My Credit Card");
+        capturedCard!.CardName.Should().Be("My Credit Card");
     }
 
     [Fact]
@@ -245,7 +246,7 @@ public class CardServiceTests
         // Act & Assert
         var exception = await Assert.ThrowsAsync<BusinessRuleException>(() => _service.CreateCreditCard(request, AccountId, UserId));
         exception.Message.Should().Be("Bank is not valid.");
-        _repository.DidNotReceive().Add(Arg.Any<Card>());
+        await _repository.DidNotReceive().Add(Arg.Any<Card>());
     }
 
     #endregion
@@ -266,15 +267,15 @@ public class CardServiceTests
 
         // Assert
         result.Should().NotBeNull();
-        result.HttpStatusCode.Should().Be(200);
+        result!.HttpStatusCode.Should().Be(200);
         result.Errors.Should().BeEmpty();
-        result.Data.Should().NotBeNull();
-        result.Data.Id.Should().Be(cardId);
-        result.Data.CardType.Should().Be(CardType.Debit);
-        result.Data.CardNumber.Should().Be("****1111");
-        result.Data.CardName.Should().Be("My Card");
-        result.Data.Bank.Id.Should().Be(1);
-        result.Data.Bank.Name.Should().Be("Test Bank");
+        result.Data!.Should().NotBeNull();
+        result.Data!.Id.Should().Be(cardId);
+        result.Data!.CardType.Should().Be(CardType.Debit);
+        result.Data!.CardNumber.Should().Be("****1111");
+        result.Data!.CardName.Should().Be("My Card");
+        result.Data!.Bank.Id.Should().Be(1);
+        result.Data!.Bank.Name.Should().Be("Test Bank");
     }
 
     [Fact]
@@ -289,7 +290,7 @@ public class CardServiceTests
 
         // Assert
         result.Should().NotBeNull();
-        result.HttpStatusCode.Should().Be(404);
+        result!.HttpStatusCode.Should().Be(404);
         result.Errors.Should().Contain("Account not found.");
     }
 
@@ -306,7 +307,7 @@ public class CardServiceTests
 
         // Assert
         result.Should().NotBeNull();
-        result.HttpStatusCode.Should().Be(404);
+        result!.HttpStatusCode.Should().Be(404);
         result.Errors.Should().Contain("Card not found.");
     }
 
@@ -325,9 +326,9 @@ public class CardServiceTests
 
         // Assert
         result.Should().NotBeNull();
-        result.HttpStatusCode.Should().Be(200);
-        result.Data.Should().NotBeNull();
-        result.Data.Status.Should().Be("Inactive");
+        result!.HttpStatusCode.Should().Be(200);
+        result.Data!.Should().NotBeNull();
+        result.Data!.Status.Should().Be("Inactive");
     }
 
     #endregion
@@ -348,16 +349,16 @@ public class CardServiceTests
 
         // Assert
         result.Should().NotBeNull();
-        result.HttpStatusCode.Should().Be(200);
+        result!.HttpStatusCode.Should().Be(200);
         result.Errors.Should().BeEmpty();
-        result.Data.Should().NotBeNull();
-        result.Data.Id.Should().Be(cardId);
-        result.Data.CardType.Should().Be(CardType.Credit);
-        result.Data.CardNumber.Should().Be("****4444");
-        result.Data.Bank.Id.Should().Be(1);
-        result.Data.Bank.Name.Should().Be("Test Bank");
-        result.Data.NextClosingDay.Should().NotBe(default(DateTime));
-        result.Data.NextDueDateDay.Should().NotBe(default(DateTime));
+        result.Data!.Should().NotBeNull();
+        result.Data!.Id.Should().Be(cardId);
+        result.Data!.CardType.Should().Be(CardType.Credit);
+        result.Data!.CardNumber.Should().Be("****4444");
+        result.Data!.Bank.Id.Should().Be(1);
+        result.Data!.Bank.Name.Should().Be("Test Bank");
+        result.Data!.NextClosingDay.Should().NotBe(default(DateTime));
+        result.Data!.NextDueDateDay.Should().NotBe(default(DateTime));
     }
 
     [Fact]
@@ -372,7 +373,7 @@ public class CardServiceTests
 
         // Assert
         result.Should().NotBeNull();
-        result.HttpStatusCode.Should().Be(404);
+        result!.HttpStatusCode.Should().Be(404);
         result.Errors.Should().Contain("Account not found.");
     }
 
@@ -389,7 +390,7 @@ public class CardServiceTests
 
         // Assert
         result.Should().NotBeNull();
-        result.HttpStatusCode.Should().Be(404);
+        result!.HttpStatusCode.Should().Be(404);
         result.Errors.Should().Contain("Credit card not found.");
     }
 
@@ -407,7 +408,7 @@ public class CardServiceTests
 
         // Assert
         result.Should().NotBeNull();
-        result.HttpStatusCode.Should().Be(404);
+        result!.HttpStatusCode.Should().Be(404);
         result.Errors.Should().Contain("Credit card not found.");
     }
 
@@ -428,8 +429,8 @@ public class CardServiceTests
         result.Should().NotBeNull();
         var nextClosing = DateHelper.GetNextOccurrence(closingDay);
         result.HttpStatusCode.Should().Be(200);
-        result.Data.Should().NotBeNull();
-        result.Data.NextClosingDay.Should().Be(nextClosing);
+        result.Data!.Should().NotBeNull();
+        result.Data!.NextClosingDay.Should().Be(nextClosing);
     }
 
     [Fact]
@@ -449,8 +450,8 @@ public class CardServiceTests
         result.Should().NotBeNull();
         var nextDue = DateHelper.GetNextOccurrence(dueDay);
         result.HttpStatusCode.Should().Be(200);
-        result.Data.Should().NotBeNull();
-        result.Data.NextDueDateDay.Should().Be(nextDue);
+        result.Data!.Should().NotBeNull();
+        result.Data!.NextDueDateDay.Should().Be(nextDue);
     }
 
     #endregion
@@ -476,15 +477,15 @@ public class CardServiceTests
 
         // Assert
         result.Should().NotBeNull();
-        result.HttpStatusCode.Should().Be(200);
-        result.Data.Should().HaveCount(2);
+        result!.HttpStatusCode.Should().Be(200);
+        result.Data!.Should().HaveCount(2);
         result.TotalCount.Should().Be(2);
         result.CurrentPage.Should().Be(1);
         result.TotalPages.Should().Be(1);
         result.HasNextPage.Should().BeFalse();
         result.HasPrevPage.Should().BeFalse();
-        result.Data[0].Bank.Id.Should().Be(1);
-        result.Data[0].Bank.Name.Should().Be("Test Bank");
+        result.Data[0].Bank!.Id.Should().Be(1);
+        result.Data[0].Bank!.Name.Should().Be("Test Bank");
     }
 
     [Fact]
@@ -499,7 +500,7 @@ public class CardServiceTests
 
         // Assert
         result.Should().NotBeNull();
-        result.HttpStatusCode.Should().Be(404);
+        result!.HttpStatusCode.Should().Be(404);
         result.Errors.Should().Contain("Account not found.");
         await _repository.DidNotReceive().GetAll(Arg.Any<long>(), Arg.Any<PaginationParams>());
         await _repository.DidNotReceive().CountByAccountId(Arg.Any<long>());
@@ -519,8 +520,8 @@ public class CardServiceTests
 
         // Assert
         result.Should().NotBeNull();
-        result.HttpStatusCode.Should().Be(200);
-        result.Data.Should().BeEmpty();
+        result!.HttpStatusCode.Should().Be(200);
+        result.Data!.Should().BeEmpty();
         result.TotalCount.Should().Be(0);
         result.TotalPages.Should().Be(0);
     }
@@ -541,7 +542,7 @@ public class CardServiceTests
         // Assert
         await _repository.Received(1).GetAll(AccountId, paginationParams);
         await _repository.Received(1).CountByAccountId(AccountId);
-        result.Data.Should().HaveCount(5);
+        result.Data!.Should().HaveCount(5);
         result.Data[0].Id.Should().Be(6);
         result.Data[4].Id.Should().Be(10);
     }
@@ -564,7 +565,7 @@ public class CardServiceTests
         result.CurrentPage.Should().Be(2);
         result.HasNextPage.Should().BeTrue();
         result.HasPrevPage.Should().BeTrue();
-        result.Data.Should().HaveCount(5);
+        result.Data!.Should().HaveCount(5);
     }
 
     [Fact]
@@ -584,7 +585,7 @@ public class CardServiceTests
         result.CurrentPage.Should().Be(3);
         result.HasNextPage.Should().BeFalse();
         result.HasPrevPage.Should().BeTrue();
-        result.Data.Should().HaveCount(2);
+        result.Data!.Should().HaveCount(2);
     }
 
     [Fact]
@@ -603,7 +604,7 @@ public class CardServiceTests
         result.CurrentPage.Should().Be(1);
         result.HasNextPage.Should().BeTrue();
         result.HasPrevPage.Should().BeFalse();
-        result.Data.Should().HaveCount(5);
+        result.Data!.Should().HaveCount(5);
     }
 
     [Fact]
@@ -649,7 +650,7 @@ public class CardServiceTests
         // Assert
         result.Should().BeTrue();
         card.CardName.Should().Be("New Name");
-        _repository.Received(1).Update(card, AccountId);
+        await _repository.Received(1).Update(card, AccountId);
     }
 
     [Fact]
@@ -681,7 +682,7 @@ public class CardServiceTests
 
         // Assert
         result.Should().BeFalse();
-        _repository.DidNotReceive().Update(Arg.Any<Card>(), Arg.Any<long>());
+        await _repository.DidNotReceive().Update(Arg.Any<Card>(), Arg.Any<long>());
     }
 
     #endregion
@@ -706,7 +707,7 @@ public class CardServiceTests
         result.Should().BeTrue();
         creditCard.ClosingDay.Should().Be(15);
         creditCard.DueDateDay.Should().Be(25);
-        _repository.Received(1).Update(creditCard, AccountId);
+        await _repository.Received(1).Update(creditCard, AccountId);
     }
 
     [Fact]
@@ -738,7 +739,7 @@ public class CardServiceTests
 
         // Assert
         result.Should().BeFalse();
-        _repository.DidNotReceive().Update(Arg.Any<Card>(), Arg.Any<long>());
+        await _repository.DidNotReceive().Update(Arg.Any<Card>(), Arg.Any<long>());
     }
 
     [Fact]
@@ -756,7 +757,7 @@ public class CardServiceTests
 
         // Assert
         result.Should().BeFalse();
-        _repository.DidNotReceive().Update(Arg.Any<Card>(), Arg.Any<long>());
+        await _repository.DidNotReceive().Update(Arg.Any<Card>(), Arg.Any<long>());
     }
 
     [Fact]
@@ -799,7 +800,7 @@ public class CardServiceTests
         // Assert
         result.Should().BeTrue();
         card.IsActive.Should().BeTrue();
-        _repository.Received(1).Update(card, AccountId);
+        await _repository.Received(1).Update(card, AccountId);
     }
 
     [Fact]
@@ -829,7 +830,7 @@ public class CardServiceTests
 
         // Assert
         result.Should().BeFalse();
-        _repository.DidNotReceive().Update(Arg.Any<Card>(), Arg.Any<long>());
+        await _repository.DidNotReceive().Update(Arg.Any<Card>(), Arg.Any<long>());
     }
 
     [Fact]
@@ -871,7 +872,7 @@ public class CardServiceTests
         // Assert
         result.Should().BeTrue();
         card.IsActive.Should().BeFalse();
-        _repository.Received(1).Update(card, AccountId);
+        await _repository.Received(1).Update(card, AccountId);
     }
 
     [Fact]
@@ -901,7 +902,7 @@ public class CardServiceTests
 
         // Assert
         result.Should().BeFalse();
-        _repository.DidNotReceive().Update(Arg.Any<Card>(), Arg.Any<long>());
+        await _repository.DidNotReceive().Update(Arg.Any<Card>(), Arg.Any<long>());
     }
 
     [Fact]

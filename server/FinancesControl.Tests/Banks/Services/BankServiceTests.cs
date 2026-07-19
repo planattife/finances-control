@@ -42,7 +42,7 @@ public class BankServiceTests
 
         // Assert
         result.Should().Be(1);
-        _repository.Received(1).Add(Arg.Any<Bank>());
+        await _repository.Received(1).Add(Arg.Any<Bank>());
     }
 
     [Fact]
@@ -63,7 +63,7 @@ public class BankServiceTests
 
         // Assert
         capturedBank.Should().NotBeNull();
-        capturedBank.IsActive.Should().BeTrue();
+        capturedBank!.IsActive.Should().BeTrue();
     }
 
     [Fact]
@@ -84,7 +84,7 @@ public class BankServiceTests
 
         // Assert
         capturedBank.Should().NotBeNull();
-        capturedBank.AccountType.Should().Be(BankAccountType.Check);
+        capturedBank!.AccountType.Should().Be(BankAccountType.Check);
     }
 
     [Fact]
@@ -105,7 +105,7 @@ public class BankServiceTests
 
         // Assert
         capturedBank.Should().NotBeNull();
-        capturedBank.AccountType.Should().Be(BankAccountType.Savings);
+        capturedBank!.AccountType.Should().Be(BankAccountType.Savings);
     }
 
     #endregion
@@ -126,11 +126,11 @@ public class BankServiceTests
 
         // Assert
         result.Should().NotBeNull();
-        result.Data.Should().NotBeNull();
-        result.Data.Id.Should().Be(bankId);
-        result.Data.Name.Should().Be("Test Bank");
-        result.Data.AccountType.Should().Be(BankAccountType.Check);
-        result.Data.Status.Should().Be("Active");
+        result!.Data!.Should().NotBeNull();
+        result.Data!.Id.Should().Be(bankId);
+        result.Data!.Name.Should().Be("Test Bank");
+        result.Data!.AccountType.Should().Be(BankAccountType.Check);
+        result.Data!.Status.Should().Be("Active");
     }
 
     [Fact]
@@ -146,7 +146,7 @@ public class BankServiceTests
 
         // Assert
         result.Should().NotBeNull();
-        result.Data.Should().BeNull();
+        result!.Data!.Should().BeNull();
         result.HttpStatusCode.Should().Be(404);
         result.Errors.Should().Contain("Bank not found.");
     }
@@ -166,8 +166,8 @@ public class BankServiceTests
 
         // Assert
         result.Should().NotBeNull();
-        result.Data.Should().NotBeNull();
-        result.Data.Status.Should().Be("Inactive");
+        result!.Data!.Should().NotBeNull();
+        result.Data!.Status.Should().Be("Inactive");
     }
 
     #endregion
@@ -194,7 +194,7 @@ public class BankServiceTests
 
         // Assert
         result.Should().NotBeNull();
-        result.Data.Should().HaveCount(3);
+        result!.Data!.Should().HaveCount(3);
         result.Data[0].AccountType.Should().Be(BankAccountType.Check);
         result.Data[1].AccountType.Should().Be(BankAccountType.Savings);
         result.TotalCount.Should().Be(3);
@@ -218,7 +218,7 @@ public class BankServiceTests
 
         // Assert
         result.Should().NotBeNull();
-        result.Data.Should().BeEmpty();
+        result!.Data!.Should().BeEmpty();
         result.TotalCount.Should().Be(0);
         result.TotalPages.Should().Be(0);
     }
@@ -239,7 +239,7 @@ public class BankServiceTests
         // Assert
         await _repository.Received(1).GetAll(userId, paginationParams);
         await _repository.Received(1).CountByUserId(userId);
-        result.Data.Should().HaveCount(5);
+        result.Data!.Should().HaveCount(5);
         result.Data[0].Id.Should().Be(6);
         result.Data[4].Id.Should().Be(10);
     }
@@ -262,7 +262,7 @@ public class BankServiceTests
         result.CurrentPage.Should().Be(2);
         result.HasNextPage.Should().BeTrue();
         result.HasPrevPage.Should().BeTrue();
-        result.Data.Should().HaveCount(5);
+        result.Data!.Should().HaveCount(5);
     }
 
     [Fact]
@@ -307,7 +307,7 @@ public class BankServiceTests
 
         // Assert
         result.Should().BeTrue();
-        _repository.Received(1).Update(Arg.Any<Bank>());
+        await _repository.Received(1).Update(Arg.Any<Bank>());
     }
 
     [Fact]
@@ -324,7 +324,7 @@ public class BankServiceTests
 
         // Assert
         result.Should().BeFalse();
-        _repository.DidNotReceive().Update(Arg.Any<Bank>());
+        await _repository.DidNotReceive().Update(Arg.Any<Bank>());
     }
 
     [Fact]
@@ -343,7 +343,7 @@ public class BankServiceTests
 
         // Assert
         result.Should().BeTrue();
-        _repository.Received(1).Update(Arg.Any<Bank>());
+        await _repository.Received(1).Update(Arg.Any<Bank>());
     }
 
     #endregion
@@ -367,7 +367,7 @@ public class BankServiceTests
         // Assert
         result.Should().BeTrue();
         bank.IsActive.Should().BeTrue();
-        _repository.Received(1).Update(bank);
+        await _repository.Received(1).Update(bank);
     }
 
     [Fact]
@@ -383,7 +383,7 @@ public class BankServiceTests
 
         // Assert
         result.Should().BeFalse();
-        _repository.DidNotReceive().Update(Arg.Any<Bank>());
+        await _repository.DidNotReceive().Update(Arg.Any<Bank>());
     }
 
     [Fact]
@@ -425,7 +425,7 @@ public class BankServiceTests
         // Assert
         result.Should().BeTrue();
         bank.IsActive.Should().BeFalse();
-        _repository.Received(1).Update(bank);
+        await _repository.Received(1).Update(bank);
     }
 
     [Fact]
@@ -441,7 +441,7 @@ public class BankServiceTests
 
         // Assert
         result.Should().BeFalse();
-        _repository.DidNotReceive().Update(Arg.Any<Bank>());
+        await _repository.DidNotReceive().Update(Arg.Any<Bank>());
     }
 
     [Fact]

@@ -40,10 +40,10 @@ public class BankControllerTests
 
         // Assert
         result.Should().BeOfType<CreatedAtActionResult>();
-        var createdResult = result as CreatedAtActionResult;
+        var createdResult = (result as CreatedAtActionResult)!;
         createdResult!.ActionName.Should().Be(nameof(_controller.GetById));
         createdResult.RouteValues!["bankId"].Should().Be(bankId);
-        _bankService.Received(1).CreateBank(request);
+        await _bankService.Received(1).CreateBank(request);
     }
 
     [Fact]
@@ -59,7 +59,7 @@ public class BankControllerTests
 
         // Assert
         result.Should().BeOfType<CreatedAtActionResult>();
-        _bankService.Received(1).CreateBank(request);
+        await _bankService.Received(1).CreateBank(request);
     }
 
     #endregion
@@ -91,10 +91,10 @@ public class BankControllerTests
 
         // Assert
         result.Result.Should().BeOfType<ObjectResult>();
-        var objectResult = result.Result as ObjectResult;
+        var objectResult = (result.Result as ObjectResult)!;
         objectResult.StatusCode.Should().Be(200);
         objectResult.Value.Should().Be(response);
-        _bankService.Received(1).GetById(bankId, userId);
+        await _bankService.Received(1).GetById(bankId, userId);
     }
 
     [Fact]
@@ -114,9 +114,9 @@ public class BankControllerTests
 
         // Assert
         result.Result.Should().BeOfType<ObjectResult>();
-        var objectResult = result.Result as ObjectResult;
+        var objectResult = (result.Result as ObjectResult)!;
         objectResult.StatusCode.Should().Be(404);
-        _bankService.Received(1).GetById(bankId, userId);
+        await _bankService.Received(1).GetById(bankId, userId);
     }
 
     #endregion
@@ -150,15 +150,15 @@ public class BankControllerTests
 
         // Assert
         result.Result.Should().BeOfType<OkObjectResult>();
-        var okResult = result.Result as OkObjectResult;
+        var okResult = (result.Result as OkObjectResult)!;
         okResult.StatusCode.Should().Be(200);
-        var returnedResponse = okResult.Value as PaginatedResponse<BankListItemResponse>;
-        returnedResponse.Data.Should().HaveCount(2);
+        var returnedResponse = (okResult.Value as PaginatedResponse<BankListItemResponse>)!;
+        returnedResponse.Data!.Should().HaveCount(2);
         returnedResponse.Data[0].Id.Should().Be(1);
         returnedResponse.Data[0].Name.Should().Be("Bank 1");
         returnedResponse.Data[1].Id.Should().Be(2);
         returnedResponse.Data[1].Name.Should().Be("Bank 2");
-        _bankService.Received(1).GetAll(userId, paginationParams);
+        await _bankService.Received(1).GetAll(userId, paginationParams);
     }
 
     [Fact]
@@ -183,10 +183,10 @@ public class BankControllerTests
 
         // Assert
         result.Result.Should().BeOfType<OkObjectResult>();
-        var okResult = result.Result as OkObjectResult;
+        var okResult = (result.Result as OkObjectResult)!;
         okResult.StatusCode.Should().Be(200);
-        var returnedResponse = okResult.Value as PaginatedResponse<BankListItemResponse>;
-        returnedResponse.Data.Should().BeEmpty();
+        var returnedResponse = (okResult.Value as PaginatedResponse<BankListItemResponse>)!;
+        returnedResponse.Data!.Should().BeEmpty();
     }
 
     [Fact]
@@ -210,10 +210,10 @@ public class BankControllerTests
         var result = await _controller.Get(paginationParams);
 
         // Assert
-        var okResult = result.Result as OkObjectResult;
+        var okResult = (result.Result as OkObjectResult)!;
         okResult.Should().NotBeNull();
-        okResult.Value.Should().Be(response);
-        _bankService.Received(1).GetAll(userId, paginationParams);
+        okResult!.Value.Should().Be(response);
+        await _bankService.Received(1).GetAll(userId, paginationParams);
     }
 
     [Fact]
@@ -237,11 +237,11 @@ public class BankControllerTests
         var result = await _controller.Get(paginationParams);
 
         // Assert
-        var okResult = result.Result as OkObjectResult;
+        var okResult = (result.Result as OkObjectResult)!;
         okResult.Should().NotBeNull();
-        var returnedResponse = okResult.Value as PaginatedResponse<BankListItemResponse>;
+        var returnedResponse = (okResult.Value as PaginatedResponse<BankListItemResponse>)!;
         returnedResponse.Should().NotBeNull();
-        returnedResponse.TotalCount.Should().Be(12);
+        returnedResponse!.TotalCount.Should().Be(12);
         returnedResponse.TotalPages.Should().Be(3);
         returnedResponse.CurrentPage.Should().Be(2);
         returnedResponse.HasNextPage.Should().BeTrue();
@@ -266,7 +266,7 @@ public class BankControllerTests
 
         // Assert
         result.Should().BeOfType<NoContentResult>();
-        _bankService.Received(1).Update(bankId, request, userId);
+        await _bankService.Received(1).Update(bankId, request, userId);
     }
 
     [Fact]
@@ -283,7 +283,7 @@ public class BankControllerTests
 
         // Assert
         result.Should().BeOfType<NotFoundResult>();
-        _bankService.Received(1).Update(bankId, request, userId);
+        await _bankService.Received(1).Update(bankId, request, userId);
     }
 
     #endregion
@@ -303,7 +303,7 @@ public class BankControllerTests
 
         // Assert
         result.Should().BeOfType<NoContentResult>();
-        _bankService.Received(1).Activate(bankId, userId);
+        await _bankService.Received(1).Activate(bankId, userId);
     }
 
     [Fact]
@@ -319,7 +319,7 @@ public class BankControllerTests
 
         // Assert
         result.Should().BeOfType<NotFoundResult>();
-        _bankService.Received(1).Activate(bankId, userId);
+        await _bankService.Received(1).Activate(bankId, userId);
     }
 
     #endregion
@@ -339,7 +339,7 @@ public class BankControllerTests
 
         // Assert
         result.Should().BeOfType<NoContentResult>();
-        _bankService.Received(1).Deactivate(bankId, userId);
+        await _bankService.Received(1).Deactivate(bankId, userId);
     }
 
     [Fact]
@@ -355,7 +355,7 @@ public class BankControllerTests
 
         // Assert
         result.Should().BeOfType<NotFoundResult>();
-        _bankService.Received(1).Deactivate(bankId, userId);
+        await _bankService.Received(1).Deactivate(bankId, userId);
     }
 
     #endregion
