@@ -102,7 +102,10 @@ if (app.Environment.IsDevelopment())
 app.MapRestrictedIdentityApi<IdentityUser>()
     .RequireRateLimiting(RateLimitPolicyNames.Auth);
 
-app.UseHttpsRedirection();
+if (!app.Environment.IsEnvironment("Testing"))
+{
+    app.UseHttpsRedirection();
+}
 
 app.UseCors(FrontendCorsPolicy);
 
