@@ -14,13 +14,35 @@ public class IdentityEndpointRouteBuilderExtensionsTests
     {
         var isAllowed = IdentityEndpointRouteBuilderExtensions.IsAllowedIdentityEndpoint(
             routePattern,
-            [httpMethod]);
+            [httpMethod],
+            allowDevelopmentRegistration: false);
 
         isAllowed.Should().BeTrue();
     }
 
+    [Fact]
+    public void IsAllowedIdentityEndpoint_WithRegisterEndpointAndDevelopmentRegistrationAllowed_ReturnsTrue()
+    {
+        var isAllowed = IdentityEndpointRouteBuilderExtensions.IsAllowedIdentityEndpoint(
+            "/register",
+            ["POST"],
+            allowDevelopmentRegistration: true);
+
+        isAllowed.Should().BeTrue();
+    }
+
+    [Fact]
+    public void IsAllowedIdentityEndpoint_WithRegisterEndpointAndDevelopmentRegistrationNotAllowed_ReturnsFalse()
+    {
+        var isAllowed = IdentityEndpointRouteBuilderExtensions.IsAllowedIdentityEndpoint(
+            "/register",
+            ["POST"],
+            allowDevelopmentRegistration: false);
+
+        isAllowed.Should().BeFalse();
+    }
+
     [Theory]
-    [InlineData("/register", "POST")]
     [InlineData("/refresh", "POST")]
     [InlineData("/forgotPassword", "POST")]
     [InlineData("/resetPassword", "POST")]
@@ -32,7 +54,8 @@ public class IdentityEndpointRouteBuilderExtensionsTests
     {
         var isAllowed = IdentityEndpointRouteBuilderExtensions.IsAllowedIdentityEndpoint(
             routePattern,
-            [httpMethod]);
+            [httpMethod],
+            allowDevelopmentRegistration: true);
 
         isAllowed.Should().BeFalse();
     }

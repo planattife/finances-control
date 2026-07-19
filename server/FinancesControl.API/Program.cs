@@ -96,7 +96,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.MapRestrictedIdentityApi<IdentityUser>()
+app.MapRestrictedIdentityApi<IdentityUser>(allowDevelopmentRegistration: app.Environment.IsDevelopment())
     .RequireRateLimiting(RateLimitPolicyNames.Auth);
 
 if (!app.Environment.IsEnvironment("Testing"))
