@@ -1,0 +1,231 @@
+using System.Collections.Generic;
+using Xunit;
+using NSubstitute;
+using FluentAssertions;
+using FinancesControl.API.TransactionCategories.DTOs;
+using FinancesControl.API.TransactionCategories.Repository;
+using FinancesControl.API.TransactionCategories.Services;
+using FinancesControl.API.Models;
+using FinancesControl.API.Common;
+
+namespace FinancesControl.Tests.TransactionCategories.Services;
+
+public class TransactionCategoryServiceTests
+{
+    private readonly ITransactionCategoryRepository _repository;
+    private readonly TransactionCategoryService _service;
+    private const string TestUserId = "test-user-123";
+
+    public TransactionCategoryServiceTests()
+    {
+        _repository = Substitute.For<ITransactionCategoryRepository>();
+        _service = new TransactionCategoryService(_repository);
+    }
+
+    [Fact]
+    public async Task CreateCategory_WithValidRequest_ReturnsNewId()
+    {
+        var request = new CreateTransactionCategoryRequest("Food");
+        _repository.Add(Arg.Any<TransactionCategory>()).Returns(Task.FromResult(1L));
+
+        var result = await _service.CreateCategory(request, TestUserId);
+
+        result.Should().Be(1);
+        await _repository.Received(1).Add(Arg.Any<FinancesControl.API.Models.TransactionCategory>());
+    }
+
+    [Fact]
+    public async Task GetById_NotFound_ReturnsNull()
+    {
+        _repository.GetById(999, TestUserId).Returns(Task.FromResult((FinancesControl.API.Models.TransactionCategory?)null));
+        var result = await _service.GetById(999, TestUserId);
+        result.Should().NotBeNull();
+        result!.HttpStatusCode.Should().Be(404);
+        result.Errors.Should().Contain("Category not found.");
+    }
+
+    [Fact]
+    public async Task GetById_Exists_ReturnsDetail()
+    {
+        var model = new TransactionCategory("Bills", 5, TestUserId);
+        _repository.GetById(5, TestUserId).Returns(Task.FromResult((TransactionCategory?)model));
+        var result = await _service.GetById(5, TestUserId);
+        result.Should().NotBeNull();
+        result!.HttpStatusCode.Should().Be(200);
+        result.Errors.Should().BeEmpty();
+        result.Data!.Should().NotBeNull();
+        result.Data!.Id.Should().Be(5);
+        result.Data!.Name.Should().Be("Bills");
+        result.Data!.Status.Should().Be("Active");
+    }
+
+    [Fact]
+    public async Task GetAll_ReturnsPaginatedList()
+    {
+        var paginationParams = new PaginationParams();
+        var categories = new List<TransactionCategory>
+        {
+            new("Food", 1, TestUserId),
+            new("Bills", 2, TestUserId)
+        };
+        _repository.GetAll(TestUserId, paginationParams).Returns(Task.FromResult(categories));
+        _repository.CountByUserId(TestUserId).Returns(Task.FromResult(categories.Count));
+
+        var result = await _service.GetAll(TestUserId, paginationParams);
+
+        result.Should().NotBeNull();
+        result!.HttpStatusCode.Should().Be(200);
+        result.Data!.Should().HaveCount(2);
+        result.TotalCount.Should().Be(2);
+        result.TotalPages.Should().Be(1);
+        result.CurrentPage.Should().Be(1);
+        result.HasNextPage.Should().BeFalse();
+        result.HasPrevPage.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task GetAll_WithEmptyResult_ReturnsZeroTotalPages()
+    {
+        var paginationParams = new PaginationParams();
+        _repository.GetAll(TestUserId, paginationParams).Returns(Task.FromResult(new List<TransactionCategory>()));
+        _repository.CountByUserId(TestUserId).Returns(Task.FromResult(0));
+
+        var result = await _service.GetAll(TestUserId, paginationParams);
+
+        result.Data!.Should().BeEmpty();
+        result.TotalCount.Should().Be(0);
+        result.TotalPages.Should().Be(0);
+        result.CurrentPage.Should().Be(1);
+        result.HasNextPage.Should().BeFalse();
+        result.HasPrevPage.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task GetAll_WithPaginationParams_PassesPaginationParamsToRepository()
+    {
+        var paginationParams = new PaginationParams { PageSize = 5, PageNumber = 2 };
+        _repository.GetAll(TestUserId, paginationParams).Returns(Task.FromResult(new List<TransactionCategory>()));
+        _repository.CountByUserId(TestUserId).Returns(Task.FromResult(0));
+
+        await _service.GetAll(TestUserId, paginationParams);
+
+        await _repository.Received(1).GetAll(TestUserId, paginationParams);
+        await _repository.Received(1).CountByUserId(TestUserId);
+    }
+
+    [Fact]
+    public async Task GetAll_WithSecondPage_ReturnsCorrectPaginationMetadata()
+    {
+        var paginationParams = new PaginationParams { PageSize = 5, PageNumber = 2 };
+        _repository.GetAll(TestUserId, paginationParams).Returns(Task.FromResult(new List<TransactionCategory>()));
+        _repository.CountByUserId(TestUserId).Returns(Task.FromResult(12));
+
+        var result = await _service.GetAll(TestUserId, paginationParams);
+
+        result.TotalCount.Should().Be(12);
+        result.TotalPages.Should().Be(3);
+        result.CurrentPage.Should().Be(2);
+        result.HasNextPage.Should().BeTrue();
+        result.HasPrevPage.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task GetAll_WithInvalidPaginationParams_UsesDefaults()
+    {
+        var paginationParams = new PaginationParams { PageSize = 0, PageNumber = -1 };
+        _repository.GetAll(TestUserId, paginationParams).Returns(Task.FromResult(new List<TransactionCategory>()));
+        _repository.CountByUserId(TestUserId).Returns(Task.FromResult(12));
+
+        var result = await _service.GetAll(TestUserId, paginationParams);
+
+        paginationParams.PageSize.Should().Be(10);
+        paginationParams.PageNumber.Should().Be(1);
+        result.TotalPages.Should().Be(2);
+        result.CurrentPage.Should().Be(1);
+        result.HasNextPage.Should().BeTrue();
+        result.HasPrevPage.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task Rename_ValidCategory_UpdatesName()
+    {
+        var cat = new TransactionCategory("Old", 3, TestUserId);
+        _repository.GetById(3, TestUserId).Returns(Task.FromResult((TransactionCategory?)cat));
+        _repository.Update(Arg.Any<FinancesControl.API.Models.TransactionCategory>()).Returns(Task.FromResult(true));
+        var request = new RenameTransactionCategoryRequest("New");
+
+        var result = await _service.Rename(3, request, TestUserId);
+
+        result.Should().BeTrue();
+        await _repository.Received(1).Update(Arg.Is<FinancesControl.API.Models.TransactionCategory>(c => c.Name == "New"));
+    }
+
+    [Fact]
+    public async Task Activate_ExistingCategory_ReturnsTrue()
+    {
+        var cat = new TransactionCategory("Test", 4, TestUserId);
+        cat.Deactivate();
+        _repository.GetById(4, TestUserId).Returns(Task.FromResult((TransactionCategory?)cat));
+        _repository.Update(cat).Returns(Task.FromResult(true));
+
+        var result = await _service.Activate(4, TestUserId);
+        result.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task Activate_DefaultCategory_ReturnsFalse()
+    {
+        // Return null to simulate that the category doesn't exist for this user (it's a default one)
+        _repository.GetById(4, TestUserId).Returns(Task.FromResult((TransactionCategory?)null));
+
+        var result = await _service.Activate(4, TestUserId);
+
+        result.Should().BeFalse();
+        await _repository.DidNotReceive().Update(Arg.Any<FinancesControl.API.Models.TransactionCategory>());
+    }
+
+    [Fact]
+    public async Task Deactivate_ExistingCategory_ReturnsTrue()
+    {
+        var cat = new TransactionCategory("Test", 5, TestUserId);
+        _repository.GetById(5, TestUserId).Returns(Task.FromResult((TransactionCategory?)cat));
+        _repository.Update(cat).Returns(Task.FromResult(true));
+
+        var result = await _service.Deactivate(5, TestUserId);
+        result.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task Deactivate_DefaultCategory_ReturnsFalse()
+    {
+        // Return null to simulate that the category doesn't exist for this user (it's a default one)
+        _repository.GetById(5, TestUserId).Returns(Task.FromResult((TransactionCategory?)null));
+
+        var result = await _service.Deactivate(5, TestUserId);
+
+        result.Should().BeFalse();
+        await _repository.DidNotReceive().Update(Arg.Any<FinancesControl.API.Models.TransactionCategory>());
+    }
+
+    [Fact]
+    public async Task ExistsAsync_PassesUserIdToRepository_ReturnsTrue()
+    {
+        _repository.ExistsAsync(1, TestUserId).Returns(Task.FromResult(true));
+
+        var result = await _service.ExistsAsync(1, TestUserId);
+
+        result.Should().BeTrue();
+        await _repository.Received(1).ExistsAsync(1, TestUserId);
+    }
+
+    [Fact]
+    public async Task ExistsAsync_WhenRepositoryReturnsFalse_ReturnsFalse()
+    {
+        _repository.ExistsAsync(1, TestUserId).Returns(Task.FromResult(false));
+
+        var result = await _service.ExistsAsync(1, TestUserId);
+
+        result.Should().BeFalse();
+        await _repository.Received(1).ExistsAsync(1, TestUserId);
+    }
+}

@@ -1,0 +1,34 @@
+.accountSelector {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.accountSelectorLabel {
+  color: var(--color-text-secondary);
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+
+.accountSelect {
+  min-width: 180px;
+  height: 38px;
+  padding: 0 12px;
+  border: 1px solid var(--color-border-default);
+  border-radius: 8px;
+  color: var(--color-text-primary);
+  background: var(--color-background-surface);
+}
+
+.accountSelect:focus {
+  border-color: var(--color-border-focus);
+  box-shadow: 0 0 0 3px var(--color-component-focus-ring);
+  outline: none;
+}
+
+.accountSelect:disabled {
+  color: var(--color-text-disabled);
+  background: var(--color-component-disabled-background);
+  cursor: not-allowed;
+}
